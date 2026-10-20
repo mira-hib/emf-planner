@@ -1,4 +1,9 @@
 import { useEffect, useRef, useState } from "react";
+import {
+  formatCoordinate,
+  parseCoordinate,
+  type CoordinateFormat,
+} from "../lib/coordinates";
 export interface Column<T> {
   key: keyof T;
   label: string;
@@ -14,18 +19,24 @@ function Cell({
   value,
   column,
   onCommit,
+  coordinateFormat,
 }: {
   value: unknown;
   column: Column<{ [key: string]: unknown }>;
   onCommit: (value: unknown) => void;
+  coordinateFormat?: CoordinateFormat;
 }) {
   const formatted =
     typeof value === "number"
-      ? String(
-          Number(
-            value.toFixed(column.key === "lat" || column.key === "lng" ? 7 : 4),
-          ),
-        )
+      ? coordinateFormat && (column.key === "lat" || column.key === "lng")
+        ? formatCoordinate(value, coordinateFormat, column.key === "lat")
+        : String(
+            Number(
+              value.toFixed(
+                column.key === "lat" || column.key === "lng" ? 7 : 4,
+              ),
+            ),
+          )
       : String(value ?? "");
   const [text, setText] = useState(formatted),
     [invalid, setInvalid] = useState(false);
@@ -41,7 +52,16 @@ function Cell({
     }
     if (text === formatted) return;
     if (column.kind === "number") {
-      const v = Number(text.trim().replace(",", "."));
+      let v: number;
+      try {
+        v =
+          coordinateFormat && (column.key === "lat" || column.key === "lng")
+            ? parseCoordinate(text, column.key === "lat")
+            : Number(text.trim().replace(",", "."));
+      } catch {
+        setInvalid(true);
+        return;
+      }
       if (
         !text.trim() ||
         !Number.isFinite(v) ||
@@ -109,6 +129,7 @@ export default function DataGrid<T extends { id: string }>({
   onUpdate,
   onAdd,
   label = "Tableau",
+  coordinateFormat,
 }: {
   rows: T[];
   columns: Column<T>[];
@@ -117,6 +138,7 @@ export default function DataGrid<T extends { id: string }>({
   onUpdate?: (id: string, key: keyof T, value: unknown) => void;
   onAdd?: () => void;
   label?: string;
+  coordinateFormat?: CoordinateFormat;
 }) {
   return (
     <div className="data-grid" role="region" aria-label={label} tabIndex={0}>
@@ -145,7 +167,7 @@ export default function DataGrid<T extends { id: string }>({
                 background: (r as { color?: string }).color?.match(
                   /^#[0-9a-f]{6}$/i,
                 )
-                  ? `${(r as { color?: string }).color}35`
+                  ? `${(r as { color?: string }).color}${label === "Sources rayonnantes" ? "" : "35"}`
                   : undefined,
               }}
             >
@@ -158,6 +180,7 @@ export default function DataGrid<T extends { id: string }>({
                     </span>
                   ) : (
                     <Cell
+                      coordinateFormat={coordinateFormat}
                       value={r[c.key]}
                       column={
                         c as unknown as Column<{ [key: string]: unknown }>

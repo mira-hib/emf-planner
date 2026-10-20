@@ -1,4 +1,14 @@
 export interface RadiatingSource {
+  feeder?: {
+    cable: string;
+    length_m: number;
+    jumper: string;
+    jumper_lengths: string;
+    automatic_connectors: boolean;
+    connectors: number;
+    connector_loss: number;
+    other_loss: number;
+  };
   active?: boolean;
   color?: string;
   is_existing?: boolean;
@@ -67,6 +77,11 @@ export interface ProjectData {
   limits?: LimitSet[];
   settings?: CalculationSettings;
   background_image?: BackgroundImage;
+  antenna_library?: StoredAntenna[];
+  owner_names?: string[];
+  custom_maps?: CustomMap[];
+  terrain_contours?: TerrainContour[];
+  volume_options?: VolumeOptions;
 }
 
 export interface SourceContribution {
@@ -160,6 +175,7 @@ export interface HorizontalCut {
   active: boolean;
   height_m: number;
   color: string;
+  line_style?: string;
 }
 export interface VerticalCut {
   id: string;
@@ -198,6 +214,46 @@ export interface CalculationSettings {
   map_provider: string;
   show_basemap: boolean;
   terrain_interpolation?: "original" | "delaunay";
+  coordinate_format?: "decimal" | "dms" | "dm";
+  contour_width?: number;
+  contour_opacity?: number;
+}
+export interface StoredAntenna {
+  id: string;
+  name: string;
+  gain: number;
+  frequency?: number;
+  horizontal: number[];
+  vertical: number[];
+}
+export interface CustomMap {
+  name: string;
+  url: string;
+  attribution: string;
+}
+export interface TerrainContour {
+  id: string;
+  name: string;
+  elevation: number;
+  closed: boolean;
+  points: [number, number][];
+}
+export interface VolumeOptions {
+  center_x: number;
+  center_y: number;
+  radius_m: number;
+  bottom_m: number;
+  top_m: number;
+  step_m: number;
+}
+export interface ExposureVolume {
+  positions: Float32Array;
+  nodes: number;
+  triangles: number;
+  step_m: number;
+  clipped: boolean;
+  limit_index: number;
+  color: string;
 }
 export interface BackgroundImage {
   data_url: string;
@@ -259,6 +315,7 @@ export interface Contour {
   color: string;
   segments: [number, number][][];
   height_m: number;
+  line_style?: string;
 }
 
 export interface FeederType {

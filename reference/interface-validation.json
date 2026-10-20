@@ -1,0 +1,164 @@
+{
+  "date_utc": "2026-10-20T08:59:50.857375+00:00",
+  "unit_tests": {
+    "passed": 21,
+    "command": "npm test"
+  },
+  "browser_tests": {
+    "passed": 14,
+    "command": "npm run test:ui",
+    "browser": "Microsoft Edge",
+    "viewport": [1480, 960],
+    "small_viewport": [1040, 760]
+  },
+  "windows_release": {
+    "command": "npm run tauri build -- --no-bundle",
+    "bytes": 6680576,
+    "sha256": "5cab4453e9be0129adf7ee9946e4b02d5c163f56735d955ca5c63732293afc0b",
+    "runtime_check": "Windows release launched; bundled demonstration and original icons rendered. Native WebGL scene and Worker volume calculation completed: 152 triangles at 3 m, 0.124 s. Final binary rebuilt after UI corrections."
+  },
+  "numeric_parity": {
+    "date": "2026-10-20T08:34:00.238Z",
+    "sample": "tests/fixtures/original-sample.xemf",
+    "reference_sample_sha256": "bbc1b5dfe34eec33421e229f6080d79b5c067ad9055875b9b9b85d1b79ba79f6",
+    "results": [
+      {
+        "point": "1.1.1",
+        "expected_field": 0.063538,
+        "actual_field": 0.06353850388563341,
+        "absolute_field_error": 5.038856334127484e-7,
+        "expected_exposure_percent": 0.001009,
+        "actual_exposure_percent": 0.0010092853690061633
+      },
+      {
+        "point": "1.1.2",
+        "expected_field": 0.062489,
+        "actual_field": 0.06248988108547149,
+        "absolute_field_error": 8.810854714852434e-7,
+        "expected_exposure_percent": 0.000976,
+        "actual_exposure_percent": 0.0009762463095190916
+      },
+      {
+        "point": "1.2.1",
+        "expected_field": 0.025225,
+        "actual_field": 0.02522566823633671,
+        "absolute_field_error": 6.682363367094268e-7,
+        "expected_exposure_percent": 0.000159,
+        "actual_exposure_percent": 0.00015908358449243174
+      },
+      {
+        "point": "1.2.2",
+        "expected_field": 0.020072,
+        "actual_field": 0.020072210780707655,
+        "absolute_field_error": 2.1078070765526147e-7,
+        "expected_exposure_percent": 0.0001,
+        "actual_exposure_percent": 0.00010072341140628913
+      },
+      {
+        "point": "1.3.1",
+        "expected_field": 0.341606,
+        "actual_field": 0.34160637607767513,
+        "absolute_field_error": 3.7607767511271817e-7,
+        "expected_exposure_percent": 0.029173,
+        "actual_exposure_percent": 0.0291737290442305
+      },
+      {
+        "point": "1.3.2",
+        "expected_field": 0.395011,
+        "actual_field": 0.3950107858352233,
+        "absolute_field_error": 2.141647766906729e-7,
+        "expected_exposure_percent": 0.039008,
+        "actual_exposure_percent": 0.039008380231540164
+      },
+      {
+        "point": "1.4.1",
+        "expected_field": 0.432815,
+        "actual_field": 0.43281593270828145,
+        "absolute_field_error": 9.327082814425403e-7,
+        "expected_exposure_percent": 0.046832,
+        "actual_exposure_percent": 0.046832407901534895
+      },
+      {
+        "point": "1.4.2",
+        "expected_field": 0.471055,
+        "actual_field": 0.471055293738839,
+        "absolute_field_error": 2.9373883897454434e-7,
+        "expected_exposure_percent": 0.055473,
+        "actual_exposure_percent": 0.05547327243984597
+      },
+      {
+        "point": "1.5.1",
+        "expected_field": 0.120968,
+        "actual_field": 0.12096866475756077,
+        "absolute_field_error": 6.647575607615641e-7,
+        "expected_exposure_percent": 0.003658,
+        "actual_exposure_percent": 0.003658354463306781
+      },
+      {
+        "point": "1.5.2",
+        "expected_field": 0.100006,
+        "actual_field": 0.1000066624463306,
+        "absolute_field_error": 6.624463305959782e-7,
+        "expected_exposure_percent": 0.0025,
+        "actual_exposure_percent": 0.002500333133413576
+      },
+      {
+        "point": "1.6.1",
+        "expected_field": 0.543768,
+        "actual_field": 0.5437689945531115,
+        "absolute_field_error": 9.945531114219364e-7,
+        "expected_exposure_percent": 0.073921,
+        "actual_exposure_percent": 0.07392117985932543
+      },
+      {
+        "point": "1.6.2",
+        "expected_field": 0.638786,
+        "actual_field": 0.6387860498313046,
+        "absolute_field_error": 4.983130463820373e-8,
+        "expected_exposure_percent": 0.102011,
+        "actual_exposure_percent": 0.10201190436477046
+      },
+      {
+        "point": "1.7.1",
+        "expected_field": 0.168588,
+        "actual_field": 0.16858876628188338,
+        "absolute_field_error": 7.662818833908958e-7,
+        "expected_exposure_percent": 0.007105,
+        "actual_exposure_percent": 0.007105543029111874
+      },
+      {
+        "point": "1.7.2",
+        "expected_field": 0.220221,
+        "actual_field": 0.2202213084878602,
+        "absolute_field_error": 3.0848786020110097e-7,
+        "expected_exposure_percent": 0.012124,
+        "actual_exposure_percent": 0.012124356178026326
+      },
+      {
+        "point": "1.8",
+        "expected_field": 0.21267,
+        "actual_field": 0.2126707575313187,
+        "absolute_field_error": 7.575313187013766e-7,
+        "expected_exposure_percent": 0.011307,
+        "actual_exposure_percent": 0.011307212777236234
+      }
+    ],
+    "max_absolute_field_error": 9.945531114219364e-7,
+    "tolerance": 1.1e-6,
+    "scope": "15 observed positions/heights of one original sample. Does not establish general parity for all branches or native extensions."
+  },
+  "surface_test": {
+    "analytic_radius_m": 10,
+    "coarse_step_m": 1,
+    "coarse_radial_error_below_m": 0.12,
+    "fine_step_m": 0.5,
+    "fine_radial_error_below_m": 0.04,
+    "error_reduction_above": 3
+  },
+  "limitations": [
+    "Mac build/runtime not tested on this Windows PC.",
+    "Original numerical parity covers one sample with 15 positions/heights.",
+    "3D surface is an approximate mesh; native 3D mesh parity not established.",
+    "Unimplemented tools remain visible and disabled."
+  ]
+}

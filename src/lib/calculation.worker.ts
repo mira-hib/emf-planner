@@ -5,10 +5,11 @@ import {
   verticalGrid,
 } from "./engine";
 import type { PlannerProject } from "../types";
+import { defaultVolumeOptions, volumeSurface } from "./volume";
 self.onmessage = (
   event: MessageEvent<{
     id: number;
-    kind: "points" | "horizontal" | "vertical";
+    kind: "points" | "horizontal" | "vertical" | "volume";
     project: PlannerProject;
     fine: boolean;
   }>,
@@ -18,7 +19,14 @@ self.onmessage = (
     const step = fine
       ? project.settings.fine_step_m
       : project.settings.grid_step_m;
-    if (kind === "points")
+    if (kind === "volume") {
+      const result = volumeSurface(
+        project,
+        project.volume_options ?? defaultVolumeOptions(project),
+        (progress) => self.postMessage({ id, progress }),
+      );
+      self.postMessage({ id, result }, { transfer: [result.positions.buffer] });
+    } else if (kind === "points")
       self.postMessage({ id, result: calculatePoints(project) });
     else {
       const cuts =

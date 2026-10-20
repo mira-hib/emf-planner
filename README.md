@@ -43,10 +43,14 @@ les empreintes, les fonctions grisées et les prochaines étapes.
 - Tableaux éditables, copie/suppression, annuler/rétablir, raccourcis et copie de
   travail locale.
 - Diagrammes d’antennes MSI, calcul EIRP et facteurs par jeu de limites.
+- Icônes de l’original, grille compacte et panneaux redimensionnables.
+- Bibliothèque/éditeur d’antennes, enveloppes, génération symétrique et calculateur de câbles avec bretelles/connecteurs.
 - Calculs aux points avec plusieurs hauteurs et matrice de contributions.
 - Coupes horizontales/verticales et contours des quatre jeux de limites actifs.
 - Plan hors ligne, fonds de carte en ligne, bâtiments, relief et annotations.
+- Édition des sommets, bâtiments KML, courbes de niveau, triangulation, gestion des groupes et coupes par intervalles.
 - Rapports Word/Excel/PDF, plan CAO SVG/PDF/DXF et scène 3D interactive.
+- Surface d’exposition à 100 % en 3D, avec zone et pas de maillage réglables.
 
 Le [détail des fonctions disponibles et grisées](memory-bank/clone-interface.md)
 décrit les limites actuelles. L’interface n’est pas encore une reproduction
@@ -65,6 +69,8 @@ Les tests couvrent les calculs, le chargement du projet original, l’édition,
 l’enregistrement, les deux types de coupes, les vues CAO/3D et les exports.
 Les 15 résultats point/hauteur capturés sur le projet livré concordent avec le
 clone à moins de `1.1e-6 V/m` ; cette mesure concerne ce seul scénario.
+Les tests du maillage 3D vérifient sa convergence vers une sphère analytique.
+Voir [l’affinage de l’interface](memory-bank/interface-refinement.md).
 
 ## Développement
 

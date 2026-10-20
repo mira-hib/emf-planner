@@ -10,7 +10,6 @@ import {
   Plus,
   Trash2,
   Upload,
-  X,
 } from "lucide-react";
 import type { RadiatingSource } from "../types";
 import { usePlanner } from "../lib/usePlanner";
@@ -27,6 +26,7 @@ import { uid } from "../lib/project";
 import DataGrid, { type Column } from "./DataGrid";
 import AntennaPolar from "./AntennaPolar";
 import { NumberField, Tool } from "./Controls";
+import FeatureTools from "./FeatureTools";
 const COLUMNS: Column<RadiatingSource>[] = [
   { key: "active", label: "✓", kind: "boolean", width: 28 },
   { key: "name", label: "Nom de la source", width: 110 },
@@ -144,10 +144,10 @@ export default function SourcesPage() {
     updateSource,
     addSource,
     task,
+    openCommand,
   } = usePlanner();
   const [vertical, setVertical] = useState(false),
-    [lossOpen, setLossOpen] = useState(false),
-    [loss, setLoss] = useState(0);
+    [both, setBoth] = useState(true);
   function move(direction: number) {
     if (!source) return;
     const rows = [...project.sources],
@@ -317,11 +317,27 @@ export default function SourcesPage() {
               />
             ))}
           </div>
+          <FeatureTools section="sources" />
         </div>
         <DataGrid
           label="Sources rayonnantes"
           rows={project.sources}
-          columns={COLUMNS}
+          columns={COLUMNS.map((c) => ({
+            ...c,
+            width: Math.max(24, Math.round((c.width ?? 90) * 0.72)),
+            ...(c.key === "owner"
+              ? {
+                  kind: "select" as const,
+                  options: [
+                    ...new Set([
+                      "",
+                      ...(project.owner_names ?? []),
+                      ...project.sources.map((s) => s.owner),
+                    ]),
+                  ],
+                }
+              : {}),
+          }))}
           selected={source?.id}
           onSelect={setSelectedSource}
           onUpdate={updateSource}
@@ -339,13 +355,19 @@ export default function SourcesPage() {
           <div className="button-row">
             <button
               className={!vertical ? "pressed" : ""}
-              onClick={() => setVertical(false)}
+              onClick={() => {
+                setVertical(false);
+                setBoth(false);
+              }}
             >
               H
             </button>
             <button
               className={vertical ? "pressed" : ""}
-              onClick={() => setVertical(true)}
+              onClick={() => {
+                setVertical(true);
+                setBoth(false);
+              }}
             >
               V
             </button>
@@ -360,7 +382,19 @@ export default function SourcesPage() {
               ↑
             </button>
           </div>
-          <AntennaPolar source={source} vertical={vertical} />
+          <div className="polar-legend">
+            <label>
+              <input
+                type="checkbox"
+                checked={both}
+                onChange={(e) => setBoth(e.target.checked)}
+              />
+              H + V
+            </label>
+            <span style={{ color: "#274fdb" }}>― H</span>
+            <span style={{ color: "#e02530" }}>― V</span>
+          </div>
+          <AntennaPolar source={source} vertical={vertical} both={both} />
           <div className="inspector-note">
             {source?.antenna_model || "Aucune source"}
           </div>
@@ -412,12 +446,15 @@ export default function SourcesPage() {
               </div>
               <button
                 className="text-button"
-                onClick={() => {
-                  setLoss(source.total_attenuation_db);
-                  setLossOpen(true);
-                }}
+                onClick={() => openCommand("Bibliothèque de câbles")}
               >
                 <Cable size={12} /> Câble / connecteurs
+              </button>
+              <button
+                className="text-button"
+                onClick={() => openCommand("Calcul inverse de puissance")}
+              >
+                Calcul inverse de puissance…
               </button>
             </>
           ) : (
@@ -482,44 +519,6 @@ export default function SourcesPage() {
           </table>
         </fieldset>
       </aside>
-      {lossOpen && source && (
-        <div className="modal-backdrop">
-          <section
-            className="small-dialog"
-            role="dialog"
-            aria-modal="true"
-            aria-label="Calcul des pertes"
-          >
-            <header>
-              Pertes câble et connecteurs
-              <button
-                aria-label="Fermer le calcul des pertes"
-                onClick={() => setLossOpen(false)}
-              >
-                <X size={15} />
-              </button>
-            </header>
-            <NumberField
-              label="Atténuation totale, dB"
-              value={loss}
-              min={0}
-              onChange={setLoss}
-            />
-            <p className="hint">
-              Perte à {source.frequency_mhz} MHz, câble et connecteurs compris.
-            </p>
-            <button
-              className="primary-action"
-              onClick={() => {
-                updateSource(source.id, "total_attenuation_db", loss);
-                setLossOpen(false);
-              }}
-            >
-              Appliquer à {source.name}
-            </button>
-          </section>
-        </div>
-      )}
     </div>
   );
 }

@@ -13,7 +13,7 @@ import { usePlanner } from "../lib/usePlanner";
 import { calculatePoints, exposureAt } from "../lib/engine";
 import { rad, terrainHeight } from "../lib/geometry";
 import { exportExcel, exportPdf, exportWord } from "../lib/files";
-import { TILES } from "./PlannerMap";
+import { mapProviders } from "./PlannerMap";
 import DataGrid from "./DataGrid";
 import { NumberField } from "./Controls";
 import { ResultTable } from "./Results";
@@ -407,7 +407,7 @@ export function SettingsPage() {
             value={project.settings.map_provider}
             onChange={(e) => settings({ map_provider: e.target.value })}
           >
-            {Object.keys(TILES).map((n) => (
+            {Object.keys(mapProviders(project)).map((n) => (
               <option key={n}>{n}</option>
             ))}
           </select>

@@ -1,4 +1,4 @@
-import type { PlannerProject } from "../types";
+import type { PlannerProject, TerrainPoint } from "../types";
 import Delaunator from "delaunator";
 import { originalTerrainTriangles } from "./original-terrain";
 const R = 6378137;
@@ -57,23 +57,29 @@ export function inside(
 }
 const terrainCache = new WeakMap<
   PlannerProject,
-  { triangles: Uint32Array; memo: Map<string, number> }
+  { points: TerrainPoint[]; triangles: Uint32Array; memo: Map<string, number> }
 >();
-export function terrainHeight(
-  project: PlannerProject,
-  x: number,
-  y: number,
-): number {
-  if (!project.settings.consider_terrain || !project.terrain_points.length)
-    return 0;
+export function terrainMesh(project: PlannerProject) {
   let cache = terrainCache.get(project);
   if (!cache) {
+    const points = [
+      ...project.terrain_points,
+      ...(project.terrain_contours ?? []).flatMap((c) =>
+        c.points.map(([x, y], i) => ({
+          id: `${c.id}:${i}`,
+          x,
+          y,
+          elevation: c.elevation,
+        })),
+      ),
+    ];
     cache = {
+      points,
       triangles:
         project.settings.terrain_interpolation === "original"
-          ? originalTerrainTriangles(project)
+          ? originalTerrainTriangles({ ...project, terrain_points: points })
           : Delaunator.from(
-              project.terrain_points,
+              points,
               (p) => p.x,
               (p) => p.y,
             ).triangles,
@@ -81,13 +87,27 @@ export function terrainHeight(
     };
     terrainCache.set(project, cache);
   }
+  return cache;
+}
+export function terrainHeight(
+  project: PlannerProject,
+  x: number,
+  y: number,
+): number {
+  if (
+    !project.settings.consider_terrain ||
+    (!project.terrain_points.length &&
+      !project.terrain_contours?.some((c) => c.points.length))
+  )
+    return 0;
+  const cache = terrainMesh(project);
   const key = `${x},${y}`,
     existing = cache.memo.get(key);
   if (existing !== undefined) return existing;
   for (let i = 0; i < cache.triangles.length; i += 3) {
-    const a = project.terrain_points[cache.triangles[i]],
-      b = project.terrain_points[cache.triangles[i + 1]],
-      c = project.terrain_points[cache.triangles[i + 2]],
+    const a = cache.points[cache.triangles[i]],
+      b = cache.points[cache.triangles[i + 1]],
+      c = cache.points[cache.triangles[i + 2]],
       det = (b.y - c.y) * (a.x - c.x) + (c.x - b.x) * (a.y - c.y);
     if (Math.abs(det) < 1e-10) continue;
     const u = ((b.y - c.y) * (x - c.x) + (c.x - b.x) * (y - c.y)) / det,
@@ -98,7 +118,7 @@ export function terrainHeight(
       return h;
     }
   }
-  const nearest = project.terrain_points
+  const nearest = cache.points
     .map((p) => ({ ...p, d: Math.hypot(x - p.x, y - p.y) }))
     .sort((a, b) => a.d - b.d)
     .slice(0, 3);

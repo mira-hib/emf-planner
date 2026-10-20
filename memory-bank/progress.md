@@ -1,5 +1,9 @@
 # Suivi d'avancement
 
+État courant après affinage du 20 octobre : voir `interface-refinement.md` et
+`features.md`. 21 tests métier, 14 parcours UI, compilation Windows release.
+Les entrées ci-dessous conservent l’historique, dont des blocages ensuite résolus.
+
 ## 2026-10-19 — Jour 1
 
 ### Phase 1 : Décompilation

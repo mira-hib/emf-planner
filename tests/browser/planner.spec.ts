@@ -133,7 +133,7 @@ test("secondary commands stay visible, unavailable commands are disabled, duplic
   ).toBeDisabled();
   await expect(
     page.getByRole("button", { name: "Éditeur de diagramme", exact: true }),
-  ).toHaveAttribute("title", /pas encore implémentée/);
+  ).toHaveAttribute("title", /sélectionnez/);
   await page.getByRole("button", { name: "Fichier", exact: true }).click();
   await page
     .getByRole("button", { name: "Projet de démonstration", exact: true })
@@ -164,7 +164,7 @@ test("secondary commands stay visible, unavailable commands are disabled, duplic
       name: "Importer les bâtiments KML",
       exact: true,
     }),
-  ).toBeDisabled();
+  ).toBeEnabled();
   await page.screenshot({ path: ".tools/test-results/buildings.png" });
 });
 test("original xemf import and real Office/PDF exports", async ({ page }) => {

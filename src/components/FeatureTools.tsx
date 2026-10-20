@@ -1,8 +1,30 @@
-import { Wrench } from "lucide-react";
+import {
+  Cable,
+  Copy,
+  FileText,
+  Globe,
+  Grid2X2,
+  Layers,
+  Library,
+  ListOrdered,
+  MapPin,
+  Maximize,
+  Move,
+  Palette,
+  PenLine,
+  Plus,
+  RotateCw,
+  Scissors,
+  Settings,
+  Trash2,
+  Waves,
+} from "lucide-react";
 import type { Section } from "../types";
 import { usePlanner } from "../lib/usePlanner";
 import { COLORS, uid } from "../lib/project";
 import { terrainHeight } from "../lib/geometry";
+import { useExtraActions } from "../lib/useExtraActions";
+import OriginalIcon from "./OriginalIcon";
 
 // Secondary commands identified in the recovered UC_*.cs forms.
 // Commands without an action stay visible and disabled until implemented.
@@ -151,6 +173,7 @@ export default function FeatureTools({ section }: { section: Section }) {
     { project: p, source, commit } = a;
   const building = p.buildings.find((b) => b.id === a.selectedObject);
   const line = p.lines.find((l) => l.id === a.selectedObject);
+  const extraActions = useExtraActions();
   const rotate = (delta: number) => {
     if (!source?.pattern_v) return;
     const values = source.pattern_v;
@@ -161,6 +184,7 @@ export default function FeatureTools({ section }: { section: Section }) {
     );
   };
   const actions: Record<string, { run: () => void; enabled: boolean }> = {
+    ...extraActions,
     "Diagramme V : −1°": {
       run: () => rotate(-1),
       enabled: !!source?.pattern_v,
@@ -272,24 +296,32 @@ export default function FeatureTools({ section }: { section: Section }) {
     },
     "Couleurs distinctes": {
       run: () =>
-        commit((p) => ({
-          ...p,
-          horizontal_cuts: p.horizontal_cuts.map((c, i) => ({
-            ...c,
-            color: COLORS[i % COLORS.length],
-          })),
-        })),
+        commit(
+          (p) => ({
+            ...p,
+            horizontal_cuts: p.horizontal_cuts.map((c, i) => ({
+              ...c,
+              color: COLORS[i % COLORS.length],
+            })),
+          }),
+          "Couleurs de contour modifiées",
+          false,
+        ),
       enabled: p.horizontal_cuts.length > 0,
     },
     "Couleur unique": {
       run: () =>
-        commit((p) => ({
-          ...p,
-          horizontal_cuts: p.horizontal_cuts.map((c) => ({
-            ...c,
-            color: p.horizontal_cuts[0].color,
-          })),
-        })),
+        commit(
+          (p) => ({
+            ...p,
+            horizontal_cuts: p.horizontal_cuts.map((c) => ({
+              ...c,
+              color: p.horizontal_cuts[0].color,
+            })),
+          }),
+          "Couleurs de contour modifiées",
+          false,
+        ),
       enabled: p.horizontal_cuts.length > 0,
     },
     "Trier par azimut": {
@@ -304,12 +336,11 @@ export default function FeatureTools({ section }: { section: Section }) {
     },
   };
   return (
-    <div className="feature-tools" aria-label="Outils complémentaires">
-      <div className="feature-tools-caption">
-        <Wrench size={12} />
-        <span>Outils complémentaires</span>
-        <small>Grisé : indisponible</small>
-      </div>
+    <div
+      className="feature-tools"
+      role="toolbar"
+      aria-label="Outils complémentaires"
+    >
       <div className="feature-tools-buttons">
         {EXTRA_TOOLS[section].map((label) => {
           const action = actions[label];
@@ -330,7 +361,12 @@ export default function FeatureTools({ section }: { section: Section }) {
                 title={reason}
                 aria-label={label}
               >
-                {label}
+                <OriginalIcon label={label} section={section}>
+                  {(() => {
+                    const Icon = iconFor(label);
+                    return <Icon size={17} />;
+                  })()}
+                </OriginalIcon>
               </button>
             </span>
           );
@@ -338,4 +374,24 @@ export default function FeatureTools({ section }: { section: Section }) {
       </div>
     </div>
   );
+}
+function iconFor(label: string) {
+  if (/Bibliothèque/.test(label)) return /câbles/.test(label) ? Cable : Library;
+  if (/Copier|Dupliquer/.test(label)) return Copy;
+  if (/Supprimer/.test(label)) return Trash2;
+  if (/Ajouter|intervalle|plage/.test(label)) return Plus;
+  if (/Trier|Monter|Descendre/.test(label)) return ListOrdered;
+  if (/Couleur/.test(label)) return Palette;
+  if (/Diagramme V/.test(label)) return RotateCw;
+  if (/Scinder|Coupe verticale/.test(label)) return Scissors;
+  if (/Décaler|au centre|Origine sur/.test(label)) return Move;
+  if (/Centrer|Coordonnées/.test(label)) return MapPin;
+  if (/Rapport|Word/.test(label)) return FileText;
+  if (/nœud|sommet|Éditeur|Équarrir/.test(label)) return PenLine;
+  if (/Enveloppe|symétrique/.test(label)) return Waves;
+  if (/maxima|hauteur|longueur/.test(label)) return Maximize;
+  if (/Préréglage|OpenStreetMap|carte/.test(label)) return Globe;
+  if (/terrain|relief|Relief|Courbe|Altitude/.test(label)) return Layers;
+  if (/Tableaux|triangulation|grille/.test(label)) return Grid2X2;
+  return Settings;
 }

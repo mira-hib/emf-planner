@@ -5,13 +5,16 @@ import type { VerticalCut } from "../types";
 import DataGrid from "./DataGrid";
 import FieldPlot from "./FieldPlot";
 import { CalculateButton, LimitSelector, Tool } from "./Controls";
+import FeatureTools from "./FeatureTools";
+import SplitWorkspace from "./SplitWorkspace";
 export default function VerticalPage() {
   const a = usePlanner(),
     { project, commit } = a;
   return (
-    <div className="split-workspace vertical-workspace">
+    <SplitWorkspace vertical>
       <section className="property-pane">
         <div className="pane-caption">Coupes verticales</div>
+        <FeatureTools section="vertical" />
         <div className="section-tools">
           <Tool
             label="Ajouter une coupe verticale"
@@ -151,6 +154,6 @@ export default function VerticalPage() {
           .filter((l) => l.active)
           .map((l) => ({ name: l.name, color: l.color }))}
       />
-    </div>
+    </SplitWorkspace>
   );
 }

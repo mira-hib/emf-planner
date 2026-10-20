@@ -23,6 +23,7 @@ Dans Git :
 - `tests/fixtures/` : projet original et 15 résultats observés, disponibles
   immédiatement pour `npm test` et `npm run benchmark`.
 - Memory bank, scripts de capture/reconstruction et scripts de passation.
+- Icônes d’origine, 36 câbles, quatre modèles d’antennes de référence et nouveaux outils versionnés.
 
 Dans [la release de passation](https://github.com/mira-hib/emf-planner/releases/tag/windows-handoff-2026-10-20) :
 
@@ -32,6 +33,11 @@ Dans [la release de passation](https://github.com/mira-hib/emf-planner/releases/
 - Inventaires REA des membres et comparaison des 3 106 corps CIL.
 - Projets de scénarios, sorties de référence, captures et exports de tests.
 - Exécutable Windows du clone compilé en mode release.
+
+Cette grande archive conserve la compilation antérieure à l’affinage. Le code
+actuel se récupère avec `git pull`. Le nouvel exécutable est fourni séparément
+sur cette même release ; voir `reference/interface-build.json` pour sa version
+et son empreinte. Ne pas remplacer le code actuel par celui d’une ancienne archive.
 
 Archive : **228 710 977 octets**, **389 fichiers**.
 SHA-256 : `7ac5fccc81e45e3969225087292b60ecabbc2e160eacc08d403997efe2d31b6b`.
@@ -69,8 +75,8 @@ Lire [clone-interface.md](clone-interface.md) et [features.md](features.md) pour
 le détail. Le moteur qui pilote ces écrans est `src/lib/engine.ts`, utilisé par
 un Web Worker. Les anciens modules Rust ne pilotent plus cette interface.
 
-Vérifications effectuées sur ce PC : build TypeScript/Vite, **10 tests métier**,
-**5 parcours d’interface Edge**, compilation **Tauri Windows release**. Les
+Vérifications après affinage : build TypeScript/Vite, **21 tests métier**,
+**14 parcours d’interface Edge**, compilation **Tauri Windows release**. Les
 rapports Word/PDF/Excel ont été téléchargés et leur contenu contrôlé, y compris
 la sélection « points seuls » / « sources et points ».
 
@@ -90,8 +96,10 @@ npm run test:ui
 Les tests d’interface démarrent Vite si nécessaire et utilisent Chromium sur
 Mac, Edge sur Windows. La validation d’exécution sur Mac reste à faire.
 
-Poursuivre par les commandes grisées selon priorité : bibliothèques et éditeur
-d’antennes, outils de sommets, courbes de niveau/DEM, génération avancée des
-coupes, rapports illustrés et modèles Word, puis DWG/volumes de sécurité 3D.
+Les bibliothèques/éditeur d’antennes, les câbles, sommets, groupes, courbes de
+niveau, intervalles de coupes et surface d’exposition 3D sont raccordés.
+Lire [interface-refinement.md](interface-refinement.md). Poursuivre par les
+outils gris : DEM/SRTM, génération avancée des coupes, rapports illustrés,
+modèles Word, DWG et calibration par références.
 Les écrans fonctionnels peuvent ensuite être comparés plus finement à
 l’original pour améliorer la fidélité visuelle.

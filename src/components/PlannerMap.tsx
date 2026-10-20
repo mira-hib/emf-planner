@@ -12,6 +12,8 @@ import {
 } from "react-leaflet";
 import type { Contour, PlannerProject } from "../types";
 import { rad, toGeo } from "../lib/geometry";
+import TerrainLayer from "./TerrainLayer";
+import { dashPattern } from "../lib/presentation";
 import "leaflet/dist/leaflet.css";
 export type DrawTool =
   | "pan"
@@ -22,6 +24,7 @@ export type DrawTool =
   | "barrier"
   | "label"
   | "terrain"
+  | "terrain-contour"
   | "ruler";
 export const TILES: Record<string, { url: string; attribution: string }> = {
   "Carto clair": {
@@ -37,10 +40,21 @@ export const TILES: Record<string, { url: string; attribution: string }> = {
     attribution: "© Esri",
   },
 };
+export function mapProviders(project: PlannerProject) {
+  return {
+    ...TILES,
+    ...Object.fromEntries(
+      (project.custom_maps ?? [])
+        .filter((m) => m.name && /^https?:\/\//.test(m.url))
+        .map((m) => [m.name, { url: m.url, attribution: m.attribution }]),
+    ),
+  };
+}
 export interface DisplayOptions {
   grid: boolean;
   buildings: boolean;
   terrain: boolean;
+  triangulation: boolean;
   lines: boolean;
   sources: boolean;
   points: boolean;
@@ -58,7 +72,12 @@ interface Props {
   onCursor?: (x: number, y: number) => void;
   onFinish: () => void;
   onSelectSource?: (id: string) => void;
+  onSelectPoint?: (id: string) => void;
   onView?: (center: [number, number], zoom: number) => void;
+  viewRequest?: { center: [number, number]; version: number } | null;
+  onCenterChange?: (center: [number, number]) => void;
+  selectedObject?: string;
+  onSelectObject?: (id: string) => void;
 }
 function LeafletEvents({
   onClick,
@@ -74,11 +93,28 @@ function LeafletEvents({
   });
   return null;
 }
-function ResetMap({ origin }: { origin: [number, number] }) {
+function ResetMap({
+  origin,
+  request,
+  action,
+}: {
+  origin: [number, number];
+  request?: Props["viewRequest"];
+  action?: { version: number; delta: number };
+}) {
   const map = useMap();
   useEffect(() => {
     map.setView(origin, map.getZoom());
   }, [map, origin[0], origin[1]]);
+  useEffect(() => {
+    if (request) map.setView(toGeo(...request.center, origin), map.getZoom());
+  }, [map, request?.version]);
+  useEffect(() => {
+    if (action) {
+      if (action.delta) map.setZoom(map.getZoom() + action.delta);
+      else map.setView(origin, map.getZoom());
+    }
+  }, [map, action?.version]);
   useEffect(() => {
     const o = new ResizeObserver(() => map.invalidateSize());
     o.observe(map.getContainer());
@@ -99,7 +135,8 @@ export default function PlannerMap(props: Props) {
     onSelectSource,
   } = props;
   const [radius, setRadius] = useState(p.settings.radius_m),
-    [offset, setOffset] = useState<[number, number]>([0, 0]);
+    [offset, setOffset] = useState<[number, number]>([0, 0]),
+    [mapAction, setMapAction] = useState<{ version: number; delta: number }>();
   const drag = useRef<{
       x: number;
       y: number;
@@ -110,6 +147,10 @@ export default function PlannerMap(props: Props) {
     setRadius(p.settings.radius_m);
     setOffset([0, 0]);
   }, [p.origin, p.settings.radius_m]);
+  useEffect(() => {
+    if (props.viewRequest) setOffset(props.viewRequest.center);
+  }, [props.viewRequest?.version]);
+  useEffect(() => props.onCenterChange?.(offset), [offset[0], offset[1]]);
   const geo = (pt: [number, number]) => toGeo(pt[0], pt[1], p.origin);
   const local = (lat: number, lng: number): [number, number] => {
     const R = 6378137,
@@ -142,19 +183,26 @@ export default function PlannerMap(props: Props) {
           onClick={() => {
             setOffset([0, 0]);
             setRadius(p.settings.radius_m);
+            setMapAction({ version: Date.now(), delta: 0 });
           }}
         >
           ⌖
         </button>
         <button
           title="Zoom avant"
-          onClick={() => setRadius((r) => Math.max(10, r / 1.25))}
+          onClick={() => {
+            setRadius((r) => Math.max(10, r / 1.25));
+            setMapAction({ version: Date.now(), delta: 1 });
+          }}
         >
           ＋
         </button>
         <button
           title="Zoom arrière"
-          onClick={() => setRadius((r) => Math.min(20000, r * 1.25))}
+          onClick={() => {
+            setRadius((r) => Math.min(20000, r * 1.25));
+            setMapAction({ version: Date.now(), delta: -1 });
+          }}
         >
           −
         </button>
@@ -180,12 +228,27 @@ export default function PlannerMap(props: Props) {
           doubleClickZoom={false}
         >
           <TileLayer
-            {...(TILES[p.settings.map_provider] ?? TILES["Carto clair"])}
+            {...(mapProviders(p)[p.settings.map_provider] ??
+              TILES["Carto clair"])}
           />
-          <ResetMap origin={p.origin} />
+          <ResetMap
+            origin={p.origin}
+            request={props.viewRequest}
+            action={mapAction}
+          />
           <LeafletEvents
             onClick={(lat, lng) => onClick(...local(lat, lng))}
-            onView={props.onView}
+            onView={(center, zoom) => {
+              props.onView?.(center, zoom);
+              props.onCenterChange?.(local(...center));
+            }}
+          />
+          <TerrainLayer
+            project={p}
+            display={display}
+            leaflet
+            selected={props.selectedObject}
+            onSelect={tool === "pan" ? props.onSelectObject : undefined}
           />
           {display.buildings &&
             p.buildings.map((b) => (
@@ -193,10 +256,16 @@ export default function PlannerMap(props: Props) {
                 key={b.id}
                 positions={b.points.map(geo)}
                 pathOptions={{
-                  color: "#333",
+                  color: props.selectedObject === b.id ? "#0078d7" : "#333",
                   weight: 1,
                   fillColor: "#ddd",
                   fillOpacity: 0.3,
+                }}
+                bubblingMouseEvents={tool !== "pan"}
+                eventHandlers={{
+                  click: () => {
+                    if (tool === "pan") props.onSelectObject?.(b.id);
+                  },
                 }}
               >
                 <Tooltip>
@@ -212,9 +281,15 @@ export default function PlannerMap(props: Props) {
                   key={l.id}
                   positions={l.points.map(geo)}
                   pathOptions={{
-                    color: l.color,
+                    color: props.selectedObject === l.id ? "#0078d7" : l.color,
                     weight: l.width,
                     dashArray: l.kind === "barrier" ? "5 4" : undefined,
+                  }}
+                  bubblingMouseEvents={tool !== "pan"}
+                  eventHandlers={{
+                    click: () => {
+                      if (tool === "pan") props.onSelectObject?.(l.id);
+                    },
                   }}
                 />
               ))}
@@ -223,7 +298,13 @@ export default function PlannerMap(props: Props) {
               <Polyline
                 key={i}
                 positions={c.segments.map((s) => s.map(geo))}
-                pathOptions={{ color: c.color, weight: 1.5 }}
+                pathOptions={{
+                  color: c.color,
+                  weight: p.settings.contour_width ?? 1.4,
+                  opacity: p.settings.contour_opacity ?? 1,
+                  dashArray: dashPattern(c.line_style),
+                }}
+                interactive={false}
               />
             ))}
           {display.sources &&
@@ -238,10 +319,13 @@ export default function PlannerMap(props: Props) {
                 }}
                 eventHandlers={{
                   click: (e) => {
-                    e.originalEvent.stopPropagation();
-                    onSelectSource?.(s.id);
+                    if (tool === "pan") {
+                      e.originalEvent.stopPropagation();
+                      onSelectSource?.(s.id);
+                    }
                   },
                 }}
+                bubblingMouseEvents={tool !== "pan"}
               >
                 <Tooltip>
                   {s.name} · {s.frequency_mhz} MHz
@@ -258,6 +342,12 @@ export default function PlannerMap(props: Props) {
                   color: "#252525",
                   fillColor: "white",
                   fillOpacity: 1,
+                }}
+                bubblingMouseEvents={tool !== "pan"}
+                eventHandlers={{
+                  click: () => {
+                    if (tool === "pan") props.onSelectPoint?.(c.id);
+                  },
                 }}
               >
                 <Tooltip permanent direction="right">
@@ -367,37 +457,44 @@ export default function PlannerMap(props: Props) {
                 />
               );
             })()}
-          {display.terrain &&
-            p.terrain_points.map((t) => (
-              <g key={t.id}>
-                <path
-                  d={`M${t.x - 2 * units} ${-t.y}h${4 * units}m${-2 * units} ${-2 * units}v${4 * units}`}
-                  stroke="#997f50"
-                  vectorEffect="non-scaling-stroke"
-                />
-                {display.labels && (
-                  <text
-                    x={t.x + 2 * units}
-                    y={-t.y}
-                    fontSize={7 * units}
-                    fill="#997f50"
-                  >
-                    {t.elevation.toFixed(1)}
-                  </text>
-                )}
-              </g>
-            ))}
+          <TerrainLayer
+            project={p}
+            display={display}
+            units={units}
+            selected={props.selectedObject}
+            onSelect={tool === "pan" ? props.onSelectObject : undefined}
+          />
           {display.buildings &&
             p.buildings.map((b) => (
-              <g key={b.id}>
+              <g
+                key={b.id}
+                onClick={(e) => {
+                  if (tool === "pan") {
+                    e.stopPropagation();
+                    props.onSelectObject?.(b.id);
+                  }
+                }}
+              >
                 <polygon
                   points={b.points.map(([x, y]) => `${x},${-y}`).join(" ")}
                   fill="#e9e9e9"
                   fillOpacity=".7"
-                  stroke="#303030"
+                  stroke={props.selectedObject === b.id ? "#0078d7" : "#303030"}
                   strokeWidth="1.2"
                   vectorEffect="non-scaling-stroke"
                 />
+                {props.selectedObject === b.id &&
+                  b.points.map(([x, y], i) => (
+                    <circle
+                      key={i}
+                      cx={x}
+                      cy={-y}
+                      r={2.2 * units}
+                      fill="white"
+                      stroke="#0078d7"
+                      vectorEffect="non-scaling-stroke"
+                    />
+                  ))}
                 {display.labels && b.points.length > 0 && (
                   <text
                     x={b.points.reduce((s, v) => s + v[0], 0) / b.points.length}
@@ -426,6 +523,12 @@ export default function PlannerMap(props: Props) {
               l.kind === "label" ? (
                 <text
                   key={l.id}
+                  onClick={(e) => {
+                    if (tool === "pan") {
+                      e.stopPropagation();
+                      props.onSelectObject?.(l.id);
+                    }
+                  }}
                   x={l.points[0]?.[0]}
                   y={-l.points[0]?.[1]}
                   fontSize={10 * units}
@@ -436,9 +539,15 @@ export default function PlannerMap(props: Props) {
               ) : (
                 <polyline
                   key={l.id}
+                  onClick={(e) => {
+                    if (tool === "pan") {
+                      e.stopPropagation();
+                      props.onSelectObject?.(l.id);
+                    }
+                  }}
                   points={l.points.map(([x, y]) => `${x},${-y}`).join(" ")}
                   fill="none"
-                  stroke={l.color}
+                  stroke={props.selectedObject === l.id ? "#0078d7" : l.color}
                   strokeWidth={l.width}
                   strokeDasharray={l.kind === "barrier" ? "5 4" : undefined}
                   vectorEffect="non-scaling-stroke"
@@ -454,13 +563,28 @@ export default function PlannerMap(props: Props) {
                   .join(" ")}
                 fill="none"
                 stroke={c.color}
-                strokeWidth="1.4"
+                strokeWidth={p.settings.contour_width ?? 1.4}
+                opacity={p.settings.contour_opacity ?? 1}
+                strokeDasharray={dashPattern(c.line_style)}
                 vectorEffect="non-scaling-stroke"
               />
             ))}
           {display.sources &&
-            p.sources.map((s) => {
+            p.sources.map((s, sourceIndex) => {
               const [x, y] = local(s.lat, s.lng);
+              const coincident = p.sources
+                .map((v, i) => ({ v, i }))
+                .filter(
+                  ({ v }) =>
+                    Math.abs(v.lat - s.lat) < 1e-8 &&
+                    Math.abs(v.lng - s.lng) < 1e-8,
+                );
+              const first = coincident[0]?.i === sourceIndex;
+              const markerText =
+                coincident.length > 2 &&
+                coincident.every((v, i) => v.i === coincident[0].i + i)
+                  ? `A${coincident[0].i + 1}–A${coincident[coincident.length - 1].i + 1}`
+                  : coincident.map((v) => `A${v.i + 1}`).join(", ");
               return (
                 <g
                   key={s.id}
@@ -490,14 +614,17 @@ export default function PlannerMap(props: Props) {
                     stroke="#333"
                     vectorEffect="non-scaling-stroke"
                   />
-                  {display.labels && (
+                  {display.labels && first && (
                     <text
                       x={x + 5 * units}
                       y={-y - 5 * units}
                       fontSize={8 * units}
                       fill="#2b377f"
                     >
-                      {s.name}
+                      {markerText}
+                      <title>
+                        {coincident.map((v) => v.v.name).join(", ")}
+                      </title>
                     </text>
                   )}
                 </g>
@@ -505,7 +632,15 @@ export default function PlannerMap(props: Props) {
             })}
           {display.points &&
             p.control_points.map((c) => (
-              <g key={c.id}>
+              <g
+                key={c.id}
+                onClick={(e) => {
+                  if (tool === "pan") {
+                    e.stopPropagation();
+                    props.onSelectPoint?.(c.id);
+                  }
+                }}
+              >
                 <circle
                   cx={c.x_m}
                   cy={-c.y_m}

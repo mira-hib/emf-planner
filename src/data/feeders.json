@@ -1,0 +1,1718 @@
+[
+  {
+    "name": "FSJ1-50A   1/4\"",
+    "points": [
+      {
+        "frequency": 30.0,
+        "loss": 3.22
+      },
+      {
+        "frequency": 100.0,
+        "loss": 5.94
+      },
+      {
+        "frequency": 450.0,
+        "loss": 12.9
+      },
+      {
+        "frequency": 1000.0,
+        "loss": 19.7
+      },
+      {
+        "frequency": 2000.0,
+        "loss": 28.6
+      },
+      {
+        "frequency": 6000.0,
+        "loss": 53.2
+      },
+      {
+        "frequency": 10000.0,
+        "loss": 71.5
+      }
+    ]
+  },
+  {
+    "name": "FSJ2-50   3/8\"",
+    "points": [
+      {
+        "frequency": 30.0,
+        "loss": 2.14
+      },
+      {
+        "frequency": 100.0,
+        "loss": 3.97
+      },
+      {
+        "frequency": 450.0,
+        "loss": 8.73
+      },
+      {
+        "frequency": 1000.0,
+        "loss": 13.4
+      },
+      {
+        "frequency": 2000.0,
+        "loss": 19.7
+      },
+      {
+        "frequency": 6000.0,
+        "loss": 37.4
+      },
+      {
+        "frequency": 10000.0,
+        "loss": 51.1
+      }
+    ]
+  },
+  {
+    "name": "FSJ4-50B   1/2\"",
+    "points": [
+      {
+        "frequency": 30.0,
+        "loss": 1.85
+      },
+      {
+        "frequency": 100.0,
+        "loss": 3.44
+      },
+      {
+        "frequency": 450.0,
+        "loss": 7.61
+      },
+      {
+        "frequency": 1000.0,
+        "loss": 11.9
+      },
+      {
+        "frequency": 2000.0,
+        "loss": 17.7
+      },
+      {
+        "frequency": 6000.0,
+        "loss": 34.8
+      },
+      {
+        "frequency": 10000.0,
+        "loss": 48.2
+      }
+    ]
+  },
+  {
+    "name": "EFX2-50   3/8\"",
+    "points": [
+      {
+        "frequency": 30.0,
+        "loss": 1.93
+      },
+      {
+        "frequency": 100.0,
+        "loss": 3.58
+      },
+      {
+        "frequency": 450.0,
+        "loss": 7.87
+      },
+      {
+        "frequency": 1000.0,
+        "loss": 12.1
+      },
+      {
+        "frequency": 2000.0,
+        "loss": 17.9
+      },
+      {
+        "frequency": 6000.0,
+        "loss": 34.1
+      },
+      {
+        "frequency": 10000.0,
+        "loss": 46.6
+      }
+    ]
+  },
+  {
+    "name": "LDF1-50   1/4\"",
+    "points": [
+      {
+        "frequency": 0.5,
+        "loss": 0.278
+      },
+      {
+        "frequency": 100.0,
+        "loss": 4.049
+      },
+      {
+        "frequency": 300.0,
+        "loss": 7.168
+      },
+      {
+        "frequency": 500.0,
+        "loss": 9.391
+      },
+      {
+        "frequency": 800.0,
+        "loss": 12.084
+      },
+      {
+        "frequency": 1000.0,
+        "loss": 13.639
+      },
+      {
+        "frequency": 2000.0,
+        "loss": 20.003
+      },
+      {
+        "frequency": 3000.0,
+        "loss": 25.171
+      },
+      {
+        "frequency": 4000.0,
+        "loss": 29.719
+      },
+      {
+        "frequency": 5000.0,
+        "loss": 33.871
+      },
+      {
+        "frequency": 10000.0,
+        "loss": 51.475
+      },
+      {
+        "frequency": 15800.0,
+        "loss": 68.646
+      }
+    ]
+  },
+  {
+    "name": "LDF2-50   3/8\"",
+    "points": [
+      {
+        "frequency": 0.5,
+        "loss": 0.235
+      },
+      {
+        "frequency": 100.0,
+        "loss": 3.421
+      },
+      {
+        "frequency": 300.0,
+        "loss": 6.062
+      },
+      {
+        "frequency": 500.0,
+        "loss": 7.947
+      },
+      {
+        "frequency": 800.0,
+        "loss": 10.232
+      },
+      {
+        "frequency": 1000.0,
+        "loss": 11.554
+      },
+      {
+        "frequency": 2000.0,
+        "loss": 16.97
+      },
+      {
+        "frequency": 3000.0,
+        "loss": 21.376
+      },
+      {
+        "frequency": 4000.0,
+        "loss": 25.26
+      },
+      {
+        "frequency": 5000.0,
+        "loss": 28.809
+      },
+      {
+        "frequency": 10000.0,
+        "loss": 43.894
+      },
+      {
+        "frequency": 12000.0,
+        "loss": 49.209
+      }
+    ]
+  },
+  {
+    "name": "LDF4-50A   1/2\"",
+    "points": [
+      {
+        "frequency": 0.5,
+        "loss": 0.149
+      },
+      {
+        "frequency": 100.0,
+        "loss": 2.169
+      },
+      {
+        "frequency": 300.0,
+        "loss": 3.835
+      },
+      {
+        "frequency": 500.0,
+        "loss": 5.021
+      },
+      {
+        "frequency": 800.0,
+        "loss": 6.456
+      },
+      {
+        "frequency": 1000.0,
+        "loss": 7.284
+      },
+      {
+        "frequency": 2000.0,
+        "loss": 10.667
+      },
+      {
+        "frequency": 3000.0,
+        "loss": 13.407
+      },
+      {
+        "frequency": 4000.0,
+        "loss": 15.815
+      },
+      {
+        "frequency": 5000.0,
+        "loss": 18.01
+      },
+      {
+        "frequency": 6000.0,
+        "loss": 20.055
+      },
+      {
+        "frequency": 8000.0,
+        "loss": 23.826
+      },
+      {
+        "frequency": 8800.0,
+        "loss": 25.244
+      }
+    ]
+  },
+  {
+    "name": "LDF5-50A   7/8\"",
+    "points": [
+      {
+        "frequency": 0.5,
+        "loss": 0.081
+      },
+      {
+        "frequency": 100.0,
+        "loss": 1.193
+      },
+      {
+        "frequency": 300.0,
+        "loss": 2.13
+      },
+      {
+        "frequency": 500.0,
+        "loss": 2.806
+      },
+      {
+        "frequency": 800.0,
+        "loss": 3.633
+      },
+      {
+        "frequency": 1000.0,
+        "loss": 4.115
+      },
+      {
+        "frequency": 2000.0,
+        "loss": 6.114
+      },
+      {
+        "frequency": 3000.0,
+        "loss": 7.764
+      },
+      {
+        "frequency": 4000.0,
+        "loss": 9.235
+      },
+      {
+        "frequency": 5000.0,
+        "loss": 10.59
+      }
+    ]
+  },
+  {
+    "name": "LDF6-50   1 1/4\"",
+    "points": [
+      {
+        "frequency": 0.5,
+        "loss": 0.053
+      },
+      {
+        "frequency": 100.0,
+        "loss": 0.792
+      },
+      {
+        "frequency": 300.0,
+        "loss": 1.427
+      },
+      {
+        "frequency": 500.0,
+        "loss": 1.891
+      },
+      {
+        "frequency": 800.0,
+        "loss": 2.465
+      },
+      {
+        "frequency": 1000.0,
+        "loss": 2.802
+      },
+      {
+        "frequency": 2000.0,
+        "loss": 4.216
+      },
+      {
+        "frequency": 3000.0,
+        "loss": 5.402
+      }
+    ]
+  },
+  {
+    "name": "LDF7-50A   1-5/8\"",
+    "points": [
+      {
+        "frequency": 0.5,
+        "loss": 0.044
+      },
+      {
+        "frequency": 100.0,
+        "loss": 0.671
+      },
+      {
+        "frequency": 300.0,
+        "loss": 1.22
+      },
+      {
+        "frequency": 500.0,
+        "loss": 1.627
+      },
+      {
+        "frequency": 800.0,
+        "loss": 2.134
+      },
+      {
+        "frequency": 1000.0,
+        "loss": 2.434
+      },
+      {
+        "frequency": 1500.0,
+        "loss": 3.106
+      },
+      {
+        "frequency": 2000.0,
+        "loss": 3.709
+      },
+      {
+        "frequency": 2700.0,
+        "loss": 4.481
+      }
+    ]
+  },
+  {
+    "name": "LDF12-50   2-1/4\"",
+    "points": [
+      {
+        "frequency": 0.5,
+        "loss": 0.037
+      },
+      {
+        "frequency": 100.0,
+        "loss": 0.566
+      },
+      {
+        "frequency": 300.0,
+        "loss": 1.041
+      },
+      {
+        "frequency": 500.0,
+        "loss": 1.396
+      },
+      {
+        "frequency": 800.0,
+        "loss": 1.845
+      },
+      {
+        "frequency": 1000.0,
+        "loss": 2.112
+      },
+      {
+        "frequency": 1500.0,
+        "loss": 2.716
+      },
+      {
+        "frequency": 2000.0,
+        "loss": 3.262
+      },
+      {
+        "frequency": 2200.0,
+        "loss": 3.469
+      }
+    ]
+  },
+  {
+    "name": "LCF14-50J   1/4\u201d",
+    "points": [
+      {
+        "frequency": 0.5,
+        "loss": 0.29
+      },
+      {
+        "frequency": 100.0,
+        "loss": 4.2
+      },
+      {
+        "frequency": 300.0,
+        "loss": 7.4
+      },
+      {
+        "frequency": 500.0,
+        "loss": 9.65
+      },
+      {
+        "frequency": 1000.0,
+        "loss": 13.9
+      },
+      {
+        "frequency": 3000.0,
+        "loss": 25.3
+      },
+      {
+        "frequency": 10000.0,
+        "loss": 50.3
+      },
+      {
+        "frequency": 15800.0,
+        "loss": 66.2
+      }
+    ]
+  },
+  {
+    "name": "LCF38-50J   3/8\u201d",
+    "points": [
+      {
+        "frequency": 0.5,
+        "loss": 0.24
+      },
+      {
+        "frequency": 100.0,
+        "loss": 3.43
+      },
+      {
+        "frequency": 300.0,
+        "loss": 6.02
+      },
+      {
+        "frequency": 500.0,
+        "loss": 7.86
+      },
+      {
+        "frequency": 1000.0,
+        "loss": 11.3
+      },
+      {
+        "frequency": 2000.0,
+        "loss": 16.5
+      },
+      {
+        "frequency": 3000.0,
+        "loss": 20.5
+      },
+      {
+        "frequency": 5000.0,
+        "loss": 27.4
+      },
+      {
+        "frequency": 10000.0,
+        "loss": 40.8
+      },
+      {
+        "frequency": 13500.0,
+        "loss": 48.8
+      }
+    ]
+  },
+  {
+    "name": "LCF12-50J   1/2\u201d",
+    "points": [
+      {
+        "frequency": 0.5,
+        "loss": 0.15
+      },
+      {
+        "frequency": 100.0,
+        "loss": 2.16
+      },
+      {
+        "frequency": 200.0,
+        "loss": 3.1
+      },
+      {
+        "frequency": 300.0,
+        "loss": 3.8
+      },
+      {
+        "frequency": 450.0,
+        "loss": 4.71
+      },
+      {
+        "frequency": 900.0,
+        "loss": 6.8
+      },
+      {
+        "frequency": 1500.0,
+        "loss": 8.97
+      },
+      {
+        "frequency": 1800.0,
+        "loss": 9.91
+      },
+      {
+        "frequency": 2300.0,
+        "loss": 11.35
+      },
+      {
+        "frequency": 3000.0,
+        "loss": 13.2
+      },
+      {
+        "frequency": 4000.0,
+        "loss": 15.5
+      },
+      {
+        "frequency": 8800.0,
+        "loss": 24.6
+      }
+    ]
+  },
+  {
+    "name": "LCF78-50J   7/8\u201d",
+    "points": [
+      {
+        "frequency": 0.5,
+        "loss": 0.08
+      },
+      {
+        "frequency": 100.0,
+        "loss": 1.16
+      },
+      {
+        "frequency": 200.0,
+        "loss": 1.66
+      },
+      {
+        "frequency": 300.0,
+        "loss": 2.06
+      },
+      {
+        "frequency": 450.0,
+        "loss": 2.55
+      },
+      {
+        "frequency": 900.0,
+        "loss": 3.71
+      },
+      {
+        "frequency": 1500.0,
+        "loss": 4.91
+      },
+      {
+        "frequency": 1800.0,
+        "loss": 5.44
+      },
+      {
+        "frequency": 2200.0,
+        "loss": 6.09
+      },
+      {
+        "frequency": 3000.0,
+        "loss": 7.27
+      },
+      {
+        "frequency": 4000.0,
+        "loss": 8.6
+      },
+      {
+        "frequency": 5000.0,
+        "loss": 9.81
+      }
+    ]
+  },
+  {
+    "name": "LCF 114-50J   1 1/4\u201d",
+    "points": [
+      {
+        "frequency": 0.5,
+        "loss": 0.06
+      },
+      {
+        "frequency": 100.0,
+        "loss": 0.82
+      },
+      {
+        "frequency": 200.0,
+        "loss": 1.17
+      },
+      {
+        "frequency": 300.0,
+        "loss": 1.45
+      },
+      {
+        "frequency": 450.0,
+        "loss": 1.81
+      },
+      {
+        "frequency": 900.0,
+        "loss": 2.63
+      },
+      {
+        "frequency": 1500.0,
+        "loss": 3.5
+      },
+      {
+        "frequency": 2000.0,
+        "loss": 4.12
+      },
+      {
+        "frequency": 3000.0,
+        "loss": 5.21
+      },
+      {
+        "frequency": 3800.0,
+        "loss": 5.99
+      }
+    ]
+  },
+  {
+    "name": "LCF 158-50J   1 5/8\u201d",
+    "points": [
+      {
+        "frequency": 0.5,
+        "loss": 0.04
+      },
+      {
+        "frequency": 100.0,
+        "loss": 0.64
+      },
+      {
+        "frequency": 500.0,
+        "loss": 1.53
+      },
+      {
+        "frequency": 1000.0,
+        "loss": 2.25
+      },
+      {
+        "frequency": 1500.0,
+        "loss": 2.84
+      },
+      {
+        "frequency": 2000.0,
+        "loss": 3.36
+      },
+      {
+        "frequency": 2750.0,
+        "loss": 4.07
+      }
+    ]
+  },
+  {
+    "name": "RG-6/U",
+    "points": [
+      {
+        "frequency": 1.0,
+        "loss": 0.87
+      },
+      {
+        "frequency": 135.0,
+        "loss": 7.97
+      },
+      {
+        "frequency": 270.0,
+        "loss": 11.3
+      },
+      {
+        "frequency": 360.0,
+        "loss": 13.6
+      },
+      {
+        "frequency": 720.0,
+        "loss": 20.17
+      },
+      {
+        "frequency": 1000.0,
+        "loss": 24.8
+      },
+      {
+        "frequency": 1800.0,
+        "loss": 32.4
+      },
+      {
+        "frequency": 2500.0,
+        "loss": 39.0
+      },
+      {
+        "frequency": 3000.0,
+        "loss": 43.6
+      }
+    ]
+  },
+  {
+    "name": "RG-11/U",
+    "points": [
+      {
+        "frequency": 1.0,
+        "loss": 0.57
+      },
+      {
+        "frequency": 100.0,
+        "loss": 4.0
+      },
+      {
+        "frequency": 400.0,
+        "loss": 7.9
+      },
+      {
+        "frequency": 700.0,
+        "loss": 10.9
+      },
+      {
+        "frequency": 1000.0,
+        "loss": 13.2
+      },
+      {
+        "frequency": 1800.0,
+        "loss": 18.6
+      },
+      {
+        "frequency": 2500.0,
+        "loss": 22.6
+      },
+      {
+        "frequency": 3000.0,
+        "loss": 25.3
+      }
+    ]
+  },
+  {
+    "name": "EW17   1.7-2.4 GHz",
+    "points": [
+      {
+        "frequency": 1700.0,
+        "loss": 1.51
+      },
+      {
+        "frequency": 1800.0,
+        "loss": 1.35
+      },
+      {
+        "frequency": 1900.0,
+        "loss": 1.25
+      },
+      {
+        "frequency": 2000.0,
+        "loss": 1.19
+      },
+      {
+        "frequency": 2100.0,
+        "loss": 1.14
+      },
+      {
+        "frequency": 2200.0,
+        "loss": 1.1
+      },
+      {
+        "frequency": 2300.0,
+        "loss": 1.07
+      },
+      {
+        "frequency": 2400.0,
+        "loss": 1.05
+      }
+    ]
+  },
+  {
+    "name": "EW20   1.9-2.7 GHz",
+    "points": [
+      {
+        "frequency": 1900.0,
+        "loss": 2.01
+      },
+      {
+        "frequency": 2000.0,
+        "loss": 1.81
+      },
+      {
+        "frequency": 2100.0,
+        "loss": 1.69
+      },
+      {
+        "frequency": 2200.0,
+        "loss": 1.6
+      },
+      {
+        "frequency": 2300.0,
+        "loss": 1.53
+      },
+      {
+        "frequency": 2400.0,
+        "loss": 1.48
+      },
+      {
+        "frequency": 2500.0,
+        "loss": 1.45
+      },
+      {
+        "frequency": 2600.0,
+        "loss": 1.41
+      },
+      {
+        "frequency": 2700.0,
+        "loss": 1.39
+      }
+    ]
+  },
+  {
+    "name": "EW28   2.6-3.4 GHz",
+    "points": [
+      {
+        "frequency": 2600.0,
+        "loss": 2.87
+      },
+      {
+        "frequency": 2700.0,
+        "loss": 2.56
+      },
+      {
+        "frequency": 2800.0,
+        "loss": 2.36
+      },
+      {
+        "frequency": 2900.0,
+        "loss": 2.22
+      },
+      {
+        "frequency": 3000.0,
+        "loss": 2.11
+      },
+      {
+        "frequency": 3100.0,
+        "loss": 2.03
+      },
+      {
+        "frequency": 3200.0,
+        "loss": 1.96
+      },
+      {
+        "frequency": 3300.0,
+        "loss": 1.9
+      },
+      {
+        "frequency": 3400.0,
+        "loss": 1.86
+      }
+    ]
+  },
+  {
+    "name": "EW34   3.1-4.2 GHz",
+    "points": [
+      {
+        "frequency": 3100.0,
+        "loss": 2.67
+      },
+      {
+        "frequency": 3200.0,
+        "loss": 2.55
+      },
+      {
+        "frequency": 3300.0,
+        "loss": 2.46
+      },
+      {
+        "frequency": 3400.0,
+        "loss": 2.38
+      },
+      {
+        "frequency": 3500.0,
+        "loss": 2.32
+      },
+      {
+        "frequency": 3600.0,
+        "loss": 2.27
+      },
+      {
+        "frequency": 3700.0,
+        "loss": 2.23
+      },
+      {
+        "frequency": 3800.0,
+        "loss": 2.19
+      },
+      {
+        "frequency": 3900.0,
+        "loss": 2.16
+      },
+      {
+        "frequency": 4000.0,
+        "loss": 2.13
+      },
+      {
+        "frequency": 4100.0,
+        "loss": 2.11
+      },
+      {
+        "frequency": 4200.0,
+        "loss": 2.09
+      }
+    ]
+  },
+  {
+    "name": "EW37   3.3-4.3 GHz",
+    "points": [
+      {
+        "frequency": 3300.0,
+        "loss": 4.0
+      },
+      {
+        "frequency": 3400.0,
+        "loss": 3.63
+      },
+      {
+        "frequency": 3500.0,
+        "loss": 3.37
+      },
+      {
+        "frequency": 3600.0,
+        "loss": 3.18
+      },
+      {
+        "frequency": 3700.0,
+        "loss": 3.03
+      },
+      {
+        "frequency": 3800.0,
+        "loss": 2.91
+      },
+      {
+        "frequency": 3900.0,
+        "loss": 2.81
+      },
+      {
+        "frequency": 4000.0,
+        "loss": 2.73
+      },
+      {
+        "frequency": 4100.0,
+        "loss": 2.66
+      },
+      {
+        "frequency": 4200.0,
+        "loss": 2.6
+      },
+      {
+        "frequency": 4300.0,
+        "loss": 2.55
+      }
+    ]
+  },
+  {
+    "name": "EW43   4.4-5.0 GHz",
+    "points": [
+      {
+        "frequency": 4400.0,
+        "loss": 2.9
+      },
+      {
+        "frequency": 5000.0,
+        "loss": 2.8
+      }
+    ]
+  },
+  {
+    "name": "EW52   4.6-6.425 GHz",
+    "points": [
+      {
+        "frequency": 4600.0,
+        "loss": 5.34
+      },
+      {
+        "frequency": 4800.0,
+        "loss": 4.92
+      },
+      {
+        "frequency": 5000.0,
+        "loss": 4.63
+      },
+      {
+        "frequency": 5200.0,
+        "loss": 4.42
+      },
+      {
+        "frequency": 5400.0,
+        "loss": 4.26
+      },
+      {
+        "frequency": 5600.0,
+        "loss": 4.13
+      },
+      {
+        "frequency": 5800.0,
+        "loss": 4.02
+      },
+      {
+        "frequency": 5850.0,
+        "loss": 4.0
+      },
+      {
+        "frequency": 5925.0,
+        "loss": 3.96
+      },
+      {
+        "frequency": 6000.0,
+        "loss": 3.93
+      },
+      {
+        "frequency": 6200.0,
+        "loss": 3.86
+      },
+      {
+        "frequency": 6425.0,
+        "loss": 3.8
+      }
+    ]
+  },
+  {
+    "name": "EW63   5.85-7.125 GHz",
+    "points": [
+      {
+        "frequency": 5850.0,
+        "loss": 4.94
+      },
+      {
+        "frequency": 5925.0,
+        "loss": 4.88
+      },
+      {
+        "frequency": 6000.0,
+        "loss": 4.82
+      },
+      {
+        "frequency": 6200.0,
+        "loss": 4.7
+      },
+      {
+        "frequency": 6400.0,
+        "loss": 4.59
+      },
+      {
+        "frequency": 6525.0,
+        "loss": 4.53
+      },
+      {
+        "frequency": 6600.0,
+        "loss": 4.5
+      },
+      {
+        "frequency": 6775.0,
+        "loss": 4.44
+      },
+      {
+        "frequency": 6800.0,
+        "loss": 4.43
+      },
+      {
+        "frequency": 6875.0,
+        "loss": 4.4
+      },
+      {
+        "frequency": 7000.0,
+        "loss": 4.37
+      },
+      {
+        "frequency": 7125.0,
+        "loss": 4.33
+      }
+    ]
+  },
+  {
+    "name": "EW64   5.3-7.75 GHz",
+    "points": [
+      {
+        "frequency": 5300.0,
+        "loss": 7.07
+      },
+      {
+        "frequency": 5500.0,
+        "loss": 6.5
+      },
+      {
+        "frequency": 5700.0,
+        "loss": 6.09
+      },
+      {
+        "frequency": 5900.0,
+        "loss": 5.79
+      },
+      {
+        "frequency": 6100.0,
+        "loss": 5.56
+      },
+      {
+        "frequency": 6300.0,
+        "loss": 5.37
+      },
+      {
+        "frequency": 6500.0,
+        "loss": 5.22
+      },
+      {
+        "frequency": 6700.0,
+        "loss": 5.09
+      },
+      {
+        "frequency": 6900.0,
+        "loss": 4.99
+      },
+      {
+        "frequency": 7100.0,
+        "loss": 4.9
+      },
+      {
+        "frequency": 7125.0,
+        "loss": 4.87
+      },
+      {
+        "frequency": 7250.0,
+        "loss": 4.85
+      },
+      {
+        "frequency": 7300.0,
+        "loss": 4.83
+      },
+      {
+        "frequency": 7500.0,
+        "loss": 4.76
+      },
+      {
+        "frequency": 7700.0,
+        "loss": 4.7
+      },
+      {
+        "frequency": 7750.0,
+        "loss": 4.69
+      }
+    ]
+  },
+  {
+    "name": "EW77   6.1-8.5 GHz",
+    "points": [
+      {
+        "frequency": 6100.0,
+        "loss": 7.75
+      },
+      {
+        "frequency": 6300.0,
+        "loss": 7.3
+      },
+      {
+        "frequency": 6500.0,
+        "loss": 6.95
+      },
+      {
+        "frequency": 6700.0,
+        "loss": 6.68
+      },
+      {
+        "frequency": 6900.0,
+        "loss": 6.46
+      },
+      {
+        "frequency": 7100.0,
+        "loss": 6.28
+      },
+      {
+        "frequency": 7125.0,
+        "loss": 6.26
+      },
+      {
+        "frequency": 7300.0,
+        "loss": 6.13
+      },
+      {
+        "frequency": 7500.0,
+        "loss": 6.0
+      },
+      {
+        "frequency": 7700.0,
+        "loss": 5.89
+      },
+      {
+        "frequency": 7725.0,
+        "loss": 5.88
+      },
+      {
+        "frequency": 7750.0,
+        "loss": 5.86
+      },
+      {
+        "frequency": 7900.0,
+        "loss": 5.8
+      },
+      {
+        "frequency": 8100.0,
+        "loss": 5.71
+      },
+      {
+        "frequency": 8300.0,
+        "loss": 5.64
+      },
+      {
+        "frequency": 8500.0,
+        "loss": 5.58
+      }
+    ]
+  },
+  {
+    "name": "EW85   7.7-9.8 GHz",
+    "points": [
+      {
+        "frequency": 7700.0,
+        "loss": 14.2
+      },
+      {
+        "frequency": 7900.0,
+        "loss": 13.1
+      },
+      {
+        "frequency": 8100.0,
+        "loss": 12.4
+      },
+      {
+        "frequency": 8300.0,
+        "loss": 11.8
+      },
+      {
+        "frequency": 8500.0,
+        "loss": 11.31
+      },
+      {
+        "frequency": 8700.0,
+        "loss": 10.92
+      },
+      {
+        "frequency": 8900.0,
+        "loss": 10.59
+      },
+      {
+        "frequency": 9100.0,
+        "loss": 10.31
+      },
+      {
+        "frequency": 9300.0,
+        "loss": 10.07
+      },
+      {
+        "frequency": 9500.0,
+        "loss": 9.86
+      },
+      {
+        "frequency": 9700.0,
+        "loss": 9.68
+      },
+      {
+        "frequency": 9800.0,
+        "loss": 9.6
+      }
+    ]
+  },
+  {
+    "name": "EW90   8.3-11.7 GHz",
+    "points": [
+      {
+        "frequency": 8300.0,
+        "loss": 13.8
+      },
+      {
+        "frequency": 8800.0,
+        "loss": 12.4
+      },
+      {
+        "frequency": 9300.0,
+        "loss": 11.6
+      },
+      {
+        "frequency": 9800.0,
+        "loss": 11.0
+      },
+      {
+        "frequency": 10300.0,
+        "loss": 10.6
+      },
+      {
+        "frequency": 10500.0,
+        "loss": 10.44
+      },
+      {
+        "frequency": 10700.0,
+        "loss": 10.31
+      },
+      {
+        "frequency": 10900.0,
+        "loss": 10.2
+      },
+      {
+        "frequency": 11100.0,
+        "loss": 10.1
+      },
+      {
+        "frequency": 11300.0,
+        "loss": 10.0
+      },
+      {
+        "frequency": 11500.0,
+        "loss": 9.92
+      },
+      {
+        "frequency": 11700.0,
+        "loss": 9.84
+      }
+    ]
+  },
+  {
+    "name": "EW127   10.0-13.25 GHz",
+    "points": [
+      {
+        "frequency": 10000.0,
+        "loss": 14.6
+      },
+      {
+        "frequency": 10500.0,
+        "loss": 13.6
+      },
+      {
+        "frequency": 11000.0,
+        "loss": 13.0
+      },
+      {
+        "frequency": 11500.0,
+        "loss": 12.4
+      },
+      {
+        "frequency": 11700.0,
+        "loss": 12.28
+      },
+      {
+        "frequency": 11900.0,
+        "loss": 12.12
+      },
+      {
+        "frequency": 12100.0,
+        "loss": 11.98
+      },
+      {
+        "frequency": 12300.0,
+        "loss": 11.86
+      },
+      {
+        "frequency": 12500.0,
+        "loss": 11.74
+      },
+      {
+        "frequency": 12700.0,
+        "loss": 11.64
+      },
+      {
+        "frequency": 12900.0,
+        "loss": 11.54
+      },
+      {
+        "frequency": 13100.0,
+        "loss": 11.45
+      },
+      {
+        "frequency": 13250.0,
+        "loss": 11.38
+      }
+    ]
+  },
+  {
+    "name": "EW132   11.0-15.35 GHz",
+    "points": [
+      {
+        "frequency": 11000.0,
+        "loss": 23.2
+      },
+      {
+        "frequency": 11500.0,
+        "loss": 20.8
+      },
+      {
+        "frequency": 12000.0,
+        "loss": 19.3
+      },
+      {
+        "frequency": 12500.0,
+        "loss": 18.3
+      },
+      {
+        "frequency": 13000.0,
+        "loss": 17.4
+      },
+      {
+        "frequency": 13500.0,
+        "loss": 16.8
+      },
+      {
+        "frequency": 14000.0,
+        "loss": 16.34
+      },
+      {
+        "frequency": 14200.0,
+        "loss": 16.17
+      },
+      {
+        "frequency": 14400.0,
+        "loss": 16.02
+      },
+      {
+        "frequency": 14600.0,
+        "loss": 15.87
+      },
+      {
+        "frequency": 14800.0,
+        "loss": 15.74
+      },
+      {
+        "frequency": 15000.0,
+        "loss": 15.62
+      },
+      {
+        "frequency": 15200.0,
+        "loss": 15.5
+      },
+      {
+        "frequency": 15350.0,
+        "loss": 15.42
+      }
+    ]
+  },
+  {
+    "name": "EW180   14.0-19.7 GHz",
+    "points": [
+      {
+        "frequency": 14000.0,
+        "loss": 27.63
+      },
+      {
+        "frequency": 14500.0,
+        "loss": 25.57
+      },
+      {
+        "frequency": 15000.0,
+        "loss": 24.07
+      },
+      {
+        "frequency": 15500.0,
+        "loss": 22.95
+      },
+      {
+        "frequency": 16000.0,
+        "loss": 22.06
+      },
+      {
+        "frequency": 16500.0,
+        "loss": 21.35
+      },
+      {
+        "frequency": 17000.0,
+        "loss": 20.77
+      },
+      {
+        "frequency": 17500.0,
+        "loss": 20.28
+      },
+      {
+        "frequency": 17700.0,
+        "loss": 20.11
+      },
+      {
+        "frequency": 17900.0,
+        "loss": 19.95
+      },
+      {
+        "frequency": 18100.0,
+        "loss": 19.8
+      },
+      {
+        "frequency": 18300.0,
+        "loss": 19.66
+      },
+      {
+        "frequency": 18500.0,
+        "loss": 19.52
+      },
+      {
+        "frequency": 18700.0,
+        "loss": 19.4
+      },
+      {
+        "frequency": 18900.0,
+        "loss": 19.28
+      },
+      {
+        "frequency": 19100.0,
+        "loss": 19.17
+      },
+      {
+        "frequency": 19300.0,
+        "loss": 19.06
+      },
+      {
+        "frequency": 19500.0,
+        "loss": 18.96
+      },
+      {
+        "frequency": 19700.0,
+        "loss": 18.86
+      }
+    ]
+  },
+  {
+    "name": "EW220   21.0-23.6 GHz",
+    "points": [
+      {
+        "frequency": 21000.0,
+        "loss": 29.08
+      },
+      {
+        "frequency": 21200.0,
+        "loss": 28.93
+      },
+      {
+        "frequency": 21400.0,
+        "loss": 28.8
+      },
+      {
+        "frequency": 21600.0,
+        "loss": 28.67
+      },
+      {
+        "frequency": 21800.0,
+        "loss": 28.54
+      },
+      {
+        "frequency": 22000.0,
+        "loss": 28.43
+      },
+      {
+        "frequency": 22200.0,
+        "loss": 28.32
+      },
+      {
+        "frequency": 22400.0,
+        "loss": 28.22
+      },
+      {
+        "frequency": 22600.0,
+        "loss": 28.13
+      },
+      {
+        "frequency": 22800.0,
+        "loss": 28.03
+      },
+      {
+        "frequency": 23000.0,
+        "loss": 27.95
+      },
+      {
+        "frequency": 23200.0,
+        "loss": 27.87
+      },
+      {
+        "frequency": 23400.0,
+        "loss": 27.8
+      },
+      {
+        "frequency": 23600.0,
+        "loss": 27.73
+      }
+    ]
+  },
+  {
+    "name": "EW240   22.0-26.5 GHz",
+    "points": [
+      {
+        "frequency": 22000.0,
+        "loss": 37.568
+      },
+      {
+        "frequency": 22500.0,
+        "loss": 36.699
+      },
+      {
+        "frequency": 23000.0,
+        "loss": 35.932
+      },
+      {
+        "frequency": 23500.0,
+        "loss": 35.264
+      },
+      {
+        "frequency": 24000.0,
+        "loss": 34.677
+      },
+      {
+        "frequency": 24200.0,
+        "loss": 34.462
+      },
+      {
+        "frequency": 24250.0,
+        "loss": 34.41
+      },
+      {
+        "frequency": 24400.0,
+        "loss": 34.257
+      },
+      {
+        "frequency": 24600.0,
+        "loss": 34.061
+      },
+      {
+        "frequency": 24800.0,
+        "loss": 33.874
+      },
+      {
+        "frequency": 25000.0,
+        "loss": 33.696
+      },
+      {
+        "frequency": 25200.0,
+        "loss": 33.525
+      },
+      {
+        "frequency": 25250.0,
+        "loss": 33.484
+      },
+      {
+        "frequency": 25500.0,
+        "loss": 33.283
+      },
+      {
+        "frequency": 26000.0,
+        "loss": 32.912
+      },
+      {
+        "frequency": 26500.0,
+        "loss": 32.578
+      }
+    ]
+  }
+]

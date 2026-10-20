@@ -39,8 +39,12 @@ import {
 import CadView from "./components/CadView";
 import { Tool } from "./components/Controls";
 import FeatureTools from "./components/FeatureTools";
+import AntennaTools, { ANTENNA_COMMANDS } from "./components/AntennaTools";
+import ToolDialogs from "./components/ToolDialogs";
+import VolumeTools, { VOLUME_COMMAND } from "./components/VolumeTools";
 import { ResultsDialog } from "./components/Results";
-import { TILES } from "./components/PlannerMap";
+import { mapProviders } from "./components/PlannerMap";
+import OriginalIcon from "./components/OriginalIcon";
 import "./App.css";
 const Scene3D = lazy(() => import("./components/Scene3D"));
 const NAV: { id: Section; label: string; icon: typeof Activity }[] = [
@@ -81,7 +85,9 @@ export default function App() {
         <header className="main-toolbar">
           <details className="file-menu">
             <summary role="button" title="Fichier" aria-label="Fichier">
-              <FolderOpen size={22} />
+              <OriginalIcon label="Fichier">
+                <FolderOpen size={22} />
+              </OriginalIcon>
               <span>▾</span>
             </summary>
             <div
@@ -219,60 +225,68 @@ export default function App() {
                 </button>
               ))}
             </nav>
-            <div className="display-options">
-              <div className="pane-caption">Options d’affichage</div>
-              <label>
-                <input
-                  type="checkbox"
-                  checked={p.settings.show_basemap}
-                  onChange={(e) =>
-                    a.settings({ show_basemap: e.target.checked })
-                  }
-                />
-                Fond de carte
-              </label>
-              {(Object.keys(a.display) as (keyof typeof a.display)[]).map(
-                (key, i) => (
-                  <label key={key}>
-                    <input
-                      type="checkbox"
-                      checked={a.display[key]}
-                      onChange={(e) =>
-                        a.setDisplay((p) => ({ ...p, [key]: e.target.checked }))
-                      }
-                    />
-                    {
-                      [
-                        "Grille",
-                        "Bâtiments",
-                        "Relief",
-                        "Lignes et annotations",
-                        "Antennes",
-                        "Points de contrôle",
-                        "Contours EMF",
-                        "Libellés",
-                        "Azimuts",
-                      ][i]
+            {(MAP_SECTIONS.includes(section) || section === "vertical") && (
+              <div className="display-options">
+                <div className="pane-caption">Options d’affichage</div>
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={p.settings.show_basemap}
+                    onChange={(e) =>
+                      a.settings({ show_basemap: e.target.checked })
                     }
-                  </label>
-                ),
-              )}
-              <select
-                aria-label="Fond de carte"
-                value={p.settings.map_provider}
-                onChange={(e) => a.settings({ map_provider: e.target.value })}
-              >
-                {Object.keys(TILES).map((name) => (
-                  <option key={name}>{name}</option>
-                ))}
-              </select>
-            </div>
+                  />
+                  Fond de carte
+                </label>
+                {(Object.keys(a.display) as (keyof typeof a.display)[]).map(
+                  (key, i) => (
+                    <label key={key}>
+                      <input
+                        type="checkbox"
+                        checked={a.display[key]}
+                        onChange={(e) =>
+                          a.setDisplay((p) => ({
+                            ...p,
+                            [key]: e.target.checked,
+                          }))
+                        }
+                      />
+                      {
+                        [
+                          "Grille",
+                          "Bâtiments",
+                          "Relief",
+                          "Triangulation",
+                          "Lignes et annotations",
+                          "Antennes",
+                          "Points de contrôle",
+                          "Contours EMF",
+                          "Libellés",
+                          "Azimuts",
+                        ][i]
+                      }
+                    </label>
+                  ),
+                )}
+                <select
+                  aria-label="Fond de carte"
+                  value={p.settings.map_provider}
+                  onChange={(e) => a.settings({ map_provider: e.target.value })}
+                >
+                  {Object.keys(mapProviders(p)).map((name) => (
+                    <option key={name}>{name}</option>
+                  ))}
+                </select>
+              </div>
+            )}
             <div className="navigation-bottom">
               <MousePointer2 size={12} /> Coordonnées locales en mètres
             </div>
           </aside>
           <main className="workspace" aria-label={title}>
-            <FeatureTools section={section} />
+            {!MAP_SECTIONS.includes(section) &&
+              section !== "sources" &&
+              section !== "vertical" && <FeatureTools section={section} />}
             <div className="workspace-content">
               {section === "sources" && <SourcesPage />}
               {MAP_SECTIONS.includes(section) && (
@@ -295,6 +309,7 @@ export default function App() {
                   <Scene3D
                     project={p}
                     contours={a.cutResults.map((r) => r.contours)}
+                    volume={a.volume}
                   />
                 </Suspense>
               )}
@@ -319,6 +334,14 @@ export default function App() {
           )}
         </footer>
         {a.resultOpen && <ResultsDialog />}
+        {a.command &&
+          (ANTENNA_COMMANDS.includes(a.command) ? (
+            <AntennaTools key={a.command} />
+          ) : a.command === VOLUME_COMMAND ? (
+            <VolumeTools />
+          ) : (
+            <ToolDialogs key={a.command} />
+          ))}
       </div>
     </PlannerContext.Provider>
   );

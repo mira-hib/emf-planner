@@ -1,6 +1,7 @@
 import { useRef, useState } from "react";
 import { usePlanner } from "../lib/usePlanner";
 import { saveBytes, saveText, projectDxf } from "../lib/files";
+import { dashPattern, styledContours } from "../lib/presentation";
 export default function CadView() {
   const { project, cutResults, task } = usePlanner(),
     [scale, setScale] = useState(1000),
@@ -72,7 +73,9 @@ export default function CadView() {
                         buildings: layers.buildings ? project.buildings : [],
                         lines: layers.lines ? project.lines : [],
                       },
-                      layers.contours ? cutResults.map((r) => r.contours) : [],
+                      layers.contours
+                        ? styledContours(project, cutResults)
+                        : [],
                     ),
                   ),
                 "Plan DXF exporté",
@@ -223,14 +226,15 @@ export default function CadView() {
                     />
                   ))}
               {layers.contours &&
-                cutResults.map((r, i) => (
+                styledContours(project, cutResults).map((contour, i) => (
                   <path
                     key={i}
-                    d={r.contours.segments
+                    d={contour.segments
                       .map((s) => `M${s[0].join(",")}L${s[1].join(",")}`)
                       .join(" ")}
                     fill="none"
-                    stroke={r.contours.color}
+                    stroke={contour.color}
+                    strokeDasharray={dashPattern(contour.line_style)}
                   />
                 ))}
               {layers.sources &&

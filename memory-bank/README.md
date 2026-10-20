@@ -8,6 +8,7 @@ Base de connaissances pour le projet de reverse engineering et reproduction d'EM
 |---------|-------------|
 | `architecture.md` | Architecture du logiciel original (PE, .NET, ODA, Enigma) |
 | `features.md` | Fonctions disponibles, partielles et grisées du clone actuel |
+| `interface-refinement.md` | Affinage visuel, nouveaux outils, surface EMF 3D et validation |
 | `clone-interface.md` | **Reprise du clone Windows : 16 rubriques, commandes secondaires, moteur, vérifications et lancement** |
 | `mac-handoff.md` | **Reprise sur Mac : commandes, code C# versionné et archive complète des artefacts Windows** |
 | `stack-decision.md` | Choix technologiques : Rust + Tauri + React |
@@ -40,6 +41,10 @@ Le blocage Enigma décrit dans les anciennes analyses concerne le fichier proté
 sur disque. Le clone a ensuite été repris : 16 rubriques, import des projets
 originaux, points, coupes, CAO/3D et exports. Les commandes non implémentées sont
 visibles en gris, selon la demande de l’utilisateur.
+
+L’affinage ajoute les icônes d’origine, panneaux redimensionnables,
+bibliothèques/éditeur et câbles, sommets/KML, courbes de niveau, groupes,
+intervalles de coupes et surface EMF 3D. Voir `interface-refinement.md`.
 
 La comparaison des 15 résultats de référence passe avec un écart de champ
 maximal inférieur à 0,000001 V/m. Ce résultat concerne un seul projet et ne

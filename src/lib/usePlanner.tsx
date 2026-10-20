@@ -21,6 +21,7 @@ import type {
   Contour,
   ControlPoint,
   FieldGrid,
+  ExposureVolume,
   PlannerProject,
   PointResult,
   RadiatingSource,
@@ -53,7 +54,23 @@ export function usePlannerState() {
     [selectedPoint, setSelectedPoint] = useState(""),
     [selectedObject, setSelectedObject] = useState(""),
     [selectedCut, setSelectedCut] = useState("");
+  const [command, setCommand] = useState("");
+  const [selectedGroup, setSelectedGroup] = useState("");
+  const [viewRequest, setViewRequest] = useState<{
+    center: [number, number];
+    version: number;
+  } | null>(null);
+  const [viewCenter, setViewCenter] = useState<[number, number]>([0, 0]);
+  const [ruler, setRuler] = useState<[number, number][]>([]);
+  function centerView(center: [number, number]) {
+    setViewRequest({ center, version: Date.now() });
+  }
+  function openCommand(name: string) {
+    setResultOpen(false);
+    setCommand(name);
+  }
   const [results, setResults] = useState<PointResult[]>([]),
+    [volume, setVolume] = useState<ExposureVolume | null>(null),
     [cutResults, setCutResults] = useState<CutResult[]>([]),
     [verticalResults, setVerticalResults] = useState<CutResult[]>([]),
     [resultOpen, setResultOpen] = useState(false),
@@ -67,6 +84,7 @@ export function usePlannerState() {
       grid: false,
       buildings: true,
       terrain: false,
+      triangulation: false,
       lines: true,
       sources: true,
       points: true,
@@ -84,8 +102,14 @@ export function usePlannerState() {
       project.sources.find((s) => s.id === selectedSource) ??
       project.sources[0],
     point =
-      project.control_points.find((p) => p.id === selectedPoint) ??
-      project.control_points[0];
+      project.control_points.find(
+        (p) =>
+          p.id === selectedPoint &&
+          (!selectedGroup || p.group === selectedGroup),
+      ) ??
+      project.control_points.find(
+        (p) => !selectedGroup || p.group === selectedGroup,
+      );
   const resetCalculations = () => {
     worker.current?.terminate();
     job.current++;
@@ -93,11 +117,13 @@ export function usePlannerState() {
     setResults([]);
     setCutResults([]);
     setVerticalResults([]);
+    setVolume(null);
   };
   const commit = useCallback(
     (
       action: PlannerProject | ((p: PlannerProject) => PlannerProject),
       message = "Modifications non enregistrées",
+      invalidate = true,
     ) => {
       const before = projectRef.current,
         next = typeof action === "function" ? action(before) : action;
@@ -108,7 +134,7 @@ export function usePlannerState() {
       setProject(next);
       setDirty(true);
       setStatus(message);
-      resetCalculations();
+      if (invalidate) resetCalculations();
     },
     [],
   );
@@ -169,6 +195,15 @@ export function usePlannerState() {
     setProject(p);
     setSelectedSource(p.sources[0]?.id ?? "");
     setSelectedPoint(p.control_points[0]?.id ?? "");
+    setSelectedObject("");
+    setSelectedCut(p.vertical_cuts[0]?.id ?? "");
+    setSelectedGroup("");
+    setViewCenter([0, 0]);
+    centerView([0, 0]);
+    setRuler([]);
+    setCommand("");
+    setTool("pan");
+    setDraft([]);
     setDirty(false);
     setStatus(`${p.name} — projet chargé`);
     setError("");
@@ -236,7 +271,18 @@ export function usePlannerState() {
     return () => window.removeEventListener("keydown", key);
   }, [restore]);
   function settings(patch: Partial<PlannerProject["settings"]>) {
-    commit((p) => ({ ...p, settings: { ...p.settings, ...patch } }));
+    const appearance = [
+      "map_provider",
+      "show_basemap",
+      "coordinate_format",
+      "contour_width",
+      "contour_opacity",
+    ];
+    commit(
+      (p) => ({ ...p, settings: { ...p.settings, ...patch } }),
+      "Modifications non enregistrées",
+      Object.keys(patch).some((k) => !appearance.includes(k)),
+    );
   }
   function updateSource(
     id: string,
@@ -308,7 +354,12 @@ export function usePlannerState() {
       }),
     }));
   }
-  function calculate(kind: "points" | "horizontal" | "vertical", fine = false) {
+  function calculate(
+    kind: "points" | "horizontal" | "vertical" | "volume",
+    fine = false,
+    onlyId?: string,
+  ) {
+    const project = projectRef.current;
     if (!project.sources.some((s) => s.active !== false)) {
       setError("Ajoutez et activez au moins une source avant de calculer.");
       return;
@@ -319,7 +370,10 @@ export function usePlannerState() {
     }
     const cuts =
       kind === "horizontal" ? project.horizontal_cuts : project.vertical_cuts;
-    if (kind !== "points" && !cuts.some((c) => c.active)) {
+    if (
+      (kind === "horizontal" || kind === "vertical") &&
+      !cuts.some((c) => c.active)
+    ) {
       setError("Ajoutez et activez au moins une coupe.");
       return;
     }
@@ -346,12 +400,17 @@ export function usePlannerState() {
         fail(new Error(e.data.error));
         return;
       }
-      if (kind === "points") {
+      if (kind === "volume") setVolume(e.data.result);
+      else if (kind === "points") {
         setResults(e.data.result);
         setResultOpen(true);
       } else if (kind === "horizontal") setCutResults(e.data.result);
       else {
-        setVerticalResults(e.data.result);
+        setVerticalResults((previous) =>
+          onlyId
+            ? [...previous.filter((r) => r.cut_id !== onlyId), ...e.data.result]
+            : e.data.result,
+        );
         setSelectedCut(e.data.result[0]?.cut_id ?? e.data.result[0]?.id ?? "");
       }
       setProgress(100);
@@ -362,7 +421,23 @@ export function usePlannerState() {
       setBusy(false);
       fail(new Error(e.message));
     };
-    worker.current.postMessage({ id, kind, project, fine });
+    const calculatedProject = onlyId
+      ? {
+          ...project,
+          ...(kind === "points"
+            ? {
+                control_points: project.control_points.filter(
+                  (p) => p.id === onlyId,
+                ),
+              }
+            : {
+                vertical_cuts: project.vertical_cuts
+                  .filter((c) => c.id === onlyId)
+                  .map((c) => ({ ...c, active: true })),
+              }),
+        }
+      : project;
+    worker.current.postMessage({ id, kind, project: calculatedProject, fine });
   }
   function cancel() {
     worker.current?.terminate();
@@ -372,6 +447,7 @@ export function usePlannerState() {
   }
   function finish() {
     if (tool === "ruler") {
+      setRuler(draft);
       if (draft.length >= 2)
         setStatus(
           `Distance mesurée : ${draft
@@ -391,11 +467,29 @@ export function usePlannerState() {
       setError("Un bâtiment nécessite au moins trois sommets.");
       return;
     }
+    if (tool === "terrain-contour" && draft.length < 2) {
+      setError("Une courbe de niveau nécessite au moins deux sommets.");
+      return;
+    }
     if ((tool === "road" || tool === "barrier") && draft.length < 2) {
       setError("Une ligne nécessite au moins deux points.");
       return;
     }
-    if (tool === "building") {
+    if (tool === "terrain-contour") {
+      const contour = {
+        id: uid(),
+        name: `Courbe ${(project.terrain_contours?.length ?? 0) + 1}`,
+        elevation: terrainHeight(project, ...draft[0]),
+        closed: false,
+        points: draft,
+      };
+      commit((p) => ({
+        ...p,
+        terrain_contours: [...(p.terrain_contours ?? []), contour],
+      }));
+      setSelectedObject(contour.id);
+      setDisplay((d) => ({ ...d, terrain: true }));
+    } else if (tool === "building") {
       const b: Building = {
         id: uid(),
         name: `${project.buildings.length + 1}`,
@@ -487,10 +581,24 @@ export function usePlannerState() {
         const [x, y] = convert([t.x, t.y]);
         return { ...t, x, y };
       }),
+      terrain_contours: p.terrain_contours?.map((c) => ({
+        ...c,
+        points: c.points.map(convert),
+      })),
     }));
   }
   return {
     project,
+    command,
+    setCommand,
+    openCommand,
+    selectedGroup,
+    setSelectedGroup,
+    viewRequest,
+    centerView,
+    viewCenter,
+    setViewCenter,
+    ruler,
     section,
     setSection,
     source,
@@ -506,6 +614,7 @@ export function usePlannerState() {
     results,
     cutResults,
     verticalResults,
+    volume,
     resultOpen,
     setResultOpen,
     dirty,

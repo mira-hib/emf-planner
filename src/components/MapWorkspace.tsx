@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import {
   Antenna,
   FileSpreadsheet,
@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import { usePlanner } from "../lib/usePlanner";
 import { COLORS, uid } from "../lib/project";
-import { terrainHeight } from "../lib/geometry";
+import { terrainHeight, toGeo } from "../lib/geometry";
 import { chooseFile, exportExcel, exportWord } from "../lib/files";
 import type {
   Building,
@@ -21,10 +21,14 @@ import type {
   HorizontalCut,
   RadiatingSource,
   TerrainPoint,
+  TerrainContour,
 } from "../types";
 import DataGrid, { type Column } from "./DataGrid";
 import PlannerMap from "./PlannerMap";
+import SplitWorkspace from "./SplitWorkspace";
 import { CalculateButton, LimitSelector, NumberField, Tool } from "./Controls";
+import FeatureTools from "./FeatureTools";
+import { styledContours } from "../lib/presentation";
 const POINT_COLUMNS: Column<ControlPoint>[] = [
   { key: "name", label: "Point", width: 70 },
   {
@@ -57,20 +61,22 @@ const POINT_COLUMNS: Column<ControlPoint>[] = [
 export default function MapWorkspace({ title }: { title: string }) {
   const a = usePlanner(),
     { project: p, section, point, source, commit, task, settings } = a;
-  const [group, setGroup] = useState("");
+  const group = a.selectedGroup,
+    setGroup = a.setSelectedGroup;
   const contours = useMemo(
-    () => a.cutResults.map((r) => r.contours),
-    [a.cutResults],
+    () => styledContours(p, a.cutResults),
+    [a.cutResults, p.horizontal_cuts, p.limits],
   );
   const groups = Array.from(
     new Set(p.control_points.map((c) => c.group || "Groupe 1")),
   );
   return (
-    <div className="split-workspace">
+    <SplitWorkspace>
       <section
         className={`property-pane ${section === "points" ? "points-pane" : ""}`}
       >
         <div className="pane-caption">{title}</div>
+        <FeatureTools section={section} />
         {section === "points" && (
           <>
             <div className="section-tools">
@@ -129,7 +135,14 @@ export default function MapWorkspace({ title }: { title: string }) {
               <select
                 aria-label="Groupe de points"
                 value={group}
-                onChange={(e) => setGroup(e.target.value)}
+                onChange={(e) => {
+                  setGroup(e.target.value);
+                  a.setSelectedPoint(
+                    p.control_points.find(
+                      (c) => !e.target.value || c.group === e.target.value,
+                    )?.id ?? "",
+                  );
+                }}
               >
                 <option value="">Tous les groupes</option>
                 {groups.map((g) => (
@@ -149,6 +162,7 @@ export default function MapWorkspace({ title }: { title: string }) {
             <div className="point-list">
               <DataGrid
                 label="Points de contrôle"
+                coordinateFormat={p.settings.coordinate_format}
                 rows={p.control_points.filter(
                   (c) => !group || c.group === group,
                 )}
@@ -327,12 +341,16 @@ export default function MapWorkspace({ title }: { title: string }) {
                 selected={a.selectedCut}
                 onSelect={a.setSelectedCut}
                 onUpdate={(id, key, value) =>
-                  commit((p) => ({
-                    ...p,
-                    horizontal_cuts: p.horizontal_cuts.map((c) =>
-                      c.id === id ? { ...c, [key]: value } : c,
-                    ),
-                  }))
+                  commit(
+                    (p) => ({
+                      ...p,
+                      horizontal_cuts: p.horizontal_cuts.map((c) =>
+                        c.id === id ? { ...c, [key]: value } : c,
+                      ),
+                    }),
+                    "Coupe horizontale modifiée",
+                    key !== "color",
+                  )
                 }
                 onAdd={() =>
                   commit((p) => ({
@@ -386,6 +404,23 @@ export default function MapWorkspace({ title }: { title: string }) {
               onChange={(v) => settings({ fine_step_m: v })}
             />
             <CalculateButton kind="horizontal" />
+            <fieldset>
+              <legend>Visualisation des contours</legend>
+              <NumberField
+                label="Épaisseur du trait"
+                value={p.settings.contour_width ?? 1.4}
+                min={0.2}
+                max={8}
+                onChange={(v) => settings({ contour_width: v })}
+              />
+              <NumberField
+                label="Opacité des contours"
+                value={p.settings.contour_opacity ?? 1}
+                min={0}
+                max={1}
+                onChange={(v) => settings({ contour_opacity: v })}
+              />
+            </fieldset>
           </>
         )}
         {section === "origin" && (
@@ -460,6 +495,7 @@ export default function MapWorkspace({ title }: { title: string }) {
             </div>
             <DataGrid<RadiatingSource>
               label="Positions des antennes"
+              coordinateFormat={p.settings.coordinate_format}
               rows={p.sources}
               columns={[
                 { key: "name", label: "Source", width: 100 },
@@ -602,6 +638,53 @@ export default function MapWorkspace({ title }: { title: string }) {
                 <Trash2 />
               </Tool>
             </div>
+            <fieldset className="terrain-curves">
+              <legend>Courbes de niveau</legend>
+              <DataGrid<TerrainContour>
+                label="Courbes de niveau"
+                rows={p.terrain_contours ?? []}
+                columns={[
+                  { key: "name", label: "Nom", width: 130 },
+                  {
+                    key: "elevation",
+                    label: "Altitude, m",
+                    kind: "number",
+                    width: 90,
+                  },
+                  {
+                    key: "closed",
+                    label: "Fermée",
+                    kind: "boolean",
+                    width: 55,
+                  },
+                ]}
+                selected={a.selectedObject}
+                onSelect={a.setSelectedObject}
+                onUpdate={(id, key, value) =>
+                  commit((v) => ({
+                    ...v,
+                    terrain_contours: v.terrain_contours?.map((c) =>
+                      c.id === id ? { ...c, [key]: value } : c,
+                    ),
+                  }))
+                }
+              />
+              <button
+                disabled={
+                  !p.terrain_contours?.some((c) => c.id === a.selectedObject)
+                }
+                onClick={() =>
+                  commit((v) => ({
+                    ...v,
+                    terrain_contours: v.terrain_contours?.filter(
+                      (c) => c.id !== a.selectedObject,
+                    ),
+                  }))
+                }
+              >
+                Supprimer la courbe sélectionnée
+              </button>
+            </fieldset>
             <div className="grow">
               <DataGrid<TerrainPoint>
                 label="Points du terrain"
@@ -644,7 +727,10 @@ export default function MapWorkspace({ title }: { title: string }) {
               />{" "}
               Prendre en compte le relief
             </label>
-            <p className="hint">Interpolation du terrain par triangulation.</p>
+            <p className="hint">
+              Les points et sommets des courbes de niveau participent à
+              l’interpolation triangulée du terrain.
+            </p>
           </>
         )}
         {section === "lines" && (
@@ -723,8 +809,7 @@ export default function MapWorkspace({ title }: { title: string }) {
                     reader.onerror = reject;
                     reader.readAsDataURL(new Blob([new Uint8Array(f.bytes)]));
                   });
-                  const { toGeo } = await import("../lib/geometry"),
-                    [south, west] = toGeo(-150, -150, p.origin),
+                  const [south, west] = toGeo(-150, -150, p.origin),
                     [north, east] = toGeo(150, 150, p.origin);
                   commit((p) => ({
                     ...p,
@@ -799,8 +884,16 @@ export default function MapWorkspace({ title }: { title: string }) {
         onCursor={(x, y) => a.setCursor([x, y])}
         onFinish={a.finish}
         onSelectSource={a.setSelectedSource}
+        onSelectPoint={(id) => {
+          a.setSelectedGroup("");
+          a.setSelectedPoint(id);
+        }}
+        viewRequest={a.viewRequest}
+        onCenterChange={a.setViewCenter}
+        selectedObject={a.selectedObject}
+        onSelectObject={a.setSelectedObject}
       />
-    </div>
+    </SplitWorkspace>
   );
 }
 type PlannerProjectSettingsMode = "ignore" | "screen" | "attenuate";

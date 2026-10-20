@@ -1,15 +1,16 @@
 import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
-import Delaunator from "delaunator";
-import type { Contour, PlannerProject } from "../types";
-import { terrainHeight, toLocal } from "../lib/geometry";
+import type { Contour, ExposureVolume, PlannerProject } from "../types";
+import { terrainHeight, terrainMesh, toLocal } from "../lib/geometry";
 export default function Scene3D({
   project,
   contours,
+  volume,
 }: {
   project: PlannerProject;
   contours: Contour[];
+  volume?: ExposureVolume | null;
 }) {
   const host = useRef<HTMLDivElement>(null),
     [error, setError] = useState("");
@@ -39,13 +40,9 @@ export default function Scene3D({
     const grid = new THREE.GridHelper(radius * 2, 20, 0x8b999c, 0xc4cdcc);
     scene.add(grid);
     const originHeight = terrainHeight(project, 0, 0);
-    if (project.terrain_points.length >= 3) {
-      const points = project.terrain_points,
-        del = Delaunator.from(
-          points,
-          (p) => p.x,
-          (p) => p.y,
-        ),
+    const terrain = terrainMesh(project);
+    if (terrain.points.length >= 3) {
+      const points = terrain.points,
         geo = new THREE.BufferGeometry();
       geo.setAttribute(
         "position",
@@ -54,7 +51,7 @@ export default function Scene3D({
           3,
         ),
       );
-      geo.setIndex(Array.from(del.triangles));
+      geo.setIndex(Array.from(terrain.triangles));
       geo.computeVertexNormals();
       scene.add(
         new THREE.Mesh(
@@ -136,6 +133,33 @@ export default function Scene3D({
         ),
       );
     }
+    if (volume?.positions.length) {
+      const geometry = new THREE.BufferGeometry(),
+        positions = new Float32Array(volume.positions.length);
+      for (let i = 0; i < positions.length; i += 3) {
+        positions[i] = volume.positions[i];
+        positions[i + 1] = volume.positions[i + 2] - originHeight;
+        positions[i + 2] = -volume.positions[i + 1];
+      }
+      geometry.setAttribute(
+        "position",
+        new THREE.BufferAttribute(positions, 3),
+      );
+      geometry.computeVertexNormals();
+      scene.add(
+        new THREE.Mesh(
+          geometry,
+          new THREE.MeshStandardMaterial({
+            color: volume.color,
+            transparent: true,
+            opacity: 0.48,
+            side: THREE.DoubleSide,
+            depthWrite: false,
+            roughness: 0.55,
+          }),
+        ),
+      );
+    }
     const observer = new ResizeObserver(() => {
       renderer.setSize(el.clientWidth, el.clientHeight);
       camera.aspect = el.clientWidth / Math.max(1, el.clientHeight);
@@ -165,10 +189,35 @@ export default function Scene3D({
       renderer.dispose();
       renderer.domElement.remove();
     };
-  }, [project, contours]);
+  }, [project, contours, volume]);
   return (
     <div className="scene-3d" ref={host}>
       {error && <p role="alert">{error}</p>}
+      {volume && (
+        <div
+          className="volume-summary"
+          role="status"
+          data-triangles={volume.triangles}
+        >
+          <strong>
+            Exposition cumulée à 100 % —{" "}
+            {project.limits[volume.limit_index]?.name}
+          </strong>
+          <span>
+            {volume.triangles.toLocaleString("fr-FR")} triangles · pas{" "}
+            {volume.step_m} m
+          </span>
+          {volume.clipped && (
+            <span>
+              La surface atteint les bords du volume. Agrandissez la zone pour
+              la compléter.
+            </span>
+          )}
+          {!volume.triangles && (
+            <span>Aucune surface à 100 % détectée à cette résolution.</span>
+          )}
+        </div>
+      )}
       <div className="scene-help">
         Rotation : glisser · Zoom : molette · Déplacement : clic droit
       </div>

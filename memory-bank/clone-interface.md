@@ -11,6 +11,11 @@ L’interface React a été reconstruite avec les 16 rubriques des formulaires
 bâtiments, terrain, lignes, points, coupes horizontales, coupes verticales,
 tableaux, rapport, CAO, 3D, calibration et paramètres.
 
+**Mise à jour après affinage :** lire [interface-refinement.md](interface-refinement.md)
+et [features.md](features.md). Bibliothèques/éditeur, câbles, sommets, groupes,
+courbes de niveau et surface 3D sont désormais raccordés. Les icônes d’origine,
+la densité des tableaux et les panneaux ont été affinés.
+
 Les commandes secondaires sont centralisées dans
 `src/components/FeatureTools.tsx`. Une commande non raccordée est désactivée,
 grisée et porte l’infobulle « fonction pas encore implémentée ». Une commande
@@ -23,37 +28,34 @@ infobulle explique cette condition. Ne pas activer un bouton factice.
 |---|---|
 | Fichiers | Nouveau, lecture JSON/.emfp, import binaire .xemf, sauvegarde .emfp, démonstration, copie de travail locale |
 | Édition | Annuler/rétablir, raccourcis Ctrl+O/S/Z/Y, abandon du dessin, validation des cellules |
-| Sources | Grille éditable, ajout/suppression/copie/ordre, activation, couleurs, facteurs par jeu de limites, calcul EIRP, import/export MSI, diagrammes H/V, rotation V, import/export XLSX |
+| Sources | Grille, copie/ordre, activation/couleurs/facteurs, EIRP, MSI/XLSX, bibliothèque/éditeur, enveloppes, génération symétrique, câbles/bretelles/connecteurs, puissance inverse |
 | Limites | Quatre jeux éditables, intervalles de fréquences avec coefficient/exposant, couleurs et facteurs |
 | Plan | Plan SVG hors ligne, déplacement/zoom/règle, fonds Leaflet, calques, import image avec emprise géographique |
 | Origine/antennes | Coordonnées locales/géographiques, déplacement de l’origine avec recalage des objets, antennes à l’origine |
-| Bâtiments | Dessin polygonal, propriétés, suppression/copie, ordre, altitude de base depuis le terrain, écrans/atténuation |
-| Terrain | Points d’altitude, édition, interpolation triangulée, activation du relief |
-| Lignes | Routes, clôtures, annotations, couleur/épaisseur, copie et suppression |
-| Points | Groupes, plusieurs hauteurs, valeur mesurée, atténuation, calcul et matrice par source |
-| Coupes H | Liste éditable, hauteurs d’antennes, tri/couleurs, deux pas de grille, contours des quatre jeux actifs |
-| Coupes V | Azimuts d’antennes, distances/hauteur, tri, deux grilles, superposition des limites et légende |
+| Bâtiments | Dessin, propriétés, copie/ordre, base depuis terrain, écrans, sommets, translation, import KML |
+| Terrain | Points et courbes de niveau, altitudes/sommets, copie/fermeture, interpolation et triangulation affichable |
+| Lignes | Routes, clôtures, annotations, style, copie/suppression, nœuds, scission et translation |
+| Points | Gestion/ordre des groupes, hauteurs/mesures, calcul/matrice, centrage, alignement sur azimuts et plage de hauteurs |
+| Coupes H | Hauteurs d’antennes/intervalles/maxima, tri/couleurs/styles, deux grilles, quatre limites, coupe V par règle |
+| Coupes V | Azimuts d’antennes/intervalles, dimensions, tri, deux grilles, limites, calcul sélectionné et ajustement aux résultats |
 | Tableaux | Courbes champ/exposition selon distance et azimut, résultats des points |
 | Rapports | Vrais DOCX/XLSX/PDF ; contenu sources+points ou points seuls ; prévisualisation |
 | CAO | Papier A4/A3/A2, échelle, calques, export SVG/PDF et DXF incluant les contours calculés |
-| 3D | Terrain/bâtiments/antennes et contours empilés, navigation OrbitControls |
-| Paramètres | Réflexion, grilles, taille de zone, relief, traitement des bâtiments et fournisseur de carte |
+| 3D | Terrain/bâtiments/antennes, contours H, surface d’exposition à 100 %, navigation OrbitControls |
+| Paramètres | Calculs, propriétaires, formats décimal/DM/DMS et fonds de carte personnalisés |
 
 ## Fonctions visibles mais non implémentées
 
-Les outils complémentaires rendent notamment visibles : bibliothèque et éditeur
-d’antennes, enveloppes, génération ITU-R F.699, bibliothèque de câbles,
-import Excel .xlt, préréglages nationaux, édition des sommets, bâtiments KML/OSM,
-DEM/SRTM et courbes de niveau, icônes et scission de lignes, gestion avancée des
-groupes, alignement des points sur les azimuts, génération de coupes par
-intervalles/maxima, cotes, rapports illustrés de coupes, alias/modèles Word,
-DWG, volumes de sécurité 3D, calibration avec deux lignes, proxy/cache et
-formats de coordonnées supplémentaires.
+Restent notamment gris : import .xlt, préréglages nationaux, équarrissage,
+imports OSM, DEM/SRTM, icônes de lignes, génération automatique avancée des
+coupes, cotes, rapports illustrés, alias/modèles Word, DWG, calibration par
+références, proxy/cache et dossiers externes.
 
 La sauvegarde binaire .xemf est grisée dans Fichier. Le clone lit le projet
 original puis sauvegarde en .emfp. L’import DXF reconnaît LWPOLYLINE et TEXT ;
-il ne représente pas un importeur CAO général. Le rendu 3D n’est pas un calcul de
-volume EMF fermé. Les préréglages réglementaires désactivés ne sont pas des
+il ne représente pas un importeur CAO général. La surface EMF 3D utilise un
+maillage approximatif réglable ; voir sa validation dans `interface-refinement.md`.
+Les préréglages réglementaires désactivés ne sont pas des
 normes actuelles validées.
 
 ## Moteur utilisé et concordance
@@ -80,7 +82,7 @@ Références : `.tools/emf-scenarios/observed-results.json`,
 ## Vérification et lancement
 
 - `npm run build` : TypeScript et production Vite.
-- `npm test` : 10 tests métier, dont import original et références numériques.
+- `npm test` : 21 tests métier, dont import original, références numériques et maillage 3D.
 - `npm run test:ui` : parcours Edge/Playwright, fichiers réellement téléchargés,
   calculs en Worker, navigation des 16 rubriques, CAO/3D, copie/annulation,
   commandes grisées et sélection du contenu des rapports.

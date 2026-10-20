@@ -1,0 +1,1016 @@
+[
+  {
+    "file": "Form1.ToolStripDropDownButton1.png",
+    "source": "EMFPlanner.Form1.resx",
+    "resource": "ToolStripDropDownButton1.Image",
+    "sha256": "7c3ddd9892ebcf4a75f9c4430e24f3df06b84997803af31eff2c164a0f39c14f"
+  },
+  {
+    "file": "Form1.cmdOPEN.png",
+    "source": "EMFPlanner.Form1.resx",
+    "resource": "cmdOPEN.Image",
+    "sha256": "5d18d4e8f375de50c4fc2168f73cdc0d537300b25987dd82a8eecab41b59a036"
+  },
+  {
+    "file": "Form1.cmdRuler.png",
+    "source": "EMFPlanner.Form1.resx",
+    "resource": "cmdRuler.Image",
+    "sha256": "17f22a7d544de83726880646a7caf71d90bf71b54f646eed0b1100d31a77ec8f"
+  },
+  {
+    "file": "Form1.cmdSaveAS.png",
+    "source": "EMFPlanner.Form1.resx",
+    "resource": "cmdSaveAS.Image",
+    "sha256": "5cceac5c25339ecbfa78aeba1b70f930446380879d6eca0154c407875a9a964d"
+  },
+  {
+    "file": "Form1.cmdFile.png",
+    "source": "EMFPlanner.Form1.resx",
+    "resource": "cmdFile.Image",
+    "sha256": "7175b8a41921bd97937b3e88ad77035ddf0d8310a785c07a9db85a76361eec52"
+  },
+  {
+    "file": "Form1.cmdSAVE.png",
+    "source": "EMFPlanner.Form1.resx",
+    "resource": "cmdSAVE.Image",
+    "sha256": "5cceac5c25339ecbfa78aeba1b70f930446380879d6eca0154c407875a9a964d"
+  },
+  {
+    "file": "Form1.ToolStripDropDownButton3.png",
+    "source": "EMFPlanner.Form1.resx",
+    "resource": "ToolStripDropDownButton3.Image",
+    "sha256": "e402c32183a9476dc152c41eae2e68490d4347aa63fe00e3d3176806f8fb4bef"
+  },
+  {
+    "file": "Form1.cmdSavePanel.png",
+    "source": "EMFPlanner.Form1.resx",
+    "resource": "cmdSavePanel.Image",
+    "sha256": "bfed6fea6cd43b7929e1846295f7ffba201fbafa0ba42f5f6d6db30e73ff46e2"
+  },
+  {
+    "file": "Form1.cmdNEW.png",
+    "source": "EMFPlanner.Form1.resx",
+    "resource": "cmdNEW.Image",
+    "sha256": "a3601780391e1406098b1ae4e12a0f3e91ee6b04c419c7b4d9782068c2572e63"
+  },
+  {
+    "file": "frmEnvelope.cmdFolder.png",
+    "source": "EMFPlanner.frmEnvelope.resx",
+    "resource": "cmdFolder.Image",
+    "sha256": "8e90d63ee9bfc6616fece6eaf2b965290c0260ee32c932a134a45fc705cedc19"
+  },
+  {
+    "file": "frmEnvelope.cmdMakeEnvelope.png",
+    "source": "EMFPlanner.frmEnvelope.resx",
+    "resource": "cmdMakeEnvelope.Image",
+    "sha256": "ffa3ba91ddeb4a306ff896f1f1ed88cff39058626a18608e5c5131378c3f6403"
+  },
+  {
+    "file": "frmEnvelope.cmdSelectDeselectAll.png",
+    "source": "EMFPlanner.frmEnvelope.resx",
+    "resource": "cmdSelectDeselectAll.Image",
+    "sha256": "8f335709332ee1dda961cab78f4fa9ee7d0386175d6692bb555a24d18e1fa920"
+  },
+  {
+    "file": "frmEnvelope.cmdCancel.png",
+    "source": "EMFPlanner.frmEnvelope.resx",
+    "resource": "cmdCancel.Image",
+    "sha256": "9ddabae1652f12bb9db3c380922149cfab3804402f0753d49d52b23e24d69453"
+  },
+  {
+    "file": "frmParabola.cmdMakePattern.png",
+    "source": "EMFPlanner.frmParabola.resx",
+    "resource": "cmdMakePattern.Image",
+    "sha256": "ffa3ba91ddeb4a306ff896f1f1ed88cff39058626a18608e5c5131378c3f6403"
+  },
+  {
+    "file": "frmParabola.cmdCancel.png",
+    "source": "EMFPlanner.frmParabola.resx",
+    "resource": "cmdCancel.Image",
+    "sha256": "9ddabae1652f12bb9db3c380922149cfab3804402f0753d49d52b23e24d69453"
+  },
+  {
+    "file": "UC_Antennas.cmdMoveToOrigin.png",
+    "source": "EMFPlanner.UC_Antennas.resx",
+    "resource": "cmdMoveToOrigin.Image",
+    "sha256": "620c903b6f3535dd1e7468283de871173015b2a0cc2e44530ba3ed93bbcc43b2"
+  },
+  {
+    "file": "UC_Antennas.cmdMoveToActive.png",
+    "source": "EMFPlanner.UC_Antennas.resx",
+    "resource": "cmdMoveToActive.Image",
+    "sha256": "1b3cce3c67a17d17eaa8ebc69be5bd152f5d4ae646cf1a744a2e3e9310a6bbb3"
+  },
+  {
+    "file": "UC_Antennas.cmdMoveOriginToActive.png",
+    "source": "EMFPlanner.UC_Antennas.resx",
+    "resource": "cmdMoveOriginToActive.Image",
+    "sha256": "6865ab4f2c5874b280b682380fd1868edd0808da9adcfa6aeba49cbe4b0a4db5"
+  },
+  {
+    "file": "UC_Antennas.cmdMoveSelectedAntennasToCenterScreen.png",
+    "source": "EMFPlanner.UC_Antennas.resx",
+    "resource": "cmdMoveSelectedAntennasToCenterScreen.Image",
+    "sha256": "2dad2e90b5f3e86ddd8777f9f97aae517ce6caa08e8b4a61f6e2fcc1c97aec1a"
+  },
+  {
+    "file": "UC_Antennas.cmdPosition.png",
+    "source": "EMFPlanner.UC_Antennas.resx",
+    "resource": "cmdPosition.Image",
+    "sha256": "43312e4c3a0a81a373127ba730d98c213838c3714ea5f8a024c22ba326e8661e"
+  },
+  {
+    "file": "UC_Buildings.cmdDeleteNode.png",
+    "source": "EMFPlanner.UC_Buildings.resx",
+    "resource": "cmdDeleteNode.Image",
+    "sha256": "52207c582c0564f71df5a2d2722bc512c72c263cffc013bacf5379170ba6d680"
+  },
+  {
+    "file": "UC_Buildings.cmdGetBldFromCloud.png",
+    "source": "EMFPlanner.UC_Buildings.resx",
+    "resource": "cmdGetBldFromCloud.Image",
+    "sha256": "0bc88eb683a1570d2450dfc82f9e50e1913267530b3ff43a45037c3638959920"
+  },
+  {
+    "file": "UC_Buildings.cmdAutoFundation.png",
+    "source": "EMFPlanner.UC_Buildings.resx",
+    "resource": "cmdAutoFundation.Image",
+    "sha256": "96344ef3a32aaebc747d894de23c868a749472562679b33b7cc19d15665deb97"
+  },
+  {
+    "file": "UC_Buildings.cmdLeft.png",
+    "source": "EMFPlanner.UC_Buildings.resx",
+    "resource": "cmdLeft.Image",
+    "sha256": "1e1afccbab91d6259c9e068c7c983bace940fae032c87a44ad9ae5e6f6df230a"
+  },
+  {
+    "file": "UC_Buildings.cmdDelOneBuilding.png",
+    "source": "EMFPlanner.UC_Buildings.resx",
+    "resource": "cmdDelOneBuilding.Image",
+    "sha256": "c19d82166f1922d9a246ba37955a6706fd61d9dddd84c76be85d3eb1ac4d53d9"
+  },
+  {
+    "file": "UC_Buildings.cmdAutoFundationOneBLD.png",
+    "source": "EMFPlanner.UC_Buildings.resx",
+    "resource": "cmdAutoFundationOneBLD.Image",
+    "sha256": "96344ef3a32aaebc747d894de23c868a749472562679b33b7cc19d15665deb97"
+  },
+  {
+    "file": "UC_Buildings.cmdUndo.png",
+    "source": "EMFPlanner.UC_Buildings.resx",
+    "resource": "cmdUndo.Image",
+    "sha256": "2dd8aeeece61a6bda15bcb12015f2aa0a47dd147bfc5fb6009c5414340f76b21"
+  },
+  {
+    "file": "UC_Buildings.cmdUp.png",
+    "source": "EMFPlanner.UC_Buildings.resx",
+    "resource": "cmdUp.Image",
+    "sha256": "0f845544391897f864b4cca46f0935ed5707ed0b3ec3cc3daf83f955ca70a304"
+  },
+  {
+    "file": "UC_Buildings.cmdAddNode.png",
+    "source": "EMFPlanner.UC_Buildings.resx",
+    "resource": "cmdAddNode.Image",
+    "sha256": "e5b1937ed43f5e7369252cbc1a8e91430d7bf404bf67dc0860289bfda79fc8bc"
+  },
+  {
+    "file": "UC_Buildings.cmdLayerBackward.png",
+    "source": "EMFPlanner.UC_Buildings.resx",
+    "resource": "cmdLayerBackward.Image",
+    "sha256": "5530d73baa28a2884fcf801f96752322d0627c09b9f439fccb603e8924597edc"
+  },
+  {
+    "file": "UC_Buildings.cmdAddCopyBuilding.png",
+    "source": "EMFPlanner.UC_Buildings.resx",
+    "resource": "cmdAddCopyBuilding.Image",
+    "sha256": "5b0894d8ea860072322285389609d7d58d00444a2f252a6fd56227c8e277075f"
+  },
+  {
+    "file": "UC_Buildings.cmdDelAllBuildings.png",
+    "source": "EMFPlanner.UC_Buildings.resx",
+    "resource": "cmdDelAllBuildings.Image",
+    "sha256": "6ed6572764757da849b4afd27a961653caa8c719b55dc424e4ef9bb4b21f5f9b"
+  },
+  {
+    "file": "UC_Buildings.cmdDown.png",
+    "source": "EMFPlanner.UC_Buildings.resx",
+    "resource": "cmdDown.Image",
+    "sha256": "76c8c9bc8c00f342ae259ff6bcb99144241b251cc810f1a36cba1768473d51c9"
+  },
+  {
+    "file": "UC_Buildings.cmdRight.png",
+    "source": "EMFPlanner.UC_Buildings.resx",
+    "resource": "cmdRight.Image",
+    "sha256": "72bc40a26fa0694926ba985e243c8ccef570b392ee5a069d068412fd826f4366"
+  },
+  {
+    "file": "UC_Buildings.cmdAddBuilding.png",
+    "source": "EMFPlanner.UC_Buildings.resx",
+    "resource": "cmdAddBuilding.Image",
+    "sha256": "68bd5a3b70d95ea3f94f9ca79d43191ea83d5799bdf084cac15d1b9c90d458c2"
+  },
+  {
+    "file": "UC_Buildings.cmdRedo.png",
+    "source": "EMFPlanner.UC_Buildings.resx",
+    "resource": "cmdRedo.Image",
+    "sha256": "54b908be1e94966f4a472dd862f8a911e5f59528da0c5219b6c4fa68fe91c4c1"
+  },
+  {
+    "file": "UC_Buildings.cmdSquareBLD.png",
+    "source": "EMFPlanner.UC_Buildings.resx",
+    "resource": "cmdSquareBLD.Image",
+    "sha256": "a1a3f3a7d4b3a6ffadf315f1bbc67f8935547c3b644f3684e2ca51a2a95c2e63"
+  },
+  {
+    "file": "UC_Buildings.cmdImportBuildingPolygons.png",
+    "source": "EMFPlanner.UC_Buildings.resx",
+    "resource": "cmdImportBuildingPolygons.Image",
+    "sha256": "2c59f6aa870aa7bd27b02848909e16e386c20c1b7232aad74686b5b1d367ae3d"
+  },
+  {
+    "file": "UC_Buildings.cmdSelect.png",
+    "source": "EMFPlanner.UC_Buildings.resx",
+    "resource": "cmdSelect.Image",
+    "sha256": "03d918d4c03ae4ac3571dd84a69ea065bddbe19605e86f8e64ad50b95da4aeca"
+  },
+  {
+    "file": "UC_CAD.cmdExportToDWG.png",
+    "source": "EMFPlanner.UC_CAD.resx",
+    "resource": "cmdExportToDWG.Image",
+    "sha256": "a2dd8287525d1663d1df8022976e30c501133436ab4a27169d3961ef45b8993c"
+  },
+  {
+    "file": "UC_ControlPoints.cmdCalcOnePoint.png",
+    "source": "EMFPlanner.UC_ControlPoints.resx",
+    "resource": "cmdCalcOnePoint.Image",
+    "sha256": "551f333689fd2e240b20a500cb80a54069926fea0d16e0329341fae1cc53d30c"
+  },
+  {
+    "file": "UC_ControlPoints.cmdWord.png",
+    "source": "EMFPlanner.UC_ControlPoints.resx",
+    "resource": "cmdWord.Image",
+    "sha256": "1f934c078798cbca54bcf23ed20bc46042ef93febb8cbd02b248e7d903302e8f"
+  },
+  {
+    "file": "UC_ControlPoints.cmdUp.png",
+    "source": "EMFPlanner.UC_ControlPoints.resx",
+    "resource": "cmdUp.Image",
+    "sha256": "372c38cbbe662e2145a00d42f90fe8d66f0e7ce09da9749c038fc84a72462148"
+  },
+  {
+    "file": "UC_ControlPoints.cmdAddControlPoint.png",
+    "source": "EMFPlanner.UC_ControlPoints.resx",
+    "resource": "cmdAddControlPoint.Image",
+    "sha256": "c71437eb3ce17a5f870c0b2289e1cf5f285ab157ad39c0f249307854298f8c98"
+  },
+  {
+    "file": "UC_ControlPoints.cmdMovePointsToAzimuth.png",
+    "source": "EMFPlanner.UC_ControlPoints.resx",
+    "resource": "cmdMovePointsToAzimuth.Image",
+    "sha256": "050fcb81f5bdea91f87951ea5b3524bafa0f99bda11fa4001dca82c3a7bc0be9"
+  },
+  {
+    "file": "UC_ControlPoints.cmdContrPointToCenterScreen.png",
+    "source": "EMFPlanner.UC_ControlPoints.resx",
+    "resource": "cmdContrPointToCenterScreen.Image",
+    "sha256": "2dad2e90b5f3e86ddd8777f9f97aae517ce6caa08e8b4a61f6e2fcc1c97aec1a"
+  },
+  {
+    "file": "UC_ControlPoints.cmdExcel.png",
+    "source": "EMFPlanner.UC_ControlPoints.resx",
+    "resource": "cmdExcel.Image",
+    "sha256": "85ed878761245a8463ca68eab60eec7444429628c0dbd207a536e770d59470f2"
+  },
+  {
+    "file": "UC_ControlPoints.cmdDown.png",
+    "source": "EMFPlanner.UC_ControlPoints.resx",
+    "resource": "cmdDown.Image",
+    "sha256": "7885dc56ef10f3580617190e28bdbe71f62fe763a2418204fedbf96bc218f04f"
+  },
+  {
+    "file": "UC_ControlPoints.cmdCalcAllPoints.png",
+    "source": "EMFPlanner.UC_ControlPoints.resx",
+    "resource": "cmdCalcAllPoints.Image",
+    "sha256": "43d5c11b08c348635dcbc20c8603c70b3a627d9c4ec5e00c7422bc65ef8dc211"
+  },
+  {
+    "file": "UC_ControlPoints.cmdPosition.png",
+    "source": "EMFPlanner.UC_ControlPoints.resx",
+    "resource": "cmdPosition.Image",
+    "sha256": "43312e4c3a0a81a373127ba730d98c213838c3714ea5f8a024c22ba326e8661e"
+  },
+  {
+    "file": "UC_HorizPlanes.cmdAutoFill1.png",
+    "source": "EMFPlanner.UC_HorizPlanes.resx",
+    "resource": "cmdAutoFill1.Image",
+    "sha256": "0a542ae15efd84aaf9e98cbd77d63160086dd1df4183c7e1432ca773674f72ec"
+  },
+  {
+    "file": "UC_HorizPlanes.cmdSize.png",
+    "source": "EMFPlanner.UC_HorizPlanes.resx",
+    "resource": "cmdSize.Image",
+    "sha256": "e99085e48a6132b3de6b5f1e105f7a660ee6b535ec4f41e7eced10c3030a755b"
+  },
+  {
+    "file": "UC_HorizPlanes.cmdSameColor.png",
+    "source": "EMFPlanner.UC_HorizPlanes.resx",
+    "resource": "cmdSameColor.Image",
+    "sha256": "bf7b3609c6b0796e634c272b06fd2e4298a47ae7c35cc5ea08112fc3d2e1d7a6"
+  },
+  {
+    "file": "UC_HorizPlanes.cmdAutoFill2.png",
+    "source": "EMFPlanner.UC_HorizPlanes.resx",
+    "resource": "cmdAutoFill2.Image",
+    "sha256": "987800124d57d0f8f9f4537d66d0221cc0db96f1a422acd7f0afa8b14dd1d587"
+  },
+  {
+    "file": "UC_HorizPlanes.cmdDifferentLineTypes.png",
+    "source": "EMFPlanner.UC_HorizPlanes.resx",
+    "resource": "cmdDifferentLineTypes.Image",
+    "sha256": "abe3eb1dccdfce61750bcf4195c3c06446e9b353cd334005886a02f17aa76806"
+  },
+  {
+    "file": "UC_HorizPlanes.cmdStart0.png",
+    "source": "EMFPlanner.UC_HorizPlanes.resx",
+    "resource": "cmdStart0.Image",
+    "sha256": "e271cf54668753c83853f1222d9f80bc9751aff3afa8bbbf352da49fa4b93386"
+  },
+  {
+    "file": "UC_HorizPlanes.cmdAddVertPlane.png",
+    "source": "EMFPlanner.UC_HorizPlanes.resx",
+    "resource": "cmdAddVertPlane.Image",
+    "sha256": "d36db3389e2bcac104d35b99d5e277edc56412baca36a6bb130250f45e77c22c"
+  },
+  {
+    "file": "UC_HorizPlanes.cmdDifferentColors.png",
+    "source": "EMFPlanner.UC_HorizPlanes.resx",
+    "resource": "cmdDifferentColors.Image",
+    "sha256": "1bfc7a932bcd62bc1aead5ebe22b7169e19a3c14ff431322f09bde46176e847c"
+  },
+  {
+    "file": "UC_HorizPlanes.cmdMoveHorizArea.png",
+    "source": "EMFPlanner.UC_HorizPlanes.resx",
+    "resource": "cmdMoveHorizArea.Image",
+    "sha256": "2dad2e90b5f3e86ddd8777f9f97aae517ce6caa08e8b4a61f6e2fcc1c97aec1a"
+  },
+  {
+    "file": "UC_HorizPlanes.cmdSORT.png",
+    "source": "EMFPlanner.UC_HorizPlanes.resx",
+    "resource": "cmdSORT.Image",
+    "sha256": "01414ebb8ccc0e1639be40669ecad439e594f3f7bbe28721853655f1b30214f2"
+  },
+  {
+    "file": "UC_HorizPlanes.cmdPosition.png",
+    "source": "EMFPlanner.UC_HorizPlanes.resx",
+    "resource": "cmdPosition.Image",
+    "sha256": "43312e4c3a0a81a373127ba730d98c213838c3714ea5f8a024c22ba326e8661e"
+  },
+  {
+    "file": "UC_HorizPlanes.cmdAutoFill4.png",
+    "source": "EMFPlanner.UC_HorizPlanes.resx",
+    "resource": "cmdAutoFill4.Image",
+    "sha256": "3bd17e94bd3c84c627ffb175ce3f3d386a9d8091fe989ec2aefc07ed947b26c3"
+  },
+  {
+    "file": "UC_HorizPlanes.cmdStart1.png",
+    "source": "EMFPlanner.UC_HorizPlanes.resx",
+    "resource": "cmdStart1.Image",
+    "sha256": "ce7816097e28959b1f52f776c0225e1df1b16963bdc26ca1de2cd43e74fbdad2"
+  },
+  {
+    "file": "UC_HorizPlanes.cmdWord1.png",
+    "source": "EMFPlanner.UC_HorizPlanes.resx",
+    "resource": "cmdWord1.Image",
+    "sha256": "1f934c078798cbca54bcf23ed20bc46042ef93febb8cbd02b248e7d903302e8f"
+  },
+  {
+    "file": "UC_Limits.cmdUK.png",
+    "source": "EMFPlanner.UC_Limits.resx",
+    "resource": "cmdUK.Image",
+    "sha256": "be4c14da073f093af3dd9927cfe45da9ef7de034ff8eb6c650b75bd0c1dbf7e6"
+  },
+  {
+    "file": "UC_Limits.cmdEU.png",
+    "source": "EMFPlanner.UC_Limits.resx",
+    "resource": "cmdEU.Image",
+    "sha256": "7f5d8a046afdd8c76b24c017479bcd9b66344aa5bada0c066c3634b65ebdf938"
+  },
+  {
+    "file": "UC_Limits.cmdBelgium.png",
+    "source": "EMFPlanner.UC_Limits.resx",
+    "resource": "cmdBelgium.Image",
+    "sha256": "6607ab55c22804fa3d50a86dce6ec4a698de7656f08c3ddaec47f973e8cb0a7f"
+  },
+  {
+    "file": "UC_Limits.cmdSlovenia.png",
+    "source": "EMFPlanner.UC_Limits.resx",
+    "resource": "cmdSlovenia.Image",
+    "sha256": "ae69f8bed1186e7ab5f39c3396e97dd877dea4b16b744b58f70ad5adbb7a0430"
+  },
+  {
+    "file": "UC_Limits.cmdChina.png",
+    "source": "EMFPlanner.UC_Limits.resx",
+    "resource": "cmdChina.Image",
+    "sha256": "6aecf17d4f50abddb64cbe14752befa7286cf33f82fbb338d82e83ae4460e741"
+  },
+  {
+    "file": "UC_Limits.cmdGreece.png",
+    "source": "EMFPlanner.UC_Limits.resx",
+    "resource": "cmdGreece.Image",
+    "sha256": "a85a4d19df2b3a1b24466ea5e6775ac314c5fe618d5a8864088f19a5c59b2501"
+  },
+  {
+    "file": "UC_Limits.cmdCroatia.png",
+    "source": "EMFPlanner.UC_Limits.resx",
+    "resource": "cmdCroatia.Image",
+    "sha256": "c7ce781d1ef935e15393186fde02f73d63079ecbac39b2ba78e60cd5f14bd206"
+  },
+  {
+    "file": "UC_Limits.cmdBulgaria.png",
+    "source": "EMFPlanner.UC_Limits.resx",
+    "resource": "cmdBulgaria.Image",
+    "sha256": "38ed4fd641535ea803a59bb3d6ebf3dc4f0d96f75327bf1e5220223924d33717"
+  },
+  {
+    "file": "UC_Limits.cmdItaly.png",
+    "source": "EMFPlanner.UC_Limits.resx",
+    "resource": "cmdItaly.Image",
+    "sha256": "7502974c1d3e485b78474137c57ac347df05d6cfd579f58e9c94d1f9292b2fce"
+  },
+  {
+    "file": "UC_Limits.cmdICNIRP.png",
+    "source": "EMFPlanner.UC_Limits.resx",
+    "resource": "cmdICNIRP.Image",
+    "sha256": "463b20b4fb342010991399ace4d6c36f969bd707b55ca6c54b3d059c42fb6ecf"
+  },
+  {
+    "file": "UC_Limits.PictureBox1.png",
+    "source": "EMFPlanner.UC_Limits.resx",
+    "resource": "PictureBox1.Image",
+    "sha256": "5f58bc26323424353fb5f7800a8050e705574c417f9a1c6dd73dfb688bafd260"
+  },
+  {
+    "file": "UC_Limits.cmdRussia.png",
+    "source": "EMFPlanner.UC_Limits.resx",
+    "resource": "cmdRussia.Image",
+    "sha256": "4d1f39873002a489fa6292ac2d881d276463818e2219232f101c46b62ad9ff53"
+  },
+  {
+    "file": "UC_Limits.cmdSwitzerland.png",
+    "source": "EMFPlanner.UC_Limits.resx",
+    "resource": "cmdSwitzerland.Image",
+    "sha256": "53805b0802a7e7836b21386dcd8799c3fe378bead073a882689d000e76f8a979"
+  },
+  {
+    "file": "UC_Limits.cmdLithuania.png",
+    "source": "EMFPlanner.UC_Limits.resx",
+    "resource": "cmdLithuania.Image",
+    "sha256": "9cc353a2a837e2e2fe6be825d0233bad8f36dd70c7eb1bda8b2ca86d7e05253c"
+  },
+  {
+    "file": "UC_Limits.cmdPoland.png",
+    "source": "EMFPlanner.UC_Limits.resx",
+    "resource": "cmdPoland.Image",
+    "sha256": "22a716138746c59cf4b74a13fb79742dbc2bcccbb59b87035ec98a0a3e5eaf44"
+  },
+  {
+    "file": "UC_Limits.cmdUSA.png",
+    "source": "EMFPlanner.UC_Limits.resx",
+    "resource": "cmdUSA.Image",
+    "sha256": "c2d4aab41339aaa3c172a8b795c486c2f5e678c562f3fee1002427e2ff69d519"
+  },
+  {
+    "file": "UC_Limits.cmdIndia.png",
+    "source": "EMFPlanner.UC_Limits.resx",
+    "resource": "cmdIndia.Image",
+    "sha256": "7da96f29cbfcaad579ff9c36a6111352757563aa07876872e8c005bccf23a77f"
+  },
+  {
+    "file": "UC_Lines.cmdAddRoad.png",
+    "source": "EMFPlanner.UC_Lines.resx",
+    "resource": "cmdAddRoad.Image",
+    "sha256": "9bd6315380094b006a823c9a9c8b3e0b6c49dbd325793577e70f48eddba3118f"
+  },
+  {
+    "file": "UC_Lines.cmdDeleteNode.png",
+    "source": "EMFPlanner.UC_Lines.resx",
+    "resource": "cmdDeleteNode.Image",
+    "sha256": "52207c582c0564f71df5a2d2722bc512c72c263cffc013bacf5379170ba6d680"
+  },
+  {
+    "file": "UC_Lines.cmdSplitNode.png",
+    "source": "EMFPlanner.UC_Lines.resx",
+    "resource": "cmdSplitNode.Image",
+    "sha256": "f87671feeb8c6fc455d500a3ca35efc53d973ab845dc0632ea3bc4f85ddf79dc"
+  },
+  {
+    "file": "UC_Lines.cmdDelAllObjects.png",
+    "source": "EMFPlanner.UC_Lines.resx",
+    "resource": "cmdDelAllObjects.Image",
+    "sha256": "6ed6572764757da849b4afd27a961653caa8c719b55dc424e4ef9bb4b21f5f9b"
+  },
+  {
+    "file": "UC_Lines.cmdLeft.png",
+    "source": "EMFPlanner.UC_Lines.resx",
+    "resource": "cmdLeft.Image",
+    "sha256": "1e1afccbab91d6259c9e068c7c983bace940fae032c87a44ad9ae5e6f6df230a"
+  },
+  {
+    "file": "UC_Lines.cmdUndo.png",
+    "source": "EMFPlanner.UC_Lines.resx",
+    "resource": "cmdUndo.Image",
+    "sha256": "2dd8aeeece61a6bda15bcb12015f2aa0a47dd147bfc5fb6009c5414340f76b21"
+  },
+  {
+    "file": "UC_Lines.cmdUp.png",
+    "source": "EMFPlanner.UC_Lines.resx",
+    "resource": "cmdUp.Image",
+    "sha256": "0f845544391897f864b4cca46f0935ed5707ed0b3ec3cc3daf83f955ca70a304"
+  },
+  {
+    "file": "UC_Lines.cmdAddNode.png",
+    "source": "EMFPlanner.UC_Lines.resx",
+    "resource": "cmdAddNode.Image",
+    "sha256": "e5b1937ed43f5e7369252cbc1a8e91430d7bf404bf67dc0860289bfda79fc8bc"
+  },
+  {
+    "file": "UC_Lines.cmdDown.png",
+    "source": "EMFPlanner.UC_Lines.resx",
+    "resource": "cmdDown.Image",
+    "sha256": "76c8c9bc8c00f342ae259ff6bcb99144241b251cc810f1a36cba1768473d51c9"
+  },
+  {
+    "file": "UC_Lines.cmdRight.png",
+    "source": "EMFPlanner.UC_Lines.resx",
+    "resource": "cmdRight.Image",
+    "sha256": "72bc40a26fa0694926ba985e243c8ccef570b392ee5a069d068412fd826f4366"
+  },
+  {
+    "file": "UC_Lines.cmdRedo.png",
+    "source": "EMFPlanner.UC_Lines.resx",
+    "resource": "cmdRedo.Image",
+    "sha256": "54b908be1e94966f4a472dd862f8a911e5f59528da0c5219b6c4fa68fe91c4c1"
+  },
+  {
+    "file": "UC_Lines.cmdAddFence.png",
+    "source": "EMFPlanner.UC_Lines.resx",
+    "resource": "cmdAddFence.Image",
+    "sha256": "60f907cdcc36b438569fb69f4155c54507ca6fd086d09cb1cf790b4747173cbc"
+  },
+  {
+    "file": "UC_Lines.cmdAddCopyObject.png",
+    "source": "EMFPlanner.UC_Lines.resx",
+    "resource": "cmdAddCopyObject.Image",
+    "sha256": "5b0894d8ea860072322285389609d7d58d00444a2f252a6fd56227c8e277075f"
+  },
+  {
+    "file": "UC_Lines.cmdGetLinesFromCloud.png",
+    "source": "EMFPlanner.UC_Lines.resx",
+    "resource": "cmdGetLinesFromCloud.Image",
+    "sha256": "0bc88eb683a1570d2450dfc82f9e50e1913267530b3ff43a45037c3638959920"
+  },
+  {
+    "file": "UC_Lines.cmdDelOneObject.png",
+    "source": "EMFPlanner.UC_Lines.resx",
+    "resource": "cmdDelOneObject.Image",
+    "sha256": "c19d82166f1922d9a246ba37955a6706fd61d9dddd84c76be85d3eb1ac4d53d9"
+  },
+  {
+    "file": "UC_Lines.cmdAddText.png",
+    "source": "EMFPlanner.UC_Lines.resx",
+    "resource": "cmdAddText.Image",
+    "sha256": "d2d184c744027afd783cd65397736be9229b8e1e938d54c9e5f20d574b868142"
+  },
+  {
+    "file": "UC_Lines.cmdSelect.png",
+    "source": "EMFPlanner.UC_Lines.resx",
+    "resource": "cmdSelect.Image",
+    "sha256": "03d918d4c03ae4ac3571dd84a69ea065bddbe19605e86f8e64ad50b95da4aeca"
+  },
+  {
+    "file": "UC_Origin.cmdPositionToPRTO.png",
+    "source": "EMFPlanner.UC_Origin.resx",
+    "resource": "cmdPositionToPRTO.Image",
+    "sha256": "43312e4c3a0a81a373127ba730d98c213838c3714ea5f8a024c22ba326e8661e"
+  },
+  {
+    "file": "UC_Origin.cmdSize.png",
+    "source": "EMFPlanner.UC_Origin.resx",
+    "resource": "cmdSize.Image",
+    "sha256": "e99085e48a6132b3de6b5f1e105f7a660ee6b535ec4f41e7eced10c3030a755b"
+  },
+  {
+    "file": "UC_Origin.cmdOriginToPRTO.png",
+    "source": "EMFPlanner.UC_Origin.resx",
+    "resource": "cmdOriginToPRTO.Image",
+    "sha256": "136a6beabb60ad0b768b525faafb65704536340e8d2f008fef04672882532ec1"
+  },
+  {
+    "file": "UC_Origin.cmdPosition.png",
+    "source": "EMFPlanner.UC_Origin.resx",
+    "resource": "cmdPosition.Image",
+    "sha256": "43312e4c3a0a81a373127ba730d98c213838c3714ea5f8a024c22ba326e8661e"
+  },
+  {
+    "file": "UC_Origin.cmdMoveOriginToCenterScreen.png",
+    "source": "EMFPlanner.UC_Origin.resx",
+    "resource": "cmdMoveOriginToCenterScreen.Image",
+    "sha256": "2dad2e90b5f3e86ddd8777f9f97aae517ce6caa08e8b4a61f6e2fcc1c97aec1a"
+  },
+  {
+    "file": "UC_PRTO.cmdCheckUncheck.png",
+    "source": "EMFPlanner.UC_PRTO.resx",
+    "resource": "cmdCheckUncheck.Image",
+    "sha256": "8f335709332ee1dda961cab78f4fa9ee7d0386175d6692bb555a24d18e1fa920"
+  },
+  {
+    "file": "UC_PRTO.cmdWord.png",
+    "source": "EMFPlanner.UC_PRTO.resx",
+    "resource": "cmdWord.Image",
+    "sha256": "1f934c078798cbca54bcf23ed20bc46042ef93febb8cbd02b248e7d903302e8f"
+  },
+  {
+    "file": "UC_PRTO.cmdEnvelope.png",
+    "source": "EMFPlanner.UC_PRTO.resx",
+    "resource": "cmdEnvelope.Image",
+    "sha256": "b44c2041a7f9e941a866cb90b0ae0916fe974bcca7f8be98054827708853c059"
+  },
+  {
+    "file": "UC_PRTO.cmdCalcP.png",
+    "source": "EMFPlanner.UC_PRTO.resx",
+    "resource": "cmdCalcP.Image",
+    "sha256": "6c2682d1a6a384afd6fa34ccc87bdd934c036436aa94345fb8d3663c7030515b"
+  },
+  {
+    "file": "UC_PRTO.cmdFillWidthDnOne.png",
+    "source": "EMFPlanner.UC_PRTO.resx",
+    "resource": "cmdFillWidthDnOne.Image",
+    "sha256": "32cb20ffb8585db1ac7f18836cdb66f5cc20dca2321ea32ddf59d7d4499610ff"
+  },
+  {
+    "file": "UC_PRTO.cmdCopySelectedTX.png",
+    "source": "EMFPlanner.UC_PRTO.resx",
+    "resource": "cmdCopySelectedTX.Image",
+    "sha256": "5b0894d8ea860072322285389609d7d58d00444a2f252a6fd56227c8e277075f"
+  },
+  {
+    "file": "UC_PRTO.cmdFillWidthDN.png",
+    "source": "EMFPlanner.UC_PRTO.resx",
+    "resource": "cmdFillWidthDN.Image",
+    "sha256": "80033fcb00e688e6d533581f2ca9eae83b8238921e27c7ead3b41ce59b8ba8ef"
+  },
+  {
+    "file": "UC_PRTO.cmdPasteFromBuffer.png",
+    "source": "EMFPlanner.UC_PRTO.resx",
+    "resource": "cmdPasteFromBuffer.Image",
+    "sha256": "de6dd9c7b7dacb6e066899f06603f78640c85c6884b4a9501e3788b4f06d86a0"
+  },
+  {
+    "file": "UC_PRTO.cmdCopyToBuffer.png",
+    "source": "EMFPlanner.UC_PRTO.resx",
+    "resource": "cmdCopyToBuffer.Image",
+    "sha256": "834d8e014afb8fa4a9ab9b8a0a29e9773aa4bb29925519ef7174290ad6c38729"
+  },
+  {
+    "file": "UC_PRTO.cmdUp.png",
+    "source": "EMFPlanner.UC_PRTO.resx",
+    "resource": "cmdUp.Image",
+    "sha256": "372c38cbbe662e2145a00d42f90fe8d66f0e7ce09da9749c038fc84a72462148"
+  },
+  {
+    "file": "UC_PRTO.cmdMoveBottom.png",
+    "source": "EMFPlanner.UC_PRTO.resx",
+    "resource": "cmdMoveBottom.Image",
+    "sha256": "7f46a574d8be2d1f017781c15ee4400abc7d324b3d1d2e90a4bdf899874215ae"
+  },
+  {
+    "file": "UC_PRTO.cmdLoadDN.png",
+    "source": "EMFPlanner.UC_PRTO.resx",
+    "resource": "cmdLoadDN.Image",
+    "sha256": "8dd4747820bdc7d58be0c3e041a2a27fc9bf79b5f43c9dba6a4e3ae7f968d0ce"
+  },
+  {
+    "file": "UC_PRTO.cmdExcel.png",
+    "source": "EMFPlanner.UC_PRTO.resx",
+    "resource": "cmdExcel.Image",
+    "sha256": "85ed878761245a8463ca68eab60eec7444429628c0dbd207a536e770d59470f2"
+  },
+  {
+    "file": "UC_PRTO.cmdApert.png",
+    "source": "EMFPlanner.UC_PRTO.resx",
+    "resource": "cmdApert.Image",
+    "sha256": "dea7146d7bd2ca78bbc92592c765604856e3985e1807e4c6f7b9387ecf48f1cf"
+  },
+  {
+    "file": "UC_PRTO.cmdDown.png",
+    "source": "EMFPlanner.UC_PRTO.resx",
+    "resource": "cmdDown.Image",
+    "sha256": "7885dc56ef10f3580617190e28bdbe71f62fe763a2418204fedbf96bc218f04f"
+  },
+  {
+    "file": "UC_PRTO.cmdMoveTop.png",
+    "source": "EMFPlanner.UC_PRTO.resx",
+    "resource": "cmdMoveTop.Image",
+    "sha256": "71da903ce78e7cf06339b4732d208b96f8995096fc08a63fbb196d4e6cf66d68"
+  },
+  {
+    "file": "UC_PRTO.cmdCalcEIM.png",
+    "source": "EMFPlanner.UC_PRTO.resx",
+    "resource": "cmdCalcEIM.Image",
+    "sha256": "6c2682d1a6a384afd6fa34ccc87bdd934c036436aa94345fb8d3663c7030515b"
+  },
+  {
+    "file": "UC_PRTO.cmdLoadDN2.png",
+    "source": "EMFPlanner.UC_PRTO.resx",
+    "resource": "cmdLoadDN2.Image",
+    "sha256": "1dcee38d4a5bc70812131be5f8b691d4ac8067392c175f0b3777bc66a36d34de"
+  },
+  {
+    "file": "UC_PRTO.cmdEditorDN.png",
+    "source": "EMFPlanner.UC_PRTO.resx",
+    "resource": "cmdEditorDN.Image",
+    "sha256": "7d3dd9fba706fde75445f7ccf82e0f7a00cba731804689e56efea8fd8cfb32f4"
+  },
+  {
+    "file": "UC_PRTO.cmdSaveMSI.png",
+    "source": "EMFPlanner.UC_PRTO.resx",
+    "resource": "cmdSaveMSI.Image",
+    "sha256": "a2dd8287525d1663d1df8022976e30c501133436ab4a27169d3961ef45b8993c"
+  },
+  {
+    "file": "UC_PRTO.cmdCalcNu.png",
+    "source": "EMFPlanner.UC_PRTO.resx",
+    "resource": "cmdCalcNu.Image",
+    "sha256": "6c2682d1a6a384afd6fa34ccc87bdd934c036436aa94345fb8d3663c7030515b"
+  },
+  {
+    "file": "UC_Raster.cmdMoveScalingToCenterScreen.png",
+    "source": "EMFPlanner.UC_Raster.resx",
+    "resource": "cmdMoveScalingToCenterScreen.Image",
+    "sha256": "2dad2e90b5f3e86ddd8777f9f97aae517ce6caa08e8b4a61f6e2fcc1c97aec1a"
+  },
+  {
+    "file": "UC_Raster.cmdMoveRasterScalingToCenterScreen.png",
+    "source": "EMFPlanner.UC_Raster.resx",
+    "resource": "cmdMoveRasterScalingToCenterScreen.Image",
+    "sha256": "43312e4c3a0a81a373127ba730d98c213838c3714ea5f8a024c22ba326e8661e"
+  },
+  {
+    "file": "UC_Raster.cmdOpenPicture.png",
+    "source": "EMFPlanner.UC_Raster.resx",
+    "resource": "cmdOpenPicture.Image",
+    "sha256": "8dd4747820bdc7d58be0c3e041a2a27fc9bf79b5f43c9dba6a4e3ae7f968d0ce"
+  },
+  {
+    "file": "UC_Raster.cmdDelImage.png",
+    "source": "EMFPlanner.UC_Raster.resx",
+    "resource": "cmdDelImage.Image",
+    "sha256": "6ed6572764757da849b4afd27a961653caa8c719b55dc424e4ef9bb4b21f5f9b"
+  },
+  {
+    "file": "UC_Raster.cmdClearPiramid.png",
+    "source": "EMFPlanner.UC_Raster.resx",
+    "resource": "cmdClearPiramid.Image",
+    "sha256": "6ebdefbe225a7ea5d3a888e96ad65176b8c3e40899ca2329e39d6bed63b83688"
+  },
+  {
+    "file": "UC_Relief.cmdDeleteNode.png",
+    "source": "EMFPlanner.UC_Relief.resx",
+    "resource": "cmdDeleteNode.Image",
+    "sha256": "52207c582c0564f71df5a2d2722bc512c72c263cffc013bacf5379170ba6d680"
+  },
+  {
+    "file": "UC_Relief.cmdDelAllObjects.png",
+    "source": "EMFPlanner.UC_Relief.resx",
+    "resource": "cmdDelAllObjects.Image",
+    "sha256": "6ed6572764757da849b4afd27a961653caa8c719b55dc424e4ef9bb4b21f5f9b"
+  },
+  {
+    "file": "UC_Relief.cmdSRTM.png",
+    "source": "EMFPlanner.UC_Relief.resx",
+    "resource": "cmdSRTM.Image",
+    "sha256": "75b8310f36bf4b412ad13dc773a90731f3c2ae50fd3e50688c81fbedf22d0308"
+  },
+  {
+    "file": "UC_Relief.cmdDelOneBuilding.png",
+    "source": "EMFPlanner.UC_Relief.resx",
+    "resource": "cmdDelOneBuilding.Image",
+    "sha256": "c19d82166f1922d9a246ba37955a6706fd61d9dddd84c76be85d3eb1ac4d53d9"
+  },
+  {
+    "file": "UC_Relief.cmdUndo.png",
+    "source": "EMFPlanner.UC_Relief.resx",
+    "resource": "cmdUndo.Image",
+    "sha256": "2dd8aeeece61a6bda15bcb12015f2aa0a47dd147bfc5fb6009c5414340f76b21"
+  },
+  {
+    "file": "UC_Relief.cmdAddPoint.png",
+    "source": "EMFPlanner.UC_Relief.resx",
+    "resource": "cmdAddPoint.Image",
+    "sha256": "507619a1efe57b9644114b449326f0976151b7222339c3abc8b7596cc9021fee"
+  },
+  {
+    "file": "UC_Relief.cmdAddNode.png",
+    "source": "EMFPlanner.UC_Relief.resx",
+    "resource": "cmdAddNode.Image",
+    "sha256": "e5b1937ed43f5e7369252cbc1a8e91430d7bf404bf67dc0860289bfda79fc8bc"
+  },
+  {
+    "file": "UC_Relief.cmdRedo.png",
+    "source": "EMFPlanner.UC_Relief.resx",
+    "resource": "cmdRedo.Image",
+    "sha256": "54b908be1e94966f4a472dd862f8a911e5f59528da0c5219b6c4fa68fe91c4c1"
+  },
+  {
+    "file": "UC_Relief.cmdAddCopyObject.png",
+    "source": "EMFPlanner.UC_Relief.resx",
+    "resource": "cmdAddCopyObject.Image",
+    "sha256": "5b0894d8ea860072322285389609d7d58d00444a2f252a6fd56227c8e277075f"
+  },
+  {
+    "file": "UC_Relief.cmdAddLine.png",
+    "source": "EMFPlanner.UC_Relief.resx",
+    "resource": "cmdAddLine.Image",
+    "sha256": "987c5d6f24d0a5e90f8e98ab07ced84cd467c5ed09219770b3cad761dc46ede5"
+  },
+  {
+    "file": "UC_Relief.cmdTriangle.png",
+    "source": "EMFPlanner.UC_Relief.resx",
+    "resource": "cmdTriangle.Image",
+    "sha256": "faf14167507aa9fcbc37696a0728ff7f21ae3bd80f1642784d8ed1a776deb5c0"
+  },
+  {
+    "file": "UC_Relief.cmdDelOneObject.png",
+    "source": "EMFPlanner.UC_Relief.resx",
+    "resource": "cmdDelOneObject.Image",
+    "sha256": "c19d82166f1922d9a246ba37955a6706fd61d9dddd84c76be85d3eb1ac4d53d9"
+  },
+  {
+    "file": "UC_Relief.cmdSelect.png",
+    "source": "EMFPlanner.UC_Relief.resx",
+    "resource": "cmdSelect.Image",
+    "sha256": "03d918d4c03ae4ac3571dd84a69ea065bddbe19605e86f8e64ad50b95da4aeca"
+  },
+  {
+    "file": "UC_Report.cmdRestoreAliases.png",
+    "source": "EMFPlanner.UC_Report.resx",
+    "resource": "cmdRestoreAliases.Image",
+    "sha256": "ce8e6bce18a03da8522ecbde8915abf7f29f7b0ad74018b2190fe4e59706a2c0"
+  },
+  {
+    "file": "UC_Report.cmdPasteAlias.png",
+    "source": "EMFPlanner.UC_Report.resx",
+    "resource": "cmdPasteAlias.Image",
+    "sha256": "06c1eda708a7edb687c8acfbe68c970c8fb43546c6a7eb1b0655abd5196d99d7"
+  },
+  {
+    "file": "UC_Report.cmdCopyAlias.png",
+    "source": "EMFPlanner.UC_Report.resx",
+    "resource": "cmdCopyAlias.Image",
+    "sha256": "2a2edacac90881153a53e5f91f37fb72dd7e646a8478705d594fea552380acf7"
+  },
+  {
+    "file": "UC_Report.cmdRef1.png",
+    "source": "EMFPlanner.UC_Report.resx",
+    "resource": "cmdRef1.Image",
+    "sha256": "63db838a2f6e7eda7fa8ea508d17ff6b3a844ec9c42eda99ee46b8c5df402665"
+  },
+  {
+    "file": "UC_Report.cmdSelectFileTemplate.png",
+    "source": "EMFPlanner.UC_Report.resx",
+    "resource": "cmdSelectFileTemplate.Image",
+    "sha256": "09c85bd17e038dc282e2aa1bbbcddbbd9abb1941d7d1a20bdb2bad48d6b114a8"
+  },
+  {
+    "file": "UC_Report.cmdWord1.png",
+    "source": "EMFPlanner.UC_Report.resx",
+    "resource": "cmdWord1.Image",
+    "sha256": "1f934c078798cbca54bcf23ed20bc46042ef93febb8cbd02b248e7d903302e8f"
+  },
+  {
+    "file": "UC_Setup.cmdChangeFolderCache.png",
+    "source": "EMFPlanner.UC_Setup.resx",
+    "resource": "cmdChangeFolderCache.Image",
+    "sha256": "09c85bd17e038dc282e2aa1bbbcddbbd9abb1941d7d1a20bdb2bad48d6b114a8"
+  },
+  {
+    "file": "UC_Setup.cmdChangeAntennasFolder.png",
+    "source": "EMFPlanner.UC_Setup.resx",
+    "resource": "cmdChangeAntennasFolder.Image",
+    "sha256": "09c85bd17e038dc282e2aa1bbbcddbbd9abb1941d7d1a20bdb2bad48d6b114a8"
+  },
+  {
+    "file": "UC_Tables.cmdRefEFieldStrengthVerticalCutTables_1.png",
+    "source": "EMFPlanner.UC_Tables.resx",
+    "resource": "cmdRefEFieldStrengthVerticalCutTables_1.Image",
+    "sha256": "63db838a2f6e7eda7fa8ea508d17ff6b3a844ec9c42eda99ee46b8c5df402665"
+  },
+  {
+    "file": "UC_Tables.cmdSimultaneousExposureGraph_1.png",
+    "source": "EMFPlanner.UC_Tables.resx",
+    "resource": "cmdSimultaneousExposureGraph_1.Image",
+    "sha256": "1f934c078798cbca54bcf23ed20bc46042ef93febb8cbd02b248e7d903302e8f"
+  },
+  {
+    "file": "UC_Tables.cmdRefEFieldStrengthGraph_1.png",
+    "source": "EMFPlanner.UC_Tables.resx",
+    "resource": "cmdRefEFieldStrengthGraph_1.Image",
+    "sha256": "63db838a2f6e7eda7fa8ea508d17ff6b3a844ec9c42eda99ee46b8c5df402665"
+  },
+  {
+    "file": "UC_Tables.cmdEFieldStrengthVerticalCutTables_1.png",
+    "source": "EMFPlanner.UC_Tables.resx",
+    "resource": "cmdEFieldStrengthVerticalCutTables_1.Image",
+    "sha256": "1f934c078798cbca54bcf23ed20bc46042ef93febb8cbd02b248e7d903302e8f"
+  },
+  {
+    "file": "UC_Tables.cmdSimultaneousExposureVerticalCutTables_1.png",
+    "source": "EMFPlanner.UC_Tables.resx",
+    "resource": "cmdSimultaneousExposureVerticalCutTables_1.Image",
+    "sha256": "1f934c078798cbca54bcf23ed20bc46042ef93febb8cbd02b248e7d903302e8f"
+  },
+  {
+    "file": "UC_Tables.cmdEFieldStrengthGraph_1.png",
+    "source": "EMFPlanner.UC_Tables.resx",
+    "resource": "cmdEFieldStrengthGraph_1.Image",
+    "sha256": "1f934c078798cbca54bcf23ed20bc46042ef93febb8cbd02b248e7d903302e8f"
+  },
+  {
+    "file": "UC_VertPlanes.cmdWord.png",
+    "source": "EMFPlanner.UC_VertPlanes.resx",
+    "resource": "cmdWord.Image",
+    "sha256": "1f934c078798cbca54bcf23ed20bc46042ef93febb8cbd02b248e7d903302e8f"
+  },
+  {
+    "file": "UC_VertPlanes.cmdClearAllMesurePoints.png",
+    "source": "EMFPlanner.UC_VertPlanes.resx",
+    "resource": "cmdClearAllMesurePoints.Image",
+    "sha256": "e397ca7c72546e4648d9587e71eb9f22c3e67bc79120a2e9d735331156606df5"
+  },
+  {
+    "file": "UC_VertPlanes.cmdAutoFill1.png",
+    "source": "EMFPlanner.UC_VertPlanes.resx",
+    "resource": "cmdAutoFill1.Image",
+    "sha256": "0a542ae15efd84aaf9e98cbd77d63160086dd1df4183c7e1432ca773674f72ec"
+  },
+  {
+    "file": "UC_VertPlanes.PictureBox2.png",
+    "source": "EMFPlanner.UC_VertPlanes.resx",
+    "resource": "PictureBox2.Image",
+    "sha256": "3b70d0912d058ac2e998d78fd3d140bf645d9692d0272e52c781db91106a679d"
+  },
+  {
+    "file": "UC_VertPlanes.cmdAutoFill2.png",
+    "source": "EMFPlanner.UC_VertPlanes.resx",
+    "resource": "cmdAutoFill2.Image",
+    "sha256": "59e1419ab5a8dd759276c25138d98b0ef37bb279f35c2e4339eaf0a55e76af5e"
+  },
+  {
+    "file": "UC_VertPlanes.cmdStartOne0.png",
+    "source": "EMFPlanner.UC_VertPlanes.resx",
+    "resource": "cmdStartOne0.Image",
+    "sha256": "22587810c46323dc31addf362dab19c6349e8b69ca07437e7c204f9b581a644b"
+  },
+  {
+    "file": "UC_VertPlanes.cmdStartOne1.png",
+    "source": "EMFPlanner.UC_VertPlanes.resx",
+    "resource": "cmdStartOne1.Image",
+    "sha256": "6ad593a2f4f4aebddc69d985a537d555ab8bf64e75f5b56a1a75bcb398c78598"
+  },
+  {
+    "file": "UC_VertPlanes.cmdStart0.png",
+    "source": "EMFPlanner.UC_VertPlanes.resx",
+    "resource": "cmdStart0.Image",
+    "sha256": "0434e3bd95238b9e3d403be019d4253cc93027d6efc65cfef442084202a1c290"
+  },
+  {
+    "file": "UC_VertPlanes.cmdAutoFill3.png",
+    "source": "EMFPlanner.UC_VertPlanes.resx",
+    "resource": "cmdAutoFill3.Image",
+    "sha256": "5aeb98eb074b3be2c72b83081d00107c769659ae86d1a37300e5071872744bdf"
+  },
+  {
+    "file": "UC_VertPlanes.cmdSORT.png",
+    "source": "EMFPlanner.UC_VertPlanes.resx",
+    "resource": "cmdSORT.Image",
+    "sha256": "01414ebb8ccc0e1639be40669ecad439e594f3f7bbe28721853655f1b30214f2"
+  },
+  {
+    "file": "UC_VertPlanes.cmdAdjustLeft.png",
+    "source": "EMFPlanner.UC_VertPlanes.resx",
+    "resource": "cmdAdjustLeft.Image",
+    "sha256": "479fcf72996071d582b6dc586eaa4d318c337fa037ae2e74e31a8f0202d06bcc"
+  },
+  {
+    "file": "UC_VertPlanes.cmdAdjustUp.png",
+    "source": "EMFPlanner.UC_VertPlanes.resx",
+    "resource": "cmdAdjustUp.Image",
+    "sha256": "b9df0153abb87e4d0fa1fec8bba320137762ad730defbbda3f649a56042892a0"
+  },
+  {
+    "file": "UC_VertPlanes.cmdStart1.png",
+    "source": "EMFPlanner.UC_VertPlanes.resx",
+    "resource": "cmdStart1.Image",
+    "sha256": "a772730010063bc84c0045a48d2b01efa1ade487f88fe4ed8881de2cd818663f"
+  }
+]
