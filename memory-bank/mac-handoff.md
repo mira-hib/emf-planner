@@ -36,6 +36,9 @@ Dans [la release de passation](https://github.com/mira-hib/emf-planner/releases/
 Archive : **228 710 977 octets**, **389 fichiers**.
 SHA-256 : `7ac5fccc81e45e3969225087292b60ecabbc2e160eacc08d403997efe2d31b6b`.
 La copie de contrôle est dans `reference/handoff-summary.json`.
+Publication vérifiée : archive accessible (HTTP 200) et empreinte SHA-256
+retournée par GitHub identique à la copie locale. Les liens et cette preuve
+sont conservés dans `reference/handoff-release.json`.
 
 Téléchargement et restauration depuis la racine du dépôt :
 

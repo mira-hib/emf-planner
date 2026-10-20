@@ -7,6 +7,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import shutil
 import subprocess
 from pathlib import Path
 from urllib.parse import quote
@@ -77,27 +78,27 @@ def main() -> None:
     if matching and matching["size"] != summary["bytes"]:
         raise ValueError("A different archive already exists under this release name")
     if not matching:
-        class ProgressReader:
-            def __init__(self, stream):
-                self.stream, self.total, self.last = stream, 0, 0
-            def read(self, size):
-                chunk = self.stream.read(size)
-                self.total += len(chunk)
-                if self.total - self.last >= 8 * 1024 * 1024:
-                    print(f"Uploaded {self.total}/{summary['bytes']} bytes", flush=True)
-                    self.last = self.total
-                return chunk
         upload_url = release["upload_url"].split("{")[0] + "?name=" + quote(archive.name)
-        with archive.open("rb") as stream:
-            request = Request(upload_url, data=ProgressReader(stream), method="POST", headers={**headers, "Content-Type": "application/zip", "Content-Length": str(summary["bytes"])})
-            with urlopen(request, timeout=60) as response:
-                matching = json.load(response)
+        curl = shutil.which("curl")
+        if not curl:
+            raise RuntimeError("curl is required for the large archive upload")
+        # Keep the credential off the process command line and filesystem.
+        # curl streams the file with larger buffers than urllib's default 8 KiB.
+        config = "\n".join(f'header = "{key}: {value}"' for key, value in headers.items()) + "\n"
+        print(f"Uploading {summary['bytes']} bytes with curl", flush=True)
+        transfer = subprocess.run([curl, "--fail", "--silent", "--show-error", "--connect-timeout", "30", "--max-time", "1800", "--request", "POST", "--url", upload_url, "--header", "Content-Type: application/zip", "--config", "-", "--upload-file", str(archive)], input=config.encode(), capture_output=True)
+        if transfer.returncode:
+            raise RuntimeError(f"Archive transfer failed (curl {transfer.returncode}): {transfer.stderr.decode(errors='replace')}")
+        matching = json.loads(transfer.stdout)
     if matching.get("digest") and matching["digest"] != "sha256:" + summary["sha256"]:
         raise ValueError("GitHub asset digest does not match the local archive")
     if matching["size"] != summary["bytes"] or matching["state"] != "uploaded":
         raise ValueError("GitHub has not confirmed the complete asset")
     if release["draft"]:
         release = api(API + f"/releases/{release['id']}", "PATCH", {"draft": False})
+    # Publishing replaces the temporary draft tag in asset download URLs.
+    release = api(API + f"/releases/{release['id']}")
+    matching = next(a for a in release["assets"] if a["id"] == matching["id"])
     published = {"release_url": release["html_url"], "asset_url": matching["browser_download_url"], "bytes": matching["size"], "digest": matching.get("digest"), "source_commit": commit}
     (ROOT / ".tools/handoff/published-release.json").write_text(json.dumps(published, indent=2), encoding="utf-8")
     print(json.dumps(published, indent=2), flush=True)
