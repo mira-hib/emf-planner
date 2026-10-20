@@ -9,7 +9,6 @@ import json
 import os
 import subprocess
 from pathlib import Path
-from urllib.error import HTTPError
 from urllib.parse import quote
 from urllib.request import Request, urlopen
 
@@ -21,6 +20,7 @@ API = f"https://api.github.com/repos/{REPO}"
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--inspect", action="store_true")
+    parser.add_argument("--status", action="store_true")
     args = parser.parse_args()
     env = {**os.environ, "GIT_TERMINAL_PROMPT": "0", "GCM_INTERACTIVE": "never"}
     result = subprocess.run(
@@ -44,6 +44,10 @@ def main() -> None:
     print(json.dumps({"repository": repo["full_name"], "private": repo["private"], "can_push": repo.get("permissions", {}).get("push")}), flush=True)
     if args.inspect:
         return
+    if args.status:
+        releases = api(API + "/releases?per_page=100")
+        print(json.dumps([{ "id": r["id"], "tag": r["tag_name"], "draft": r["draft"], "url": r["html_url"], "assets": [{"id": a["id"], "name": a["name"], "size": a["size"], "state": a["state"], "digest": a.get("digest")} for a in r["assets"]]} for r in releases], indent=2), flush=True)
+        return
     summary_path = ROOT / "reference/handoff-summary.json"
     summary = json.loads(summary_path.read_text(encoding="utf-8"))
     archive = ROOT / ".tools/handoff" / summary["archive"]
@@ -63,11 +67,11 @@ def main() -> None:
         "Sur Mac : `git pull origin main`, `npm ci`, puis `npm run tauri dev`. "
         "Télécharger l’archive et lancer `python3 scripts/restore_handoff.py /chemin/vers/archive.zip` pour restaurer les artefacts."
     )
-    try:
-        release = api(API + "/releases/tags/" + tag)
-    except HTTPError as error:
-        if error.code != 404:
-            raise
+    # A draft's tag may not yet exist as a Git ref. List drafts as well so a
+    # retry after an interrupted upload cannot create a duplicate release.
+    releases = api(API + "/releases?per_page=100")
+    release = next((r for r in releases if r["tag_name"] == tag), None)
+    if release is None:
         release = api(API + "/releases", "POST", {"tag_name": tag, "target_commitish": commit, "name": "Passation Windows vers Mac — 20 octobre 2026", "body": body, "draft": True, "prerelease": True})
     matching = next((a for a in release.get("assets", []) if a["name"] == archive.name), None)
     if matching and matching["size"] != summary["bytes"]:
