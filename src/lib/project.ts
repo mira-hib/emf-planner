@@ -50,7 +50,7 @@ export function newProject(): PlannerProject {
       building_attenuation_db: 20,
       selected_limit: 0,
       map_provider: "Carto clair",
-      show_basemap: false,
+      show_basemap: true,
     },
   };
 }
