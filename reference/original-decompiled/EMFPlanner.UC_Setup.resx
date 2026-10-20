@@ -1,0 +1,52 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+<resheader name="resmimetype"><value>text/microsoft-resx</value></resheader><resheader name="version"><value>1.3</value></resheader><resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader><resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader><data name="cmdChangeFolderCache.Image" mimetype="application/x-microsoft.net.object.binary.base64"><value>AAEAAAD/////AQAAAAAAAAAMAgAAAFFTeXN0ZW0uRHJhd2luZywgVmVyc2lvbj00LjAuMC4wLCBD
+dWx0dXJlPW5ldXRyYWwsIFB1YmxpY0tleVRva2VuPWIwM2Y1ZjdmMTFkNTBhM2EFAQAAABVTeXN0
+ZW0uRHJhd2luZy5CaXRtYXABAAAABERhdGEHAgIAAAAJAwAAAA8DAAAA5wEAAAKJUE5HDQoaCgAA
+AA1JSERSAAAAEAAAABAIBgAAAB/z/2EAAAAEZ0FNQQAAsY8L/GEFAAAACXBIWXMAAA68AAAOvAGV
+vHJJAAABiUlEQVQ4T72SMUvDQBiG8xMyOt5PyOiYsW4ZdYuTxSmbHW+SgMvhVATlNjMGClocJAi1
+tVg5K0hxylJ0ELl/8Prd5VoT2oKDePBAuPve9/3uu3j/sl5mM3AhwVOim+P6dgB39LsVdwR6NyPo
+r0+8z+fWbDiZwux7b68T5JlYYTy42phyP5wiaguLZ4pLJaF1boGWwIdELgWeHnprTRbiyoAKNYnq
+YsssgaQz2eUVgkMY0qRpag2MoCHmRLyWFQOTYg0cRS4sy3lIbql3YrtJXTdmU5fCissRFZMIJXWw
+CbqaQWURzk+PawaEERd9+rZFtdaVIQJGEXQ/RCkDHB3s4PmR/gfTjqY7N9KVM7BCwgiL0Ip1HoC3
+Gc5ODqtZWANViVXh0mtCFFWqEeosgEp9xC2GyfiuMjDDUEU93QkXqU5YSgYlfJt+sL/38xJmkuYp
+VU6DEd6SwkBpOa+QHQaRMJueXV40DQSPwTtEEiGJI8S7IaJWiHA7QBAwBIyBbfnwfR+McNK/WJ73
+DRtLAGwwTZXCAAAAAElFTkSuQmCCCw==</value></data><data name="cmdChangeAntennasFolder.Image" mimetype="application/x-microsoft.net.object.binary.base64"><value>AAEAAAD/////AQAAAAAAAAAMAgAAAFFTeXN0ZW0uRHJhd2luZywgVmVyc2lvbj00LjAuMC4wLCBD
+dWx0dXJlPW5ldXRyYWwsIFB1YmxpY0tleVRva2VuPWIwM2Y1ZjdmMTFkNTBhM2EFAQAAABVTeXN0
+ZW0uRHJhd2luZy5CaXRtYXABAAAABERhdGEHAgIAAAAJAwAAAA8DAAAA5wEAAAKJUE5HDQoaCgAA
+AA1JSERSAAAAEAAAABAIBgAAAB/z/2EAAAAEZ0FNQQAAsY8L/GEFAAAACXBIWXMAAA68AAAOvAGV
+vHJJAAABiUlEQVQ4T72SMUvDQBiG8xMyOt5PyOiYsW4ZdYuTxSmbHW+SgMvhVATlNjMGClocJAi1
+tVg5K0hxylJ0ELl/8Prd5VoT2oKDePBAuPve9/3uu3j/sl5mM3AhwVOim+P6dgB39LsVdwR6NyPo
+r0+8z+fWbDiZwux7b68T5JlYYTy42phyP5wiaguLZ4pLJaF1boGWwIdELgWeHnprTRbiyoAKNYnq
+YsssgaQz2eUVgkMY0qRpag2MoCHmRLyWFQOTYg0cRS4sy3lIbql3YrtJXTdmU5fCissRFZMIJXWw
+CbqaQWURzk+PawaEERd9+rZFtdaVIQJGEXQ/RCkDHB3s4PmR/gfTjqY7N9KVM7BCwgiL0Ip1HoC3
+Gc5ODqtZWANViVXh0mtCFFWqEeosgEp9xC2GyfiuMjDDUEU93QkXqU5YSgYlfJt+sL/38xJmkuYp
+VU6DEd6SwkBpOa+QHQaRMJueXV40DQSPwTtEEiGJI8S7IaJWiHA7QBAwBIyBbfnwfR+McNK/WJ73
+DRtLAGwwTZXCAAAAAElFTkSuQmCCCw==</value></data></root>

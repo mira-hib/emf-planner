@@ -55,7 +55,7 @@
 - [ ] Graphique E vs distance
 - [ ] Génération PDF des rapports
 
-### Outils installés
+### Outils installés sur Mac
 - Node.js v26.7.0 + npm 11.19
 - Rust 1.99.1
 - Ghidra 11.3.2 + 12.1.3 (~/tools/)
@@ -65,3 +65,54 @@
 - innoextract, unar, pefile, dnfile, unrar-cffi
 
 ### État : 35/60 fonctionnalités (58%)
+
+## 2026-10-19 — Reprise Windows
+
+- [x] Lecture complète du memory bank et identification du point de reprise : analyse dynamique Windows.
+- [x] Installation portable des outils dans `.tools` (exclus de Git), voir `windows-toolchain.md`.
+- [x] REA 6.7.0 + Node.js 24.22.0 + Ghidra 12.1.4 ; JDK 23.0.1 existant réutilisé.
+- [x] x64dbg/Scylla, dnSpyEx, ExtremeDumper, PE-bear, Detect It Easy et innoextract.
+- [x] SDK .NET 10.0.402, ILSpy CLI, environnement Python PE/.NET/RAR.
+- [x] Serveur MCP et compétence REA configurés dans le profil Codex, avec sauvegardes.
+- [x] Diagnostic final Codex/Ghidra/compétence : 12 contrôles réussis (`healthy: true`).
+- [x] Serveur MCP testé séparément : 207 outils ; décompilation native Ghidra et .NET ILSpy réussies sur des DLLs de contrôle.
+- [x] Lanceurs PowerShell et terminal dédié ajoutés dans `scripts/`.
+- [ ] Redémarrer/reconnecter Codex pour charger REA dans la conversation suivante.
+- [x] Archive `EMFPlanner.rar` apparue à la racine pendant l'installation ; inventaire UnRAR vérifié, installateur trial x64 230131 présent.
+- [x] Extraire l'archive et l'installateur : 131 fichiers, dont les modules `.tx`/`.txv`.
+- [x] Lancer l'original depuis le dossier extrait : fenêtre principale opérationnelle.
+- [x] Capturer la mémoire du processus EMFPlanner avec DbgHelp après refus de lancement d'ExtremeDumper.
+- [x] Reconstruire le payload PE/CLI `EMFPlanner` (17 416 192 octets).
+- [x] Vérifier son identité avec REA : CIL .NET Framework, métadonnées complètes.
+- [x] Exporter 137 fichiers C# avec ILSpy, dont les calculs `CalcSZZ` et les diagrammes `ClassDN`.
+- [x] Inventorier 223 types, 3 530 méthodes, 2 556 champs ; 3 106 corps CIL présents, aucune anomalie de corps rapportée par REA.
+- [x] Préserver l'original inchangé, sauvegarder les Evidence et créer `extracted/dumped/EMFPlanner-recovered.zip`.
+- [x] Utiliser une copie du projet livré : calcul des 15 combinaisons point/hauteur, 14 coupes horizontales et six verticales.
+- [x] Vérifier les vues CAO/3D et les exports Word, Excel et DWG ; consigner les résultats numériques de l'original.
+- [x] Capturer à nouveau après scénarios : 30 images PE/CLI reconstruites, contre 14 au démarrage, avec les dépendances CAO/Office.
+- [x] Comparer les tokens et corps CIL du module principal : 3 106 corps identiques, aucune méthode ajoutée/modifiée/perdue ; voir `windows-scenario-validation.md`.
+- [x] Comparer des cas numériques de l'original et du clone avant de modifier les calculs : 15 références, voir `clone-interface.md`.
+
+Le clone n'a pas été modifié ni recompilé pendant cette installation.
+
+Le résultat Windows remplace le verdict général « code métier inaccessible »
+des passes statiques Mac. Voir **`windows-dynamic-analysis.md`** pour reprendre.
+
+## 2026-10-20 — Reconstruction de l’interface Windows
+
+- [x] Remplacer le prototype à quatre composants par les 16 rubriques de l’original.
+- [x] Ajouter les commandes complémentaires identifiées dans les formulaires décompilés ; griser les fonctions non implémentées, avec infobulles.
+- [x] Lire les projets binaires .xemf sans exécuter leur contenu, puis sauvegarder en .emfp.
+- [x] Porter le moteur commun React/Worker avec diagrammes H/V, limites et terrain ; comparer aux 15 références de l’original.
+- [x] Ajouter les coupes H/V multi-limites, les résultats par source, les graphiques et les exports Office/PDF/DXF.
+- [x] Ajouter le dessin de bâtiments/lignes, les points de terrain, la calibration d’image, la CAO et une scène 3D.
+- [x] Installer Rust portable sur ce PC et compiler l’application native de développement.
+- [x] Vérifier TypeScript/Vite, 10 tests métier et les parcours d’interface Edge.
+- [x] Compiler l’exécutable Windows release autonome (6 586 880 octets).
+- [x] Préparer la reprise Mac : export C# et références de test versionnés, configuration Playwright portable et archive de 389 artefacts avec manifeste SHA-256.
+
+L’état précédent « 58 % » et les listes de blocages ci-dessus sont historiques.
+Le moteur utilisé par la nouvelle interface est `src/lib/engine.ts` ; les
+anciens modules Rust restent présents mais ne pilotent plus ces écrans.
+Voir **`clone-interface.md`** et **`features.md`** pour l’état actuel et les
+fonctions restant grisées.

@@ -1,187 +1,325 @@
-import { useState, useCallback } from "react";
-import { invoke } from "@tauri-apps/api/core";
-import { save, open } from "@tauri-apps/plugin-dialog";
-import { writeTextFile, readTextFile } from "@tauri-apps/plugin-fs";
-import MapView from "./components/MapView";
-import SourcePanel from "./components/SourcePanel";
-import ControlPointPanel from "./components/ControlPointPanel";
-import Toolbar from "./components/Toolbar";
-import type { RadiatingSource, ControlPoint, ProjectData } from "./types";
+import { lazy, Suspense } from "react";
+import {
+  Activity,
+  Antenna,
+  Building2,
+  ChartNoAxesCombined,
+  CircleHelp,
+  Crosshair,
+  FileText,
+  FolderOpen,
+  Grid2X2,
+  Layers,
+  LocateFixed,
+  MapPin,
+  Mountain,
+  MousePointer2,
+  RadioTower,
+  Redo2,
+  Ruler,
+  Save,
+  Scissors,
+  Settings,
+  Undo2,
+  X,
+} from "lucide-react";
+import { PlannerContext, usePlannerState } from "./lib/usePlanner";
+import { chooseFile, importDxf } from "./lib/files";
+import { newProject, normalizeProject } from "./lib/project";
+import type { Section } from "./types";
+import SourcesPage from "./components/SourcesPage";
+import MapWorkspace from "./components/MapWorkspace";
+import VerticalPage from "./components/VerticalPage";
+import {
+  LimitsPage,
+  ReportPage,
+  SettingsPage,
+  TablesPage,
+} from "./components/ProjectPages";
+import CadView from "./components/CadView";
+import { Tool } from "./components/Controls";
+import FeatureTools from "./components/FeatureTools";
+import { ResultsDialog } from "./components/Results";
+import { TILES } from "./components/PlannerMap";
 import "./App.css";
-
-function App() {
-  const [project, setProject] = useState<ProjectData>({
-    name: "Nouveau Projet",
-    description: "",
-    sources: [],
-    antennas: [],
-    control_points: [],
-    propagation_model: "FreeSpace",
-    safety_limit_v_m: 28.0,
-    map_center: [5.345, -4.025],
-    map_zoom: 13,
-  });
-
-  const [safetyDistances, setSafetyDistances] = useState<Map<string, number>>(new Map());
-  const [activeTab, setActiveTab] = useState<"sources" | "control_points">("sources");
-
-  const recalcSafetyZone = useCallback(async (source: RadiatingSource) => {
-    const limit: number = await invoke("get_icnirp_limit", {
-      frequencyMhz: source.frequency_mhz,
-    });
-    const dist: number = await invoke("calculate_safety_zone", {
-      source,
-      limitVM: limit,
-    });
-    setSafetyDistances((prev) => new Map(prev).set(source.id, dist));
-  }, []);
-
-  const addSource = useCallback(async (lat?: number, lng?: number) => {
-    const source: RadiatingSource = await invoke("create_source", {
-      name: `Source ${project.sources.length + 1}`,
-      frequencyMhz: 900.0,
-      powerW: 50.0,
-      lat: lat ?? project.map_center[0],
-      lng: lng ?? project.map_center[1],
-    });
-
-    await recalcSafetyZone(source);
-    setProject((p) => ({ ...p, sources: [...p.sources, source] }));
-  }, [project, recalcSafetyZone]);
-
-  const removeSource = useCallback((id: string) => {
-    setProject((p) => ({ ...p, sources: p.sources.filter((s) => s.id !== id) }));
-    setSafetyDistances((prev) => {
-      const next = new Map(prev);
-      next.delete(id);
-      return next;
-    });
-  }, []);
-
-  const updateSource = useCallback(async (id: string, field: keyof RadiatingSource, value: number | string) => {
-    setProject((p) => {
-      const updated = p.sources.map((s) => (s.id === id ? { ...s, [field]: value } : s));
-      const src = updated.find((s) => s.id === id);
-      if (src) recalcSafetyZone(src);
-      return { ...p, sources: updated };
-    });
-  }, [recalcSafetyZone]);
-
-  const addControlPoint = useCallback(async (lat: number, lng: number) => {
-    const cp: ControlPoint = await invoke("create_control_point", {
-      name: `Point ${(project.control_points?.length ?? 0) + 1}`,
-      lat,
-      lng,
-      heightM: 1.5,
-    });
-    const evaluated: ControlPoint = await invoke("evaluate_control_point", {
-      point: cp,
-      sources: project.sources,
-    });
-    setProject((p) => ({ ...p, control_points: [...(p.control_points || []), evaluated] }));
-  }, [project]);
-
-  const removeControlPoint = useCallback((id: string) => {
-    setProject((p) => ({ ...p, control_points: (p.control_points || []).filter((cp) => cp.id !== id) }));
-  }, []);
-
-  const handleMapClick = useCallback((lat: number, lng: number) => {
-    if (activeTab === "control_points") {
-      addControlPoint(lat, lng);
-    } else {
-      addSource(lat, lng);
-    }
-  }, [activeTab, addSource, addControlPoint]);
-
-  const handleSave = useCallback(async () => {
-    const path = await save({
-      filters: [{ name: "EMF Projet", extensions: ["emfp", "json"] }],
-      defaultPath: `${project.name}.emfp`,
-    });
-    if (path) {
-      const json = JSON.stringify(project, null, 2);
-      await writeTextFile(path, json);
-    }
-  }, [project]);
-
-  const handleOpen = useCallback(async () => {
-    const path = await open({
-      filters: [{ name: "EMF Projet", extensions: ["emfp", "json"] }],
-      multiple: false,
-    });
-    if (path) {
-      const content = await readTextFile(path as string);
-      const data = JSON.parse(content) as ProjectData;
-      setProject(data);
-      for (const source of data.sources) {
-        recalcSafetyZone(source);
-      }
-    }
-  }, [recalcSafetyZone]);
-
-  const handleExport = useCallback(async () => {
-    const path = await save({
-      filters: [{ name: "DXF", extensions: ["dxf"] }],
-      defaultPath: `${project.name}.dxf`,
-    });
-    if (path) {
-      await invoke("export_dxf", { path, data: project });
-    }
-  }, [project]);
-
+const Scene3D = lazy(() => import("./components/Scene3D"));
+const NAV: { id: Section; label: string; icon: typeof Activity }[] = [
+  { id: "sources", label: "Sources rayonnantes", icon: RadioTower },
+  { id: "limits", label: "Limites EMF", icon: Activity },
+  { id: "origin", label: "Origine et grille", icon: LocateFixed },
+  { id: "antennas", label: "Positions des antennes", icon: Antenna },
+  { id: "buildings", label: "Bâtiments", icon: Building2 },
+  { id: "terrain", label: "Terrain", icon: Mountain },
+  { id: "lines", label: "Lignes et annotations", icon: Layers },
+  { id: "points", label: "Calculs aux points", icon: MapPin },
+  { id: "horizontal", label: "Coupes horizontales", icon: Grid2X2 },
+  { id: "vertical", label: "Coupes verticales", icon: Scissors },
+  { id: "tables", label: "Tableaux et graphiques", icon: ChartNoAxesCombined },
+  { id: "report", label: "Rapport par modèle", icon: FileText },
+  { id: "cad", label: "CAO", icon: Ruler },
+  { id: "3d", label: "3D", icon: Layers },
+  { id: "calibrate", label: "Calibrer le fond de plan", icon: Crosshair },
+  { id: "settings", label: "Paramètres", icon: Settings },
+];
+const MAP_SECTIONS: Section[] = [
+  "points",
+  "horizontal",
+  "origin",
+  "antennas",
+  "buildings",
+  "terrain",
+  "lines",
+  "calibrate",
+];
+export default function App() {
+  const a = usePlannerState(),
+    { project: p, section, dirty, task } = a;
+  const title = NAV.find((n) => n.id === section)?.label ?? "";
   return (
-    <div className="app">
-      <Toolbar
-        projectName={project.name}
-        onSave={handleSave}
-        onOpen={handleOpen}
-        onExport={handleExport}
-        onSettings={() => {}}
-      />
-      <div className="app-body">
-        <aside className="sidebar">
-          <div className="tab-bar">
-            <button
-              className={`tab-btn ${activeTab === "sources" ? "active" : ""}`}
-              onClick={() => setActiveTab("sources")}
+    <PlannerContext.Provider value={a}>
+      <div className="app desktop-planner">
+        <header className="main-toolbar">
+          <details className="file-menu">
+            <summary role="button" title="Fichier" aria-label="Fichier">
+              <FolderOpen size={22} />
+              <span>▾</span>
+            </summary>
+            <div
+              className="menu-popup"
+              onClick={(e) => {
+                if ((e.target as HTMLElement).closest("button"))
+                  (e.currentTarget.parentElement as HTMLDetailsElement).open =
+                    false;
+              }}
             >
-              Sources
-            </button>
+              <button
+                onClick={() => {
+                  if (
+                    dirty &&
+                    !window.confirm(
+                      "Créer un nouveau projet ? Les modifications non enregistrées seront remplacées.",
+                    )
+                  )
+                    return;
+                  a.load(newProject());
+                }}
+              >
+                Nouveau
+              </button>
+              <button onClick={a.openProject}>
+                Ouvrir… <kbd>Ctrl+O</kbd>
+              </button>
+              <button onClick={a.save}>
+                Enregistrer… <kbd>Ctrl+S</kbd>
+              </button>
+              <span title="L’écriture au format binaire de l’original n’est pas encore implémentée. Utilisez .emfp.">
+                <button disabled>Enregistrer au format original .xemf</button>
+              </span>
+              <hr />
+              <button
+                onClick={() =>
+                  void task(async () => {
+                    const f = await chooseFile(["dxf"]);
+                    if (f)
+                      a.commit(importDxf(p, new TextDecoder().decode(f.bytes)));
+                    return f;
+                  }, "Plan DXF importé")
+                }
+              >
+                Importer un plan DXF…
+              </button>
+              <button
+                onClick={() =>
+                  void task(async () => {
+                    const r = await fetch("/examples/demonstration.emfp");
+                    if (!r.ok) throw new Error("Démonstration indisponible.");
+                    if (
+                      dirty &&
+                      !window.confirm(
+                        "Remplacer les modifications par le projet de démonstration ?",
+                      )
+                    )
+                      return null;
+                    a.load(normalizeProject(await r.json()));
+                  }, "Démonstration ouverte")
+                }
+              >
+                Projet de démonstration
+              </button>
+            </div>
+          </details>
+          <Tool label="Enregistrer le projet" onClick={a.save}>
+            <Save />
+          </Tool>
+          <span className="toolbar-separator" />
+          <Tool
+            label="Annuler la dernière modification"
+            disabled={!a.canUndo}
+            onClick={() => a.restore()}
+          >
+            <Undo2 />
+          </Tool>
+          <Tool
+            label="Rétablir"
+            disabled={!a.canRedo}
+            onClick={() => a.restore(true)}
+          >
+            <Redo2 />
+          </Tool>
+          <Tool label="Paramètres" onClick={() => a.setSection("settings")}>
+            <Settings />
+          </Tool>
+          <Tool
+            label="À propos et raccourcis"
+            onClick={() =>
+              a.setStatus(
+                "EMF Planner · Ctrl+O : ouvrir · Ctrl+S : enregistrer · Ctrl+Z : annuler · Échap : quitter le dessin",
+              )
+            }
+          >
+            <CircleHelp />
+          </Tool>
+          <span className="project-caption">
+            EMF Planner{" "}
+            <span>
+              — {p.name}
+              {dirty ? " *" : ""}
+            </span>
+          </span>
+          <span className="project-count">
+            {p.sources.length} sources · {p.control_points.length} points
+          </span>
+        </header>
+        {a.error && (
+          <div className="error-banner" role="alert">
+            <span>{a.error}</span>
             <button
-              className={`tab-btn ${activeTab === "control_points" ? "active" : ""}`}
-              onClick={() => setActiveTab("control_points")}
+              aria-label="Fermer le message"
+              onClick={() => a.setError("")}
             >
-              Points de contrôle
+              <X size={15} />
             </button>
           </div>
-
-          {activeTab === "sources" ? (
-            <SourcePanel
-              sources={project.sources}
-              onAdd={() => addSource()}
-              onRemove={removeSource}
-              onUpdate={updateSource}
-            />
+        )}
+        <div className="app-body">
+          <aside className="navigation-pane">
+            <nav aria-label="Rubriques du projet">
+              {NAV.map((n) => (
+                <button
+                  key={n.id}
+                  className={section === n.id ? "active" : ""}
+                  onClick={() => {
+                    a.setSection(n.id);
+                    a.setTool("pan");
+                    a.setDraft([]);
+                  }}
+                >
+                  <n.icon size={14} />
+                  <span>{n.label}</span>
+                </button>
+              ))}
+            </nav>
+            <div className="display-options">
+              <div className="pane-caption">Options d’affichage</div>
+              <label>
+                <input
+                  type="checkbox"
+                  checked={p.settings.show_basemap}
+                  onChange={(e) =>
+                    a.settings({ show_basemap: e.target.checked })
+                  }
+                />
+                Fond de carte
+              </label>
+              {(Object.keys(a.display) as (keyof typeof a.display)[]).map(
+                (key, i) => (
+                  <label key={key}>
+                    <input
+                      type="checkbox"
+                      checked={a.display[key]}
+                      onChange={(e) =>
+                        a.setDisplay((p) => ({ ...p, [key]: e.target.checked }))
+                      }
+                    />
+                    {
+                      [
+                        "Grille",
+                        "Bâtiments",
+                        "Relief",
+                        "Lignes et annotations",
+                        "Antennes",
+                        "Points de contrôle",
+                        "Contours EMF",
+                        "Libellés",
+                        "Azimuts",
+                      ][i]
+                    }
+                  </label>
+                ),
+              )}
+              <select
+                aria-label="Fond de carte"
+                value={p.settings.map_provider}
+                onChange={(e) => a.settings({ map_provider: e.target.value })}
+              >
+                {Object.keys(TILES).map((name) => (
+                  <option key={name}>{name}</option>
+                ))}
+              </select>
+            </div>
+            <div className="navigation-bottom">
+              <MousePointer2 size={12} /> Coordonnées locales en mètres
+            </div>
+          </aside>
+          <main className="workspace" aria-label={title}>
+            <FeatureTools section={section} />
+            <div className="workspace-content">
+              {section === "sources" && <SourcesPage />}
+              {MAP_SECTIONS.includes(section) && (
+                <MapWorkspace title={title} />
+              )}{" "}
+              {section === "vertical" && <VerticalPage />}
+              {section === "limits" && <LimitsPage />}
+              {section === "tables" && <TablesPage />}
+              {section === "report" && <ReportPage />}
+              {section === "cad" && <CadView />}
+              {section === "settings" && <SettingsPage />}
+              {section === "3d" && (
+                <Suspense
+                  fallback={
+                    <div className="empty-workspace">
+                      Chargement de la vue 3D…
+                    </div>
+                  }
+                >
+                  <Scene3D
+                    project={p}
+                    contours={a.cutResults.map((r) => r.contours)}
+                  />
+                </Suspense>
+              )}
+            </div>
+          </main>
+        </div>
+        <footer className="statusbar">
+          <span className="status-message" role="status">
+            {a.status}
+          </span>
+          <span>
+            X = {a.cursor[0].toFixed(1)} m · Y = {a.cursor[1].toFixed(1)} m
+          </span>
+          <span>{a.elapsed ? `${a.elapsed.toFixed(3)} s` : ""}</span>
+          {a.busy ? (
+            <>
+              <progress value={a.progress} max={100} />
+              <button onClick={a.cancel}>Annuler</button>
+            </>
           ) : (
-            <ControlPointPanel
-              points={project.control_points || []}
-              onRemove={removeControlPoint}
-            />
+            <span className="status-ready">{dirty ? "Modifié" : "Prêt"}</span>
           )}
-        </aside>
-        <main className="map-container">
-          <MapView
-            sources={project.sources}
-            controlPoints={project.control_points || []}
-            safetyDistances={safetyDistances}
-            center={project.map_center}
-            zoom={project.map_zoom}
-            onMapClick={handleMapClick}
-          />
-        </main>
+        </footer>
+        {a.resultOpen && <ResultsDialog />}
       </div>
-    </div>
+    </PlannerContext.Provider>
   );
 }
-
-export default App;

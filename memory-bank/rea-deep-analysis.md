@@ -1,5 +1,8 @@
 # Analyse approfondie — EMFPlanner.exe (Ghidra + REA)
 
+> Historique de l'analyse statique Mac. La reprise Windows a ensuite permis de
+> récupérer et décompiler le payload métier .NET ; voir `windows-dynamic-analysis.md`.
+
 ## Verdict final
 
 **EMFPlanner.exe est protégé par Enigma Protector**, un packer commercial anti-rétro-ingénierie. La décompilation complète du code métier est **impossible** sans exécution sur Windows (unpacking dynamique).

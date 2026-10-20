@@ -1,4 +1,12 @@
 export interface RadiatingSource {
+  active?: boolean;
+  color?: string;
+  is_existing?: boolean;
+  pattern_h?: number[];
+  pattern_v?: number[];
+  limit_factors?: number[][];
+  x_m?: number;
+  y_m?: number;
   id: string;
   name: string;
   frequency_mhz: number;
@@ -50,6 +58,15 @@ export interface ProjectData {
   safety_limit_v_m: number;
   map_center: [number, number];
   map_zoom: number;
+  origin?: [number, number];
+  buildings?: Building[];
+  terrain_points?: TerrainPoint[];
+  lines?: DrawingLine[];
+  horizontal_cuts?: HorizontalCut[];
+  vertical_cuts?: VerticalCut[];
+  limits?: LimitSet[];
+  settings?: CalculationSettings;
+  background_image?: BackgroundImage;
 }
 
 export interface SourceContribution {
@@ -100,6 +117,148 @@ export interface ControlPoint {
   calculated_e_field_v_m: number | null;
   exposure_ratio: number | null;
   compliant: boolean | null;
+  group?: string;
+  location?: string;
+  heights?: PointHeight[];
+  description?: string;
+}
+
+export interface PointHeight {
+  id: string;
+  height_m: number;
+  attenuation_db: number;
+  measured: number;
+  description: string;
+}
+export interface Building {
+  id: string;
+  name: string;
+  height_m: number;
+  foundation_m: number;
+  attenuation_db: number;
+  points: [number, number][];
+  active: boolean;
+}
+export interface TerrainPoint {
+  id: string;
+  x: number;
+  y: number;
+  elevation: number;
+  wm_x?: number;
+  wm_y?: number;
+}
+export interface DrawingLine {
+  id: string;
+  name: string;
+  kind: "road" | "barrier" | "label";
+  points: [number, number][];
+  color: string;
+  width: number;
+}
+export interface HorizontalCut {
+  id: string;
+  active: boolean;
+  height_m: number;
+  color: string;
+}
+export interface VerticalCut {
+  id: string;
+  active: boolean;
+  azimuth_deg: number;
+  x: number;
+  y: number;
+  backward_m: number;
+  forward_m: number;
+  max_height_m: number;
+}
+export interface LimitRow {
+  frequency: number;
+  value: number;
+  exponent: number;
+}
+export interface LimitSet {
+  id: string;
+  name: string;
+  color: string;
+  rows: LimitRow[];
+  use_alpha24: boolean;
+  use_ftdc: boolean;
+  use_fpr: boolean;
+  active: boolean;
+}
+export interface CalculationSettings {
+  reflection: number;
+  radius_m: number;
+  grid_step_m: number;
+  fine_step_m: number;
+  consider_terrain: boolean;
+  buildings_mode: "ignore" | "screen" | "attenuate";
+  building_attenuation_db: number;
+  selected_limit: number;
+  map_provider: string;
+  show_basemap: boolean;
+  terrain_interpolation?: "original" | "delaunay";
+}
+export interface BackgroundImage {
+  data_url: string;
+  west: number;
+  south: number;
+  east: number;
+  north: number;
+  opacity: number;
+}
+export interface PlannerProject extends ProjectData {
+  origin: [number, number];
+  buildings: Building[];
+  terrain_points: TerrainPoint[];
+  lines: DrawingLine[];
+  horizontal_cuts: HorizontalCut[];
+  vertical_cuts: VerticalCut[];
+  limits: LimitSet[];
+  settings: CalculationSettings;
+}
+export type Section =
+  | "sources"
+  | "limits"
+  | "origin"
+  | "antennas"
+  | "buildings"
+  | "terrain"
+  | "lines"
+  | "points"
+  | "horizontal"
+  | "vertical"
+  | "tables"
+  | "report"
+  | "cad"
+  | "3d"
+  | "calibrate"
+  | "settings";
+export interface PointResult extends ExposureResult {
+  point_id: string;
+  name: string;
+  height_m: number;
+  x: number;
+  y: number;
+  measured: number;
+  elevation: number;
+}
+export interface FieldGrid {
+  width: number;
+  height: number;
+  x0: number;
+  y0: number;
+  dx: number;
+  dy: number;
+  values: number[];
+  fields: number[];
+  height_m: number;
+}
+export interface Contour {
+  level: number;
+  color: string;
+  segments: [number, number][][];
+  height_m: number;
 }
 
 export interface FeederType {

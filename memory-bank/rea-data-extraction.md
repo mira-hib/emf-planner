@@ -1,5 +1,8 @@
 # Extraction de données — Dernière passe exhaustive
 
+> Cette passe statique précède la récupération du payload métier sous Windows,
+> documentée dans `windows-dynamic-analysis.md`.
+
 ## Résultat : 0 code métier, mais données utiles complètes extraites
 
 ---

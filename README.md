@@ -1,115 +1,105 @@
-# EMF Planner Clone
+# EMF Planner — Clone
 
-Outil de planification de champs électromagnétiques (EMF) — clone cross-platform d'EMFPlanner 7.1, construit avec Rust + Tauri + React.
+Application Windows Tauri + React reproduisant les principaux écrans
+d’EMFPlanner 7.1 à partir de son interface observée et du code .NET récupéré en
+mémoire. Les fonctions secondaires non implémentées sont visibles en gris avec
+une explication au survol.
 
-Projet réalisé dans le cadre d'un article sur la faisabilité de reproduire un logiciel par décompilation.
+## Utilisation sous Windows
 
-## Stack technique
+Lancer `src-tauri/target/release/emf-planner.exe`, ou :
 
-| Couche | Technologie |
-|--------|------------|
-| Backend | Rust (calculs EMF, propagation, feeders) |
-| Desktop | Tauri v2 (cross-platform Mac/Windows/Linux) |
-| Frontend | React + TypeScript + Vite |
-| Carte | Leaflet (OpenStreetMap, Esri, Carto, OpenTopo) |
-| CAO Export | DXF via `dxf` crate |
+```powershell
+.\scripts\Start-EmfPlanner.ps1
+```
 
-## Fonctionnalités implémentées
+Le menu **Fichier** ouvre les projets d’origine `.xemf`, les projets du clone
+`.emfp`/JSON et une démonstration. L’enregistrement produit un `.emfp` ; il ne
+réécrit pas le format binaire de l’original.
 
-### Calculs EMF
-- Champ E en espace libre : `E = √(30·EIRP) / d` (ITU-T K.70)
-- EIRP avec nombre de TX et atténuation feeder
-- PTXAM = P_TX × num_TX × atténuation × F_TDC × F_PP × α24
-- Limites ICNIRP 2020 par bande de fréquence
-- Exposition simultanée : `R = Σ(Ei/Limiti)²` avec verdict conforme/non-conforme
-- Densité de puissance : `S = E²/377` (W/m²)
-- Superposition quadratique multi-sources
-- Coefficient de réflexion sol (k = 1.0–1.6)
-- Modèles de propagation : Free-space, COST-Hata, ITU-R P.1546
-- Grille de calcul pour heatmap
-- Coupes verticales par azimut
+## Reprendre sur Mac
 
-### Données
-- 36 types de câbles coaxiaux (~370 points fréquence/atténuation)
-- 26 champs par source rayonnante
-- 14 champs par point de contrôle avec évaluation automatique
-- 7 fournisseurs de cartes avec layer switcher
-
-### Interface
-- Carte interactive (clic pour ajouter source ou point de contrôle)
-- Sidebar avec onglets Sources / Points de contrôle
-- Formulaire complet par source (identification, antenne, feeder, facteurs)
-- Zones de sécurité circulaires sur la carte
-- Popups détaillées (E calculé, ratio, conformité)
-- Save/Open projet (.emfp) + Export DXF
-- Dark/Light mode automatique
-
-## Installation
-
-### Prérequis
-- [Rust](https://rustup.rs/) >= 1.75
-- [Node.js](https://nodejs.org/) >= 18
-- Dépendances Tauri : voir [tauri.app/start/prerequisites](https://v2.tauri.app/start/prerequisites/)
-
-### Lancer en dev
 ```bash
-npm install
+git pull origin main
+npm ci
 npm run tauri dev
 ```
 
-### Build production
-```bash
-npm run tauri build
+Utiliser Node.js 24 et Rust stable avec les outils de développement Xcode.
+Les tests métier et leurs références originales sont versionnés et ne
+nécessitent pas les outils Windows : `npm test` et `npm run benchmark`.
+Pour les tests d’interface : `npx playwright install chromium`, puis
+`npm run test:ui` (Chromium sur Mac, Edge sur ce PC Windows).
+
+Le code C# récupéré est dans `reference/original-decompiled/`. Voir
+[la passation Mac](memory-bank/mac-handoff.md) pour les archives d’analyse,
+les empreintes, les fonctions grisées et les prochaines étapes.
+
+## Interface disponible
+
+- 16 rubriques : sources, limites, origine, positions d’antennes, bâtiments,
+  terrain, lignes, points de contrôle, coupes H/V, tableaux, rapports, CAO, 3D,
+  calibration et paramètres.
+- Tableaux éditables, copie/suppression, annuler/rétablir, raccourcis et copie de
+  travail locale.
+- Diagrammes d’antennes MSI, calcul EIRP et facteurs par jeu de limites.
+- Calculs aux points avec plusieurs hauteurs et matrice de contributions.
+- Coupes horizontales/verticales et contours des quatre jeux de limites actifs.
+- Plan hors ligne, fonds de carte en ligne, bâtiments, relief et annotations.
+- Rapports Word/Excel/PDF, plan CAO SVG/PDF/DXF et scène 3D interactive.
+
+Le [détail des fonctions disponibles et grisées](memory-bank/clone-interface.md)
+décrit les limites actuelles. L’interface n’est pas encore une reproduction
+pixel par pixel et l’ensemble du comportement de l’original n’est pas validé.
+
+## Vérifications
+
+```powershell
+npm run build
+npm test
+npm run test:ui
+npm run benchmark
 ```
 
-## Architecture
+Les tests couvrent les calculs, le chargement du projet original, l’édition,
+l’enregistrement, les deux types de coupes, les vues CAO/3D et les exports.
+Les 15 résultats point/hauteur capturés sur le projet livré concordent avec le
+clone à moins de `1.1e-6 V/m` ; cette mesure concerne ce seul scénario.
 
-```
-appclone/
-├── src/                          # Frontend React
-│   ├── components/
-│   │   ├── MapView.tsx           # Carte Leaflet + layer switcher
-│   │   ├── SourcePanel.tsx       # CRUD sources rayonnantes
-│   │   ├── ControlPointPanel.tsx # Points de contrôle
-│   │   └── Toolbar.tsx           # Barre d'outils
-│   ├── types/index.ts            # Interfaces TypeScript
-│   ├── App.tsx                   # App principale + state
-│   └── App.css                   # Styles (CSS variables, dark mode)
-├── src-tauri/                    # Backend Rust
-│   └── src/
-│       ├── emf/mod.rs            # Calculs EMF (EIRP, PTXAM, champ E, ICNIRP)
-│       ├── antenna/mod.rs        # Diagrammes d'antenne + interpolation
-│       ├── propagation/mod.rs    # Modèles (Free-space, COST-Hata, ITU-R P.1546)
-│       ├── feeder/mod.rs         # 36 câbles coaxiaux (Andrew, Elliot, RG)
-│       ├── control_point/mod.rs  # Points de contrôle + évaluation
-│       ├── project/mod.rs        # Save/Load JSON
-│       ├── export/mod.rs         # Export DXF
-│       └── lib.rs                # Commandes Tauri (15 commandes)
-└── memory-bank/                  # Documentation reverse engineering
+## Développement
+
+Prérequis : Node.js, Rust/MSVC, WebView2 et les dépendances Tauri 2.
+
+```powershell
+npm ci
+npm run tauri dev
+npm run tauri build -- --no-bundle
 ```
 
-## Contexte : reverse engineering
+La chaîne portable de cette machine est conservée dans `.tools/` (hors Git).
+`scripts/Start-EmfPlanner.ps1 -Development` la configure puis démarre Tauri.
 
-Ce projet est né d'un article explorant la question : **peut-on reproduire un logiciel en le décompilant ?**
+| Emplacement | Rôle |
+|---|---|
+| `src/components/` | Écrans React, carte SVG/Leaflet, CAO, scène Three.js |
+| `src/lib/engine.ts` | Moteur de calcul utilisé par cette interface |
+| `src/lib/calculation.worker.ts` | Calculs annulables en arrière-plan |
+| `src/lib/import-xemf.ts`, `nrbf.ts` | Lecture de données du format original |
+| `src/lib/files.ts` | Fichiers natifs Tauri, Excel, Word, PDF et DXF |
+| `src/components/FeatureTools.tsx` | Commandes complémentaires et états désactivés |
+| `src-tauri/` | Application Windows ; anciens modules de calcul Rust conservés |
+| `tests/` | Cas numériques et parcours d’interface Playwright |
+| `memory-bank/` | Analyse, preuves, décisions et état du clone |
 
-### Résultats de l'analyse d'EMFPlanner 7.1 :
-- **955 000 lignes** de code .NET décompilé = 100% infrastructure (ODA/Teigha CAO)
-- **0 formule EMF** dans le code décompilé
-- Binaire protégé par **Enigma Protector** (AES, entropie 8.0)
-- 3 passes REA/Ghidra : toutes les pistes épuisées
+## Analyse de l’original
 
-### Conclusion :
-> La décompilation du code métier est impossible avec Enigma Protector.
-> Mais la reproduction fonctionnelle est viable car toute la logique EMF repose sur des **standards publics** (ITU-T K.70, ITU-R F.699-8, ICNIRP 2020), documentés dans le manuel PDF de 76 pages.
+L’analyse statique sur Mac était bloquée par Enigma. L’exécution Windows et la
+capture mémoire ont ensuite permis de récupérer 137 fichiers C#, dont les
+calculs EMF et les diagrammes d’antennes. Les 3 106 corps CIL du module principal
+sont restés identiques après les scénarios de calcul, CAO/3D et Office.
 
-## Standards implémentés
+Voir le [memory bank](memory-bank/README.md), le
+[rapport dynamique Windows](memory-bank/windows-dynamic-analysis.md) et les
+[scénarios de référence](memory-bank/windows-scenario-validation.md).
 
-- **ITU-T K.70** (2020) — Méthode de source ponctuelle pour le champ E
-- **ITU-R F.699-8** — Diagrammes d'antenne de référence
-- **ICNIRP 2020** — Limites d'exposition du public général
-- **COST-Hata** — Modèle de propagation urbain
-- **ITU-R P.1546** — Propagation point-à-zone (simplifié)
-
-## Licence
-
-Projet éducatif — à des fins de recherche et d'article uniquement.
+Projet éducatif de recherche et de reconstruction logicielle.

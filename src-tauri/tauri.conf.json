@@ -12,9 +12,11 @@
   "app": {
     "windows": [
       {
-        "title": "EMF Planner",
-        "width": 1280,
-        "height": 800
+        "title": "EMF Planner — Clone",
+        "width": 1480,
+        "height": 960,
+        "minWidth": 1000,
+        "minHeight": 700
       }
     ],
     "security": {

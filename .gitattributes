@@ -1,0 +1,3 @@
+# Preserve forensic reference exports exactly, including their original whitespace.
+reference/original-decompiled/** -text -whitespace
+tests/fixtures/*.xemf -text

@@ -1,5 +1,8 @@
 # Analyse exhaustive — Toutes les pistes explorées
 
+> Historique des pistes statiques Mac. Le payload métier a depuis été récupéré
+> après exécution Windows ; voir `windows-dynamic-analysis.md`.
+
 ## Verdict
 
 **Aucune piste n'a permis d'extraire le code métier EMF.** L'analyse exhaustive de TOUS les 87 fichiers confirme que la logique EMF est inaccessible sans exécution Windows + unpacking dynamique d'Enigma Protector.

@@ -1,0 +1,413 @@
+{
+  "name": "Site de démonstration",
+  "description": "Projet de démonstration synthétique : trois secteurs, bâtiments et points de contrôle.",
+  "sources": [
+    {
+      "id": "e441284c-4162-4b48-ba33-882a5862cc9d",
+      "name": "900_0",
+      "active": true,
+      "color": "#ffffff",
+      "frequency_mhz": 900,
+      "power_w": 12.05,
+      "gain_dbi": 16,
+      "lat": 5.345,
+      "lng": -4.025,
+      "x_m": 0,
+      "y_m": 0,
+      "height_m": 29,
+      "azimuth_deg": 0,
+      "tilt_deg": 0,
+      "duty_cycle": 1,
+      "power_reduction": 1,
+      "alpha24": 1,
+      "ground_reflection_k": 1,
+      "service_type": "GSM",
+      "num_tx": 1,
+      "total_attenuation_db": 0,
+      "antenna_model": "Secteur 65°",
+      "antenna_size_m": 1.9,
+      "mechanical_downtilt_deg": 0,
+      "electrical_downtilt_deg": 6,
+      "beam_width_h_deg": 65,
+      "beam_width_v_deg": 10,
+      "location": "Tower",
+      "owner": "",
+      "sector_id": "Secteur 1",
+      "is_existing": false
+    },
+    {
+      "id": "90d5db00-2058-4374-9834-865799121a72",
+      "name": "900_120",
+      "active": true,
+      "color": "#ffffff",
+      "frequency_mhz": 900,
+      "power_w": 12.05,
+      "gain_dbi": 16,
+      "lat": 5.345,
+      "lng": -4.025,
+      "x_m": 0,
+      "y_m": 0,
+      "height_m": 29,
+      "azimuth_deg": 120,
+      "tilt_deg": 0,
+      "duty_cycle": 1,
+      "power_reduction": 1,
+      "alpha24": 1,
+      "ground_reflection_k": 1,
+      "service_type": "GSM",
+      "num_tx": 1,
+      "total_attenuation_db": 0,
+      "antenna_model": "Secteur 65°",
+      "antenna_size_m": 1.9,
+      "mechanical_downtilt_deg": 0,
+      "electrical_downtilt_deg": 6,
+      "beam_width_h_deg": 65,
+      "beam_width_v_deg": 10,
+      "location": "Tower",
+      "owner": "",
+      "sector_id": "Secteur 2",
+      "is_existing": false
+    },
+    {
+      "id": "83832232-f010-4811-9549-9644d4696af3",
+      "name": "900_240",
+      "active": true,
+      "color": "#ffffff",
+      "frequency_mhz": 900,
+      "power_w": 12.05,
+      "gain_dbi": 16,
+      "lat": 5.345,
+      "lng": -4.025,
+      "x_m": 0,
+      "y_m": 0,
+      "height_m": 29,
+      "azimuth_deg": 240,
+      "tilt_deg": 0,
+      "duty_cycle": 1,
+      "power_reduction": 1,
+      "alpha24": 1,
+      "ground_reflection_k": 1,
+      "service_type": "GSM",
+      "num_tx": 1,
+      "total_attenuation_db": 0,
+      "antenna_model": "Secteur 65°",
+      "antenna_size_m": 1.9,
+      "mechanical_downtilt_deg": 0,
+      "electrical_downtilt_deg": 6,
+      "beam_width_h_deg": 65,
+      "beam_width_v_deg": 10,
+      "location": "Tower",
+      "owner": "",
+      "sector_id": "Secteur 3",
+      "is_existing": false
+    }
+  ],
+  "antennas": [],
+  "control_points": [
+    {
+      "id": "ebf1bdd9-9a2c-4df5-bd2a-f38441489da0",
+      "name": "1.1",
+      "group": "Groupe 1",
+      "lat": 5.345404241744433,
+      "lng": -4.024729328492662,
+      "x_m": 30,
+      "y_m": 45,
+      "height_m": 1.5,
+      "distance_m": 0,
+      "azimuth_deg": 0,
+      "attenuation_db": 0,
+      "measured_e_field_v_m": null,
+      "calculated_e_field_v_m": null,
+      "exposure_ratio": null,
+      "compliant": null,
+      "location": "Ground",
+      "heights": [
+        {
+          "id": "12af1263-7d65-4cbc-aa56-7f04e26ae1cf",
+          "height_m": 1.5,
+          "attenuation_db": 0,
+          "measured": 0,
+          "description": ""
+        }
+      ]
+    },
+    {
+      "id": "3e7fcf92-efa4-4da0-b7a8-89b1c47453ba",
+      "name": "1.2",
+      "group": "Groupe 1",
+      "lat": 5.345269494525937,
+      "lng": -4.025406007261007,
+      "x_m": -45,
+      "y_m": 30,
+      "height_m": 1.5,
+      "distance_m": 0,
+      "azimuth_deg": 0,
+      "attenuation_db": 0,
+      "measured_e_field_v_m": null,
+      "calculated_e_field_v_m": null,
+      "exposure_ratio": null,
+      "compliant": null,
+      "location": "Ground",
+      "heights": [
+        {
+          "id": "011d0555-ae89-4d57-8e03-b31fd7c333e8",
+          "height_m": 1.5,
+          "attenuation_db": 0,
+          "measured": 0,
+          "description": ""
+        }
+      ]
+    },
+    {
+      "id": "b1562036-cd19-44b1-b159-deba32d2e0cb",
+      "name": "1.3",
+      "group": "Groupe 1",
+      "lat": 5.344730505355457,
+      "lng": -4.024458656985324,
+      "x_m": 60,
+      "y_m": -30,
+      "height_m": 1.5,
+      "distance_m": 0,
+      "azimuth_deg": 0,
+      "attenuation_db": 0,
+      "measured_e_field_v_m": null,
+      "calculated_e_field_v_m": null,
+      "exposure_ratio": null,
+      "compliant": null,
+      "location": "Ground",
+      "heights": [
+        {
+          "id": "c269a467-c15d-49ec-8541-baf5c2f741b0",
+          "height_m": 1.5,
+          "attenuation_db": 0,
+          "measured": 0,
+          "description": ""
+        }
+      ]
+    },
+    {
+      "id": "d66550b4-192d-4176-834d-98e84e1c54ab",
+      "name": "1.4",
+      "group": "Groupe 1",
+      "lat": 5.344371178978292,
+      "lng": -4.0252706715073385,
+      "x_m": -30,
+      "y_m": -70,
+      "height_m": 1.5,
+      "distance_m": 0,
+      "azimuth_deg": 0,
+      "attenuation_db": 0,
+      "measured_e_field_v_m": null,
+      "calculated_e_field_v_m": null,
+      "exposure_ratio": null,
+      "compliant": null,
+      "location": "Ground",
+      "heights": [
+        {
+          "id": "992cc5b4-9b1b-4d89-a3e9-4851b4b9c138",
+          "height_m": 1.5,
+          "attenuation_db": 0,
+          "measured": 0,
+          "description": ""
+        }
+      ]
+    }
+  ],
+  "propagation_model": "FreeSpace",
+  "safety_limit_v_m": 28,
+  "map_center": [
+    5.345,
+    -4.025
+  ],
+  "origin": [
+    5.345,
+    -4.025
+  ],
+  "map_zoom": 18,
+  "buildings": [
+    {
+      "id": "7519304b-11bd-48e1-a5e2-dedc9335c0ff",
+      "name": "1",
+      "height_m": 12,
+      "foundation_m": 0,
+      "attenuation_db": 20,
+      "active": true,
+      "points": [
+        [
+          -65,
+          25
+        ],
+        [
+          -30,
+          25
+        ],
+        [
+          -30,
+          60
+        ],
+        [
+          -65,
+          60
+        ]
+      ]
+    },
+    {
+      "id": "70cbd3a9-ee51-4175-bc9f-da9f06f18640",
+      "name": "2",
+      "height_m": 8,
+      "foundation_m": 0,
+      "attenuation_db": 20,
+      "active": true,
+      "points": [
+        [
+          45,
+          50
+        ],
+        [
+          75,
+          50
+        ],
+        [
+          75,
+          75
+        ],
+        [
+          45,
+          75
+        ]
+      ]
+    }
+  ],
+  "terrain_points": [],
+  "lines": [],
+  "horizontal_cuts": [
+    {
+      "id": "9fb3544e-ffa5-46fb-ba21-30629a9336cf",
+      "active": true,
+      "height_m": 18,
+      "color": "#d32246"
+    },
+    {
+      "id": "10ae699f-2673-4945-9363-b1d78b232ec0",
+      "active": true,
+      "height_m": 24,
+      "color": "#2855dd"
+    },
+    {
+      "id": "96c59f92-eaeb-483e-8679-5de12d82b186",
+      "active": true,
+      "height_m": 29,
+      "color": "#18813d"
+    }
+  ],
+  "vertical_cuts": [
+    {
+      "id": "d48c29db-c1ee-40a5-a276-d45b3d773f7a",
+      "active": true,
+      "azimuth_deg": 0,
+      "x": 0,
+      "y": 0,
+      "backward_m": 100,
+      "forward_m": 100,
+      "max_height_m": 60
+    },
+    {
+      "id": "be6dc9fb-8d60-4076-aa99-a6ce0af1ab28",
+      "active": true,
+      "azimuth_deg": 120,
+      "x": 0,
+      "y": 0,
+      "backward_m": 100,
+      "forward_m": 100,
+      "max_height_m": 60
+    },
+    {
+      "id": "455b7d64-1aff-471b-9026-9a6170210685",
+      "active": true,
+      "azimuth_deg": 240,
+      "x": 0,
+      "y": 0,
+      "backward_m": 100,
+      "forward_m": 100,
+      "max_height_m": 60
+    }
+  ],
+  "limits": [
+    {
+      "id": "fbd81c25-7256-49d6-a582-30fcf35d6621",
+      "name": "Limite 20 V/m",
+      "color": "#d32246",
+      "active": true,
+      "use_alpha24": true,
+      "use_ftdc": true,
+      "use_fpr": true,
+      "rows": [
+        {
+          "frequency": 100000,
+          "value": 20,
+          "exponent": 0
+        }
+      ]
+    },
+    {
+      "id": "6c7126fe-44d4-4c3a-864a-2839e35215ee",
+      "name": "Limite 6 V/m",
+      "color": "#ed9834",
+      "active": true,
+      "use_alpha24": true,
+      "use_ftdc": true,
+      "use_fpr": true,
+      "rows": [
+        {
+          "frequency": 100000,
+          "value": 6,
+          "exponent": 0
+        }
+      ]
+    },
+    {
+      "id": "cd490fc3-c6d2-4cff-83e0-c85544704650",
+      "name": "Limite 4.5 V/m",
+      "color": "#2855dd",
+      "active": true,
+      "use_alpha24": true,
+      "use_ftdc": true,
+      "use_fpr": true,
+      "rows": [
+        {
+          "frequency": 100000,
+          "value": 4.5,
+          "exponent": 0
+        }
+      ]
+    },
+    {
+      "id": "34975250-03c2-4073-802b-3574d368fc59",
+      "name": "Limite 3 V/m",
+      "color": "#18813d",
+      "active": true,
+      "use_alpha24": true,
+      "use_ftdc": true,
+      "use_fpr": true,
+      "rows": [
+        {
+          "frequency": 100000,
+          "value": 3,
+          "exponent": 0
+        }
+      ]
+    }
+  ],
+  "settings": {
+    "reflection": 1,
+    "radius_m": 150,
+    "grid_step_m": 3,
+    "fine_step_m": 1,
+    "consider_terrain": true,
+    "buildings_mode": "ignore",
+    "building_attenuation_db": 20,
+    "selected_limit": 0,
+    "map_provider": "Carto clair",
+    "show_basemap": false
+  }
+}

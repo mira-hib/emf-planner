@@ -1,5 +1,14 @@
 # Guide : Unpacking dynamique d'EMFPlanner sur Windows
 
+**Capture réussie sur ce PC :** voir [`windows-dynamic-analysis.md`](windows-dynamic-analysis.md).
+La méthode effective utilise DbgHelp et une reconstruction hors ligne après
+refus de lancement d'ExtremeDumper ; le payload métier .NET a été récupéré.
+
+**Reprise Windows du 2026-10-19 : les outils sont installés.** Consulter
+[`windows-toolchain.md`](windows-toolchain.md) pour les chemins réels, les lanceurs,
+les tests effectués et la configuration Codex. Le guide ci-dessous décrit les
+tentatives à effectuer ; leur réussite dépend du contenu réellement présent en mémoire.
+
 ## Objectif
 Extraire le code métier EMF chiffré par Enigma Protector en dumpant la mémoire du process après déchiffrement à l'exécution.
 
@@ -28,7 +37,7 @@ EMFPlanner est du VB.NET (.NET Framework 4.5.2). ExtremeDumper est conçu pour d
 
 2. **Lancer EMFPlanner** normalement (pas via le debugger)
    - Attendre que la fenêtre principale apparaisse
-   - L'application est maintenant déchiffrée en mémoire
+   - Une partie du code peut maintenant être déchiffrée en mémoire ; la présence de l'interface ne garantit pas un dump complet
 
 3. **Lancer ExtremeDumper en administrateur**
    - Clic droit → Exécuter en tant qu'administrateur
@@ -76,7 +85,7 @@ EMFPlanner est du VB.NET (.NET Framework 4.5.2). ExtremeDumper est conçu pour d
    - Appuyer sur F9 (Run) plusieurs fois
    - Chaque breakpoint = Enigma qui déchiffre une section
    - Continuer (F9) jusqu'à ce que la **fenêtre EMFPlanner apparaisse**
-   - À ce moment, TOUT le code est déchiffré en mémoire
+   - Vérifier ensuite le contenu du dump : certaines parties peuvent rester chiffrées ou virtualisées
 
 4. **Suspendre le process**
    - Cliquer sur le bouton Pause (||) dans x64dbg
