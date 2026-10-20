@@ -1,0 +1,11 @@
+{
+  "archive": "emf-planner-windows-interface-6f979729.zip",
+  "bytes": 3690894,
+  "sha256": "16e354c4f2055d7a8de329367046485e0ef9120d63764286c2cd7ec723dae913",
+  "source_commit": "6f979729839e8621f4879dbf1eec218b0c9338fa",
+  "executable_sha256": "5cab4453e9be0129adf7ee9946e4b02d5c163f56735d955ca5c63732293afc0b",
+  "release_url": "https://github.com/mira-hib/emf-planner/releases/tag/windows-handoff-2026-10-20",
+  "asset_url": "https://github.com/mira-hib/emf-planner/releases/download/windows-handoff-2026-10-20/emf-planner-windows-interface-6f979729.zip",
+  "digest": "sha256:16e354c4f2055d7a8de329367046485e0ef9120d63764286c2cd7ec723dae913",
+  "download_verified": true
+}

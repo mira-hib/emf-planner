@@ -39,6 +39,11 @@ actuel se récupère avec `git pull`. Le nouvel exécutable est fourni séparém
 sur cette même release ; voir `reference/interface-build.json` pour sa version
 et son empreinte. Ne pas remplacer le code actuel par celui d’une ancienne archive.
 
+[Nouvel exécutable Windows et captures](https://github.com/mira-hib/emf-planner/releases/download/windows-handoff-2026-10-20/emf-planner-windows-interface-6f979729.zip) :
+3 690 894 octets, sources `6f979729839e8621f4879dbf1eec218b0c9338fa`.
+SHA-256 : `16e354c4f2055d7a8de329367046485e0ef9120d63764286c2cd7ec723dae913`.
+Le téléchargement public a été relu et son empreinte vérifiée.
+
 Archive : **228 710 977 octets**, **389 fichiers**.
 SHA-256 : `7ac5fccc81e45e3969225087292b60ecabbc2e160eacc08d403997efe2d31b6b`.
 La copie de contrôle est dans `reference/handoff-summary.json`.

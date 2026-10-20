@@ -4,6 +4,11 @@
 `features.md`. 21 tests métier, 14 parcours UI, compilation Windows release.
 Les entrées ci-dessous conservent l’historique, dont des blocages ensuite résolus.
 
+Affinage poussé sur `main` : `6f97972`. Compilation Windows finale de 6 680 576
+octets, lancée avec succès. Archive supplémentaire de 3 690 894 octets publiée
+sur la release de passation et vérifiée par téléchargement ; métadonnées dans
+`reference/interface-build.json`. L’archive d’analyse antérieure est conservée.
+
 ## 2026-10-19 — Jour 1
 
 ### Phase 1 : Décompilation
