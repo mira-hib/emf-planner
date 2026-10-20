@@ -342,7 +342,7 @@ export function useExtraActions(): Record<
       },
       enabled: p.sources.some((s) => s.active !== false),
     },
-    "Coupes par intervalle d'angles": {
+    "Coupes par intervalle d’angles": {
       run: () => {
         const step = 45;
         commit((v) => ({
@@ -513,7 +513,7 @@ export function useExtraActions(): Record<
         }, "Routes et clôtures OpenStreetMap importées"),
       enabled: true,
     },
-    "Déplacer la grille au centre de l'écran": {
+    "Déplacer la grille au centre de l’écran": {
       run: () => {
         a.changeOrigin(toGeo(...a.viewCenter, p.origin));
         a.setStatus("Grille recentrée au centre de la vue.");
@@ -597,7 +597,7 @@ export function useExtraActions(): Record<
         })),
       enabled: p.lines.length > 0,
     },
-    "Antennes sélectionnées sur l'antenne active": {
+    "Antennes sélectionnées sur l’antenne active": {
       run: () => {
         if (!source) return;
         commit((v) => ({
@@ -611,7 +611,7 @@ export function useExtraActions(): Record<
       },
       enabled: !!source,
     },
-    "Antennes sélectionnées au centre de l'écran": {
+    "Antennes sélectionnées au centre de l’écran": {
       run: () =>
         commit((v) => ({
           ...v,
@@ -661,8 +661,8 @@ export function useExtraActions(): Record<
       run: () => a.openCommand("Tableaux de champ des coupes verticales"),
       enabled: !!a.verticalResults.length,
     },
-    "Tableaux d'exposition des coupes verticales": {
-      run: () => a.openCommand("Tableaux d'exposition des coupes verticales"),
+    "Tableaux d’exposition des coupes verticales": {
+      run: () => a.openCommand("Tableaux d’exposition des coupes verticales"),
       enabled: !!a.verticalResults.length,
     },
     // --- Word charts ---

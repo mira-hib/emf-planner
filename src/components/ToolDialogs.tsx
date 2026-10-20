@@ -43,10 +43,10 @@ export const DIALOG_COMMANDS = [
   "Alias personnalisés",
   "Liste des 14 alias standard",
   "Mise en page CAO avancée",
-  "Dossier des diagrammes d'antennes",
+  "Dossier des diagrammes d’antennes",
   "Cache des cartes",
   "Paramètres proxy",
-  "Langue de l'interface",
+  "Langue de l’interface",
   "Calcul inverse de puissance",
   "Coordonnées du site",
   "Relief DEM / SRTM",
@@ -832,7 +832,7 @@ export default function ToolDialogs() {
             />
           </div>
         </>
-      ) : command === "Tableaux d'exposition des coupes verticales" ? (
+      ) : command === "Tableaux d’exposition des coupes verticales" ? (
         <>
           <h3>Exposition - Coupes verticales</h3>
           <div className="vertex-grid">
@@ -914,7 +914,7 @@ export default function ToolDialogs() {
             ))}
           </fieldset>
         </>
-      ) : command === "Dossier des diagrammes d'antennes" ? (
+      ) : command === "Dossier des diagrammes d’antennes" ? (
         <label>
           Chemin du dossier d'antennes
           <input value={antennaFolder} onChange={(e) => setAntennaFolder(e.target.value)} placeholder="/chemin/vers/antennes" />
@@ -939,7 +939,7 @@ export default function ToolDialogs() {
             <input value={proxyUser} onChange={(e) => setProxyUser(e.target.value)} />
           </label>
         </>
-      ) : command === "Langue de l'interface" ? (
+      ) : command === "Langue de l’interface" ? (
         <>
           {(["fr", "en", "de", "es", "ru"] as const).map((lang) => (
             <label key={lang}>
@@ -1090,7 +1090,7 @@ export default function ToolDialogs() {
             ))}
           </fieldset>
         </>
-      ) : command === "Dossier des diagrammes d'antennes" ? (
+      ) : command === "Dossier des diagrammes d’antennes" ? (
         <>
           <p className="hint">
             Chemin du dossier contenant les fichiers de diagrammes d'antennes
@@ -1155,7 +1155,7 @@ export default function ToolDialogs() {
             />
           </label>
         </>
-      ) : command === "Langue de l'interface" ? (
+      ) : command === "Langue de l’interface" ? (
         <>
           <p className="hint">
             Choisissez la langue de l'interface utilisateur.
