@@ -153,11 +153,12 @@ export function LimitsPage() {
   );
 }
 export function TablesPage() {
-  const { project, results, task } = usePlanner(),
+  const { project, results, task, verticalResults } = usePlanner(),
     [height, setHeight] = useState(1.5),
     [angle, setAngle] = useState(60),
     [distance, setDistance] = useState(200),
-    [metric, setMetric] = useState("field");
+    [metric, setMetric] = useState("field"),
+    [tab, setTab] = useState<"points" | "vfield" | "vexposure">("points");
   const profile = useMemo(
     () =>
       Array.from({ length: 101 }, (_, i) => {
@@ -180,61 +181,144 @@ export function TablesPage() {
     () => (results.length ? results : calculatePoints(project)),
     [project, results],
   );
+  const vcutFieldRows = useMemo(
+    () =>
+      verticalResults.flatMap((r) => {
+        const cut = project.vertical_cuts.find((c) => c.id === r.cut_id);
+        const g = r.grid;
+        if (!g.fields.length) return [];
+        return Array.from({ length: Math.min(g.width * g.height, 500) }, (_, idx) => {
+          const col = idx % g.width;
+          const row = Math.floor(idx / g.width);
+          return {
+            id: `${r.id}-${idx}`,
+            azimut: cut?.azimuth_deg.toFixed(1) ?? "?",
+            distance_m: (g.x0 + col * g.dx).toFixed(1),
+            height_m: (g.y0 + row * g.dy).toFixed(1),
+            field: g.fields[idx]?.toFixed(4) ?? "-",
+            exposure: ((g.values[idx] ?? 0) * 100).toFixed(2),
+          };
+        });
+      }),
+    [verticalResults, project.vertical_cuts],
+  );
   return (
     <div className="tables-page">
       <div className="table-chart-controls">
         <h1>Tableaux et graphiques</h1>
-        <NumberField label="Hauteur, m" value={height} onChange={setHeight} />
-        <NumberField label="Azimut, °" value={angle} onChange={setAngle} />
-        <NumberField
-          label="Distance max., m"
-          value={distance}
-          min={1}
-          onChange={setDistance}
-        />
-        <select
-          aria-label="Grandeur du graphique"
-          value={metric}
-          onChange={(e) => setMetric(e.target.value)}
-        >
-          <option value="field">Champ électrique, V/m</option>
-          <option value="exposure">Exposition simultanée, %</option>
-        </select>
+        <div className="tab-bar" role="tablist">
+          <button
+            role="tab"
+            aria-selected={tab === "points"}
+            className={tab === "points" ? "active" : ""}
+            onClick={() => setTab("points")}
+          >
+            Points de controle
+          </button>
+          <button
+            role="tab"
+            aria-selected={tab === "vfield"}
+            className={tab === "vfield" ? "active" : ""}
+            onClick={() => setTab("vfield")}
+            disabled={!verticalResults.length}
+          >
+            Champ coupes V
+          </button>
+          <button
+            role="tab"
+            aria-selected={tab === "vexposure"}
+            className={tab === "vexposure" ? "active" : ""}
+            onClick={() => setTab("vexposure")}
+            disabled={!verticalResults.length}
+          >
+            Exposition coupes V
+          </button>
+        </div>
+        {tab === "points" && (
+          <>
+            <NumberField label="Hauteur, m" value={height} onChange={setHeight} />
+            <NumberField label="Azimut, deg" value={angle} onChange={setAngle} />
+            <NumberField
+              label="Distance max., m"
+              value={distance}
+              min={1}
+              onChange={setDistance}
+            />
+            <select
+              aria-label="Grandeur du graphique"
+              value={metric}
+              onChange={(e) => setMetric(e.target.value)}
+            >
+              <option value="field">Champ electrique, V/m</option>
+              <option value="exposure">Exposition simultanee, %</option>
+            </select>
+          </>
+        )}
         <button
           onClick={() =>
-            void task(() => exportExcel(project), "Classeur exporté")
+            void task(() => exportExcel(project), "Classeur exporte")
           }
         >
           Exporter Excel
         </button>
       </div>
-      <div className="graph">
-        <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={profile}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis
-              dataKey="distance"
-              type="number"
-              label={{
-                value: "Distance, m",
-                position: "insideBottomRight",
-                offset: -4,
-              }}
-            />
-            <YAxis width={65} />
-            <Tooltip formatter={(v) => Number(v).toFixed(4)} />
-            <Line
-              type="linear"
-              dataKey={metric}
-              name={metric === "field" ? "E, V/m" : "Exposition, %"}
-              stroke="#24639c"
-              dot={false}
-              isAnimationActive={false}
-            />
-          </LineChart>
-        </ResponsiveContainer>
-      </div>
-      <ResultTable results={rows} />
+      {tab === "points" ? (
+        <>
+          <div className="graph">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={profile}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis
+                  dataKey="distance"
+                  type="number"
+                  label={{
+                    value: "Distance, m",
+                    position: "insideBottomRight",
+                    offset: -4,
+                  }}
+                />
+                <YAxis width={65} />
+                <Tooltip formatter={(v) => Number(v).toFixed(4)} />
+                <Line
+                  type="linear"
+                  dataKey={metric}
+                  name={metric === "field" ? "E, V/m" : "Exposition, %"}
+                  stroke="#24639c"
+                  dot={false}
+                  isAnimationActive={false}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+          <ResultTable results={rows} />
+        </>
+      ) : (
+        <div className="vcut-table">
+          <DataGrid
+            label={
+              tab === "vfield"
+                ? "Champ electrique des coupes verticales"
+                : "Exposition des coupes verticales"
+            }
+            rows={vcutFieldRows}
+            columns={
+              tab === "vfield"
+                ? [
+                    { key: "azimut", label: "Azimut, deg", width: 90 },
+                    { key: "distance_m", label: "Distance, m", width: 100 },
+                    { key: "height_m", label: "Hauteur, m", width: 90 },
+                    { key: "field", label: "E, V/m", width: 120 },
+                  ]
+                : [
+                    { key: "azimut", label: "Azimut, deg", width: 90 },
+                    { key: "distance_m", label: "Distance, m", width: 100 },
+                    { key: "height_m", label: "Hauteur, m", width: 90 },
+                    { key: "exposure", label: "Exposition, %", width: 120 },
+                  ]
+            }
+          />
+        </div>
+      )}
     </div>
   );
 }
@@ -340,7 +424,7 @@ export function ReportPage() {
   );
 }
 export function SettingsPage() {
-  const { project, settings } = usePlanner();
+  const { project, settings, commit } = usePlanner();
   return (
     <div className="settings-page">
       <h1>Paramètres du projet</h1>
@@ -379,6 +463,21 @@ export function SettingsPage() {
           onChange={(v) => settings({ building_attenuation_db: v })}
         />
         <label>
+          Mode bâtiments
+          <select
+            value={project.settings.buildings_mode}
+            onChange={(e) =>
+              settings({
+                buildings_mode: e.target.value as "ignore" | "screen" | "attenuate",
+              })
+            }
+          >
+            <option value="ignore">Ignorer</option>
+            <option value="screen">Écrantage</option>
+            <option value="attenuate">Atténuation</option>
+          </select>
+        </label>
+        <label>
           <input
             type="checkbox"
             checked={project.settings.consider_terrain}
@@ -386,18 +485,109 @@ export function SettingsPage() {
           />{" "}
           Utiliser le relief
         </label>
+        <label>
+          Interpolation du terrain
+          <select
+            value={project.settings.terrain_interpolation ?? "delaunay"}
+            onChange={(e) =>
+              settings({
+                terrain_interpolation: e.target.value as "original" | "delaunay",
+              })
+            }
+          >
+            <option value="delaunay">Delaunay</option>
+            <option value="original">Original (linéaire)</option>
+          </select>
+        </label>
+        <label>
+          Jeu de limites actif
+          <select
+            value={project.settings.selected_limit}
+            onChange={(e) =>
+              settings({ selected_limit: Number(e.target.value) })
+            }
+          >
+            {project.limits.map((l, i) => (
+              <option key={l.id} value={i}>
+                {l.name || `Limites ${i + 1}`}
+              </option>
+            ))}
+          </select>
+        </label>
       </fieldset>
       <fieldset>
-        <legend>Fichiers et raccourcis</legend>
-        <p>Ouvrir : .xemf d’origine, .emfp ou JSON du clone.</p>
-        <p>Enregistrer : .emfp (format JSON du clone).</p>
-        <p>
-          Ctrl+O : ouvrir · Ctrl+S : enregistrer · Ctrl+Z / Ctrl+Y : annuler /
-          rétablir · Échap : abandonner le dessin.
-        </p>
-        <p>
-          Une copie de travail est conservée localement dans cette application.
-        </p>
+        <legend>Contours</legend>
+        <NumberField
+          label="Épaisseur des contours, px"
+          value={project.settings.contour_width ?? 2}
+          min={0.5}
+          max={10}
+          onChange={(v) => settings({ contour_width: v })}
+        />
+        <NumberField
+          label="Opacité des contours, %"
+          value={(project.settings.contour_opacity ?? 1) * 100}
+          min={10}
+          max={100}
+          onChange={(v) => settings({ contour_opacity: v / 100 })}
+        />
+      </fieldset>
+      <fieldset>
+        <legend>Coordonnées</legend>
+        <label>
+          Format des coordonnées
+          <select
+            value={project.settings.coordinate_format ?? "decimal"}
+            onChange={(e) =>
+              settings({
+                coordinate_format: e.target.value as "decimal" | "dms" | "dm",
+              })
+            }
+          >
+            <option value="decimal">Degrés décimaux (DD)</option>
+            <option value="dms">Degrés / minutes / secondes (DMS)</option>
+            <option value="dm">Degrés / minutes (DM)</option>
+          </select>
+        </label>
+      </fieldset>
+      <fieldset>
+        <legend>Propriétaires</legend>
+        <p className="hint">Liste des propriétaires de sites, utilisée dans les sources.</p>
+        {(project.owner_names ?? []).map((name, i) => (
+          <label key={i}>
+            <input
+              value={name}
+              onChange={(e) =>
+                commit((p) => ({
+                  ...p,
+                  owner_names: (p.owner_names ?? []).map((n, j) =>
+                    j === i ? e.target.value : n,
+                  ),
+                }))
+              }
+            />
+            <button
+              onClick={() =>
+                commit((p) => ({
+                  ...p,
+                  owner_names: (p.owner_names ?? []).filter((_, j) => j !== i),
+                }))
+              }
+            >
+              ×
+            </button>
+          </label>
+        ))}
+        <button
+          onClick={() =>
+            commit((p) => ({
+              ...p,
+              owner_names: [...(p.owner_names ?? []), ""],
+            }))
+          }
+        >
+          + Ajouter un propriétaire
+        </button>
       </fieldset>
       <fieldset>
         <legend>Affichage</legend>
@@ -412,6 +602,15 @@ export function SettingsPage() {
             ))}
           </select>
         </label>
+      </fieldset>
+      <fieldset>
+        <legend>Fichiers et raccourcis</legend>
+        <p>Ouvrir : .xemf d’origine, .emfp ou JSON du clone.</p>
+        <p>Enregistrer : .emfp (format JSON du clone).</p>
+        <p>
+          Ctrl+O : ouvrir · Ctrl+S : enregistrer · Ctrl+Z / Ctrl+Y : annuler /
+          rétablir · Échap : abandonner le dessin.
+        </p>
       </fieldset>
     </div>
   );

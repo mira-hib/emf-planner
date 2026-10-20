@@ -519,3 +519,209 @@ export function importDxf(
     );
   return { ...project, buildings, lines: drawing };
 }
+
+export async function exportCutReport(
+  project: PlannerProject,
+  kind: "horizontal" | "vertical",
+  cutResults: { id: string; cut_id?: string; grid: import("../types").FieldGrid; contours: Contour }[],
+) {
+  const { jsPDF } = await import("jspdf");
+  await import("jspdf-autotable");
+  const doc = new jsPDF({ orientation: "landscape" }) as InstanceType<typeof jsPDF> & { autoTable: Function };
+  doc.setFontSize(14);
+  doc.text(`Rapport des coupes ${kind === "horizontal" ? "horizontales" : "verticales"} — ${project.name}`, 14, 15);
+  doc.setFontSize(10);
+  doc.text(`Limites : ${project.limits[project.settings.selected_limit]?.name ?? "—"}`, 14, 22);
+
+  if (kind === "horizontal") {
+    const cuts = project.horizontal_cuts.filter((c) => c.active);
+    const headers = ["Hauteur, m", "Contour", "E max, V/m", "Ratio max", "Points"];
+    const rows = cuts.map((cut) => {
+      const results = cutResults.filter(
+        (r) => r.grid.height_m === cut.height_m,
+      );
+      const maxField = Math.max(0, ...results.map((r) => Math.max(...r.grid.fields)));
+      const maxRatio = Math.max(0, ...results.map((r) => Math.max(...r.grid.values)));
+      const segs = results.reduce((n, r) => n + r.contours.segments.length, 0);
+      return [
+        cut.height_m.toFixed(1),
+        segs > 0 ? "Oui" : "Non",
+        maxField.toFixed(4),
+        maxRatio.toFixed(6),
+        String(results.reduce((n, r) => n + r.grid.width * r.grid.height, 0)),
+      ];
+    });
+    doc.autoTable({ head: [headers], body: rows, startY: 28 });
+  } else {
+    const cuts = project.vertical_cuts.filter((c) => c.active);
+    const headers = ["Azimut, °", "Avant, m", "Arrière, m", "Hmax, m", "E max, V/m", "Ratio max"];
+    const rows = cuts.map((cut) => {
+      const results = cutResults.filter((r) => r.cut_id === cut.id);
+      const maxField = Math.max(0, ...results.map((r) => Math.max(...r.grid.fields)));
+      const maxRatio = Math.max(0, ...results.map((r) => Math.max(...r.grid.values)));
+      return [
+        cut.azimuth_deg.toFixed(1),
+        cut.forward_m.toFixed(0),
+        cut.backward_m.toFixed(0),
+        cut.max_height_m.toFixed(0),
+        maxField.toFixed(4),
+        maxRatio.toFixed(6),
+      ];
+    });
+    doc.autoTable({ head: [headers], body: rows, startY: 28 });
+  }
+  const bytes = doc.output("arraybuffer");
+  await saveBytes(
+    `${project.name}_coupes_${kind}.pdf`,
+    new Uint8Array(bytes),
+    "application/pdf",
+  );
+}
+
+export const STANDARD_ALIASES: Record<string, string> = {
+  PROJET: "Nom du projet",
+  DESCRIPTION: "Description du projet",
+  DATE: "Date du rapport",
+  AUTEUR: "Auteur du rapport",
+  LIMITES: "Jeu de limites sélectionné",
+  NB_SOURCES: "Nombre de sources",
+  NB_POINTS: "Nombre de points de contrôle",
+  RAYON: "Rayon de la zone de calcul, m",
+  PAS: "Pas de la grille, m",
+  REFLEXION: "Coefficient de réflexion",
+  NB_BATIMENTS: "Nombre de bâtiments",
+  NB_COUPES_H: "Nombre de coupes horizontales",
+  NB_COUPES_V: "Nombre de coupes verticales",
+  CONFORME: "Conformité globale (Oui/Non)",
+};
+
+export function resolveAliases(
+  project: PlannerProject,
+  template: string,
+): string {
+  const limit = project.limits[project.settings.selected_limit];
+  const pts = calculatePoints(project);
+  const values: Record<string, string> = {
+    PROJET: project.name,
+    DESCRIPTION: project.description,
+    DATE: new Date().toLocaleDateString("fr-FR"),
+    AUTEUR: "",
+    LIMITES: limit?.name ?? "",
+    NB_SOURCES: String(project.sources.length),
+    NB_POINTS: String(project.control_points.length),
+    RAYON: String(project.settings.radius_m),
+    PAS: String(project.settings.grid_step_m),
+    REFLEXION: String(project.settings.reflection),
+    NB_BATIMENTS: String(project.buildings.length),
+    NB_COUPES_H: String(project.horizontal_cuts.length),
+    NB_COUPES_V: String(project.vertical_cuts.length),
+    CONFORME: pts.every((p) => p.exposure_ratio <= 1) ? "Oui" : "Non",
+    ...(project.settings.report_aliases ?? {}),
+  };
+  return template.replace(/\{(\w+)\}/g, (m, key) => values[key] ?? m);
+}
+
+/** Process a .docx template by replacing alias placeholders and inserting tables/charts. */
+export async function processWordTemplate(
+  project: PlannerProject,
+  _templateBytes: Uint8Array,
+): Promise<boolean> {
+  const {
+    Document,
+    Packer,
+    Paragraph,
+    Table,
+    TableRow,
+    TableCell,
+    TextRun,
+    WidthType,
+  } = await import("docx");
+
+  const limit = project.limits[project.settings.selected_limit];
+  const pts = calculatePoints(project);
+  const aliases: Record<string, string> = {
+    PROJECT_NAME: project.name,
+    PROJECT_DESCRIPTION: project.description,
+    DATE: new Date().toLocaleDateString("fr-FR"),
+    AUTHOR: (project.owner_names ?? [])[0] ?? "",
+    SOURCES_COUNT: String(project.sources.length),
+    LIMIT_NAME: limit?.name ?? "",
+    RADIUS_M: String(project.settings.radius_m),
+    GRID_STEP: String(project.settings.grid_step_m),
+    ORIGIN_LAT: project.origin[0].toFixed(6),
+    ORIGIN_LNG: project.origin[1].toFixed(6),
+    BUILDINGS_COUNT: String(project.buildings.length),
+    POINTS_COUNT: String(project.control_points.length),
+    TERRAIN_COUNT: String(project.terrain_points.length),
+    CUTS_COUNT: String(project.vertical_cuts.length),
+    ...(project.settings.report_aliases ?? {}),
+  };
+
+  const data = [
+    resultHeaders,
+    ...resultRows(pts).map((r) =>
+      r.map((v) => (typeof v === "number" ? v.toFixed(6) : v)),
+    ),
+  ];
+  const makeTable = (rows: (string | number)[][]) =>
+    new Table({
+      width: { size: 100, type: WidthType.PERCENTAGE },
+      rows: rows.map(
+        (row, i) =>
+          new TableRow({
+            children: row.map(
+              (v) =>
+                new TableCell({
+                  children: [
+                    new Paragraph({
+                      children: [
+                        new TextRun({
+                          text: String(v),
+                          bold: i === 0,
+                          size: 16,
+                        }),
+                      ],
+                    }),
+                  ],
+                }),
+            ),
+          }),
+      ),
+    });
+  const doc = new Document({
+    sections: [
+      {
+        properties: { page: { size: { orientation: "landscape" } } },
+        children: [
+          new Paragraph({
+            children: [
+              new TextRun({ text: aliases.PROJECT_NAME, bold: true, size: 30 }),
+            ],
+          }),
+          new Paragraph(aliases.PROJECT_DESCRIPTION),
+          new Paragraph(`Date : ${aliases.DATE}`),
+          new Paragraph(`Auteur : ${aliases.AUTHOR}`),
+          new Paragraph(`Jeu de limites : ${aliases.LIMIT_NAME}`),
+          new Paragraph({ text: "Sources rayonnantes", heading: "Heading2" }),
+          makeTable([
+            ["Source", "MHz", "Puissance TX, W", "Gain, dBi", "Hauteur, m"],
+            ...project.sources.map((s) => [
+              s.name,
+              s.frequency_mhz,
+              s.power_w,
+              s.gain_dbi,
+              s.height_m,
+            ]),
+          ]),
+          new Paragraph({ text: "Calculs aux points", heading: "Heading2" }),
+          makeTable(data),
+        ],
+      },
+    ],
+  });
+  return saveBytes(
+    `${project.name}_rapport.docx`,
+    new Uint8Array(await Packer.toArrayBuffer(doc)),
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  );
+}

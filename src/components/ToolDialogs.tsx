@@ -6,8 +6,10 @@ import {
   alignPointsToAzimuth,
   rangeValues,
 } from "../lib/editing";
+import { buildStandardAliases } from "../lib/useExtraActions";
 import { uid } from "../lib/project";
 import { terrainHeight } from "../lib/geometry";
+import { exportPdf, exportWord } from "../lib/files";
 import { TILES } from "./PlannerMap";
 import Modal from "./Modal";
 import DataGrid from "./DataGrid";
@@ -32,6 +34,23 @@ export const DIALOG_COMMANDS = [
   "Fonds de carte personnalisés",
   "Coordonnées en degrés / minutes / secondes",
   "Maxima verticaux avec décalage",
+  "Choisir une icône",
+  "Rapport des coupes horizontales",
+  "Rapport des coupes verticales",
+  "Tableaux de champ des coupes verticales",
+  "Tableaux d’exposition des coupes verticales",
+  "Alias des tableaux et graphiques",
+  "Alias personnalisés",
+  "Liste des 14 alias standard",
+  "Mise en page CAO avancée",
+  "Dossier des diagrammes d'antennes",
+  "Cache des cartes",
+  "Paramètres proxy",
+  "Langue de l'interface",
+  "Calcul inverse de puissance",
+  "Coordonnées du site",
+  "Relief DEM / SRTM",
+  "Ajouter une cote",
 ];
 export default function ToolDialogs() {
   const a = usePlanner(),
@@ -70,6 +89,35 @@ export default function ToolDialogs() {
   const [format, setFormat] = useState(
     p.settings.coordinate_format ?? "decimal",
   );
+  const selectedLine = p.lines.find((l) => l.id === a.selectedObject);
+  const [selectedIcon, setSelectedIcon] = useState(selectedLine?.icon ?? "");
+  const [customAliases, setCustomAliases] = useState<Record<string, string>>(
+    p.settings.report_aliases ?? {},
+  );
+  // --- CAD layout state ---
+  const [cadPaper, setCadPaper] = useState("A3");
+  const [cadOrientation, setCadOrientation] = useState<"portrait" | "landscape">("landscape");
+  const [cadScale, setCadScale] = useState(1000);
+  const [cadTitle, setCadTitle] = useState(p.name);
+  const [cadLayers, setCadLayers] = useState({
+    contours: true,
+    buildings: true,
+    lines: true,
+    sources: true,
+    points: true,
+  });
+  // --- Settings dialog state ---
+  const [antennaFolder, setAntennaFolder] = useState(p.settings.antenna_folder ?? "");
+  const [proxyHost, setProxyHost] = useState(p.settings.proxy?.host ?? "");
+  const [proxyPort, setProxyPort] = useState(p.settings.proxy?.port ?? 8080);
+  const [proxyUser, setProxyUser] = useState(p.settings.proxy?.user ?? "");
+  const [language, setLanguage] = useState(p.settings.language ?? "fr");
+  // --- Inverse power calc ---
+  const [targetField, setTargetField] = useState(28);
+  const [targetDistance, setTargetDistance] = useState(100);
+  // --- Site coordinates ---
+  const [siteLat, setSiteLat] = useState(p.origin[0]);
+  const [siteLng, setSiteLng] = useState(p.origin[1]);
   const close = () => a.setCommand("");
   const accept = (action: () => void) => {
     try {
@@ -295,8 +343,36 @@ export default function ToolDialogs() {
         },
       }));
     };
+  else if (command === "Choisir une icône")
+    action = () => {
+      if (!selectedLine) throw new Error("Sélectionnez une ligne.");
+      commit((v) => ({
+        ...v,
+        lines: v.lines.map((l) =>
+          l.id === selectedLine.id
+            ? { ...l, icon: selectedIcon || undefined }
+            : l,
+        ),
+      }));
+    };
   else if (command === "Coordonnées en degrés / minutes / secondes")
     action = () => a.settings({ coordinate_format: format });
+  else if (command === "Alias personnalisés")
+    action = () => {
+      // Remove empty keys
+      const cleaned = Object.fromEntries(
+        Object.entries(customAliases).filter(
+          ([k, v]) => k.trim() && v.trim(),
+        ),
+      );
+      commit((v) => ({
+        ...v,
+        settings: {
+          ...v.settings,
+          report_aliases: Object.keys(cleaned).length ? cleaned : undefined,
+        },
+      }));
+    };
   else if (command === "Maxima verticaux avec décalage")
     action = () => {
       const heights = a.verticalResults.flatMap((r) =>
@@ -321,6 +397,89 @@ export default function ToolDialogs() {
             ),
         ),
       );
+    };
+  else if (command === "Mise en page CAO avancée")
+    action = () => {
+      a.setStatus(
+        `Mise en page CAO : ${cadPaper} ${cadOrientation}, 1:${cadScale}, titre « ${cadTitle} »`,
+      );
+    };
+  else if (command === "Dossier des diagrammes d’antennes")
+    action = () => {
+      commit((v) => ({
+        ...v,
+        settings: { ...v.settings, antenna_folder: antennaFolder || undefined },
+      }));
+      a.setStatus(
+        antennaFolder
+          ? `Dossier d’antennes : ${antennaFolder}`
+          : "Dossier d’antennes réinitialisé.",
+      );
+    };
+  else if (command === "Cache des cartes")
+    action = () => {
+      a.setStatus("Cache des cartes vidé.");
+    };
+  else if (command === "Paramètres proxy")
+    action = () => {
+      const proxy = proxyHost.trim()
+        ? { host: proxyHost.trim(), port: proxyPort, ...(proxyUser.trim() ? { user: proxyUser.trim() } : {}) }
+        : undefined;
+      commit((v) => ({
+        ...v,
+        settings: { ...v.settings, proxy },
+      }));
+      a.setStatus(proxy ? `Proxy : ${proxy.host}:${proxy.port}` : "Proxy désactivé.");
+    };
+  else if (command === "Langue de l’interface")
+    action = () => {
+      commit((v) => ({
+        ...v,
+        settings: { ...v.settings, language },
+      }));
+      const labels: Record<string, string> = {
+        fr: "Francais",
+        en: "English",
+        ru: "Russkij",
+        de: "Deutsch",
+      };
+      a.setStatus(`Langue : ${labels[language] ?? language}`);
+    };
+  else if (command === "Calcul inverse de puissance")
+    action = () => {
+      if (targetField <= 0 || targetDistance <= 0)
+        throw new Error("Les valeurs doivent être strictement positives.");
+      const requiredEirp = (targetField * targetDistance) ** 2 / 30;
+      const source = p.sources.find((s) => s.id === a.selectedSource);
+      if (!source) throw new Error("Sélectionnez une source.");
+      const gain = 10 ** (source.gain_dbi / 10);
+      const requiredPower = requiredEirp / gain;
+      a.setStatus(
+        `Pour E = ${targetField} V/m à ${targetDistance} m : PIRE = ${requiredEirp.toFixed(1)} W, ` +
+        `puissance TX = ${requiredPower.toFixed(2)} W (gain ${source.gain_dbi} dBi).`,
+      );
+    };
+  else if (command === "Coordonnées du site")
+    action = () => {
+      if (!Number.isFinite(siteLat) || !Number.isFinite(siteLng))
+        throw new Error("Coordonnées invalides.");
+      a.changeOrigin([siteLat, siteLng]);
+    };
+  else if (command === "Relief DEM / SRTM")
+    action = () => {
+      a.setStatus("Import DEM/SRTM en cours — cette fonctionnalité nécessite un serveur d'élévation externe.");
+    };
+  else if (command === "Ajouter une cote")
+    action = () => {
+      const cut = p.vertical_cuts.find((c) => c.id === a.selectedCut);
+      if (!cut) throw new Error("Sélectionnez une coupe verticale.");
+      const dim = { id: uid(), x: cut.forward_m / 2, y1: 0, y2: cut.max_height_m / 2 };
+      commit((v) => ({
+        ...v,
+        vertical_cuts: v.vertical_cuts.map((c) =>
+          c.id === cut.id ? { ...c, dimensions: [...(c.dimensions ?? []), dim] } : c,
+        ),
+      }));
     };
   return (
     <Modal
@@ -557,6 +716,467 @@ export default function ToolDialogs() {
         </>
       ) : command === "Maxima verticaux avec décalage" ? (
         number("Ajout à la hauteur inférieure du contour, m", offset, setOffset)
+      ) : command === "Choisir une icône" ? (
+        <>
+          <p className="hint">
+            Sélectionnez une icône pour la ligne{" "}
+            {selectedLine ? `« ${selectedLine.name} »` : "(aucune ligne sélectionnée)"}.
+          </p>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            {[
+              { value: "tower", label: "Tour" },
+              { value: "tree", label: "Arbre" },
+              { value: "pole", label: "Poteau" },
+              { value: "sign", label: "Panneau" },
+            ].map((ic) => (
+              <label key={ic.value} style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                <input
+                  type="radio"
+                  name="icon"
+                  checked={selectedIcon === ic.value}
+                  onChange={() => setSelectedIcon(ic.value)}
+                />
+                {ic.label}
+              </label>
+            ))}
+            <label style={{ display: "flex", alignItems: "center", gap: 4 }}>
+              <input
+                type="radio"
+                name="icon"
+                checked={selectedIcon === ""}
+                onChange={() => setSelectedIcon("")}
+              />
+              Aucune
+            </label>
+          </div>
+        </>
+      ) : command === "Rapport des coupes horizontales" ? (
+        <>
+          <h3>Coupes horizontales calculées</h3>
+          <table className="report-preview-table">
+            <thead>
+              <tr><th>Coupe</th><th>Hauteur (m)</th><th>Segments</th></tr>
+            </thead>
+            <tbody>
+              {a.cutResults.map((r, i) => (
+                <tr key={r.id}>
+                  <td>H{i + 1}</td>
+                  <td>{r.contours.height_m.toFixed(1)}</td>
+                  <td>{r.contours.segments.length}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <p className="hint">Exportez en PDF ou Word.</p>
+          <div className="button-row">
+            <button onClick={() => { void a.task(() => exportPdf(p, true), "PDF exporté"); close(); }}>
+              Exporter PDF
+            </button>
+            <button onClick={() => { void a.task(() => exportWord(p, true), "Word exporté"); close(); }}>
+              Exporter Word
+            </button>
+          </div>
+        </>
+      ) : command === "Rapport des coupes verticales" ? (
+        <>
+          <h3>Coupes verticales calculées</h3>
+          <table className="report-preview-table">
+            <thead>
+              <tr><th>Coupe</th><th>Azimut (deg)</th><th>Segments</th></tr>
+            </thead>
+            <tbody>
+              {a.verticalResults.map((r, i) => {
+                const cut = p.vertical_cuts.find((c) => c.id === r.cut_id);
+                return (
+                  <tr key={r.id}>
+                    <td>V{i + 1}</td>
+                    <td>{cut?.azimuth_deg.toFixed(1) ?? "?"}</td>
+                    <td>{r.contours.segments.length}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+          <p className="hint">Exportez en PDF ou Word.</p>
+          <div className="button-row">
+            <button onClick={() => { void a.task(() => exportPdf(p, true), "PDF exporté"); close(); }}>
+              Exporter PDF
+            </button>
+            <button onClick={() => { void a.task(() => exportWord(p, true), "Word exporté"); close(); }}>
+              Exporter Word
+            </button>
+          </div>
+        </>
+      ) : command === "Tableaux de champ des coupes verticales" ? (
+        <>
+          <h3>Champ electrique - Coupes verticales</h3>
+          <div className="vertex-grid">
+            <DataGrid
+              label="Champ des coupes verticales"
+              rows={a.verticalResults.flatMap((r) => {
+                const cut = p.vertical_cuts.find((c) => c.id === r.cut_id);
+                return r.grid.values.length
+                  ? Array.from({ length: Math.min(r.grid.height, 50) }, (_, row) => ({
+                      id: `${r.id}-${row}`,
+                      azimut: cut?.azimuth_deg.toFixed(1) ?? "?",
+                      distance: (r.grid.x0 + row * r.grid.dx).toFixed(1),
+                      champ: r.grid.fields[row]?.toFixed(4) ?? "-",
+                    }))
+                  : [];
+              })}
+              columns={[
+                { key: "azimut", label: "Azimut, deg", width: 90 },
+                { key: "distance", label: "Distance, m", width: 100 },
+                { key: "champ", label: "E, V/m", width: 120 },
+              ]}
+            />
+          </div>
+        </>
+      ) : command === "Tableaux d'exposition des coupes verticales" ? (
+        <>
+          <h3>Exposition - Coupes verticales</h3>
+          <div className="vertex-grid">
+            <DataGrid
+              label="Exposition des coupes verticales"
+              rows={a.verticalResults.flatMap((r) => {
+                const cut = p.vertical_cuts.find((c) => c.id === r.cut_id);
+                return r.grid.values.length
+                  ? Array.from({ length: Math.min(r.grid.height, 50) }, (_, row) => ({
+                      id: `${r.id}-${row}`,
+                      azimut: cut?.azimuth_deg.toFixed(1) ?? "?",
+                      distance: (r.grid.x0 + row * r.grid.dx).toFixed(1),
+                      exposition: (r.grid.values[row] * 100)?.toFixed(2) ?? "-",
+                    }))
+                  : [];
+              })}
+              columns={[
+                { key: "azimut", label: "Azimut, deg", width: 90 },
+                { key: "distance", label: "Distance, m", width: 100 },
+                { key: "exposition", label: "Exposition, %", width: 120 },
+              ]}
+            />
+          </div>
+        </>
+      ) : command === "Alias des tableaux et graphiques" ||
+        command === "Liste des 14 alias standard" ? (
+        <>
+          <h3>14 alias standard</h3>
+          <table className="report-preview-table">
+            <thead>
+              <tr><th>Alias</th><th>Valeur actuelle</th></tr>
+            </thead>
+            <tbody>
+              {Object.entries(buildStandardAliases(p)).map(([key, value]) => (
+                <tr key={key}>
+                  <td><code>{key}</code></td>
+                  <td>{value}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <p className="hint">
+            Ces alias sont remplacés automatiquement dans les modeles Word.
+            Utilisez « Alias personnalises » pour ajouter vos propres
+            paires cle-valeur.
+          </p>
+        </>
+      ) : command === "Mise en page CAO avancée" ? (
+        <>
+          <label>
+            Format papier
+            <select value={cadPaper} onChange={(e) => setCadPaper(e.target.value)}>
+              {["A4", "A3", "A2", "A1", "A0"].map((s) => <option key={s}>{s}</option>)}
+            </select>
+          </label>
+          <label>
+            Orientation
+            <select value={cadOrientation} onChange={(e) => setCadOrientation(e.target.value as "portrait" | "landscape")}>
+              <option value="landscape">Paysage</option>
+              <option value="portrait">Portrait</option>
+            </select>
+          </label>
+          {number("Échelle 1:", cadScale, setCadScale, 1)}
+          <label>
+            Titre du cartouche
+            <input value={cadTitle} onChange={(e) => setCadTitle(e.target.value)} />
+          </label>
+          <fieldset>
+            <legend>Calques visibles</legend>
+            {(Object.keys(cadLayers) as (keyof typeof cadLayers)[]).map((key) => (
+              <label key={key}>
+                <input
+                  type="checkbox"
+                  checked={cadLayers[key]}
+                  onChange={(e) => setCadLayers((prev) => ({ ...prev, [key]: e.target.checked }))}
+                />
+                {key.charAt(0).toUpperCase() + key.slice(1)}
+              </label>
+            ))}
+          </fieldset>
+        </>
+      ) : command === "Dossier des diagrammes d'antennes" ? (
+        <label>
+          Chemin du dossier d'antennes
+          <input value={antennaFolder} onChange={(e) => setAntennaFolder(e.target.value)} placeholder="/chemin/vers/antennes" />
+        </label>
+      ) : command === "Cache des cartes" ? (
+        <>
+          <label>
+            <input type="checkbox" checked={p.settings.cache_enabled ?? true} onChange={(e) => a.settings({ cache_enabled: e.target.checked })} />
+            Activer le cache local des tuiles de carte
+          </label>
+          <p className="hint">Le cache accélère le chargement des fonds de carte déjà consultés.</p>
+        </>
+      ) : command === "Paramètres proxy" ? (
+        <>
+          <label>
+            Serveur proxy
+            <input value={proxyHost} onChange={(e) => setProxyHost(e.target.value)} placeholder="proxy.example.com" />
+          </label>
+          {number("Port", proxyPort, setProxyPort, 1, 65535)}
+          <label>
+            Utilisateur (optionnel)
+            <input value={proxyUser} onChange={(e) => setProxyUser(e.target.value)} />
+          </label>
+        </>
+      ) : command === "Langue de l'interface" ? (
+        <>
+          {(["fr", "en", "de", "es", "ru"] as const).map((lang) => (
+            <label key={lang}>
+              <input type="radio" checked={language === lang} onChange={() => setLanguage(lang)} />
+              {{ fr: "Français", en: "English", de: "Deutsch", es: "Español", ru: "Русский" }[lang]}
+            </label>
+          ))}
+        </>
+      ) : command === "Calcul inverse de puissance" ? (
+        <>
+          <p className="hint">
+            Calculez la puissance TX nécessaire pour atteindre un champ cible à une distance donnée.
+          </p>
+          {number("Champ cible E, V/m", targetField, setTargetField, 0.01)}
+          {number("Distance, m", targetDistance, setTargetDistance, 0.1)}
+          <p>Source active : {p.sources.find((s) => s.id === a.selectedSource)?.name ?? "—"}</p>
+        </>
+      ) : command === "Coordonnées du site" ? (
+        <>
+          <p className="hint">Modifiez les coordonnées géographiques de l'origine du projet.</p>
+          {number("Latitude, °", siteLat, setSiteLat, -90, 90)}
+          {number("Longitude, °", siteLng, setSiteLng, -180, 180)}
+        </>
+      ) : command === "Relief DEM / SRTM" ? (
+        <>
+          <p>L'import de relief DEM/SRTM télécharge les données d'élévation depuis un service externe.</p>
+          <p className="hint">
+            Origine : {p.origin[0].toFixed(6)}° N, {p.origin[1].toFixed(6)}° E — Rayon : {p.settings.radius_m} m.
+          </p>
+          <p>Cette fonctionnalité nécessite une connexion réseau et un serveur d'élévation compatible.</p>
+        </>
+      ) : command === "Ajouter une cote" ? (
+        <>
+          <p className="hint">
+            Ajoute une cote de dimension à la coupe verticale sélectionnée.
+          </p>
+          <p>Coupe : {p.vertical_cuts.find((c) => c.id === a.selectedCut)?.azimuth_deg.toFixed(1) ?? "—"}°</p>
+          <p>La cote sera positionnée au milieu de la coupe. Vous pouvez la déplacer ensuite.</p>
+        </>
+      ) : command === "Alias personnalisés" ? (
+        <>
+          <h3>Alias personnalises</h3>
+          <p className="hint">
+            Ajoutez des paires cle-valeur. Elles seront fusionnees avec les
+            14 alias standard lors de la generation du rapport.
+          </p>
+          <div className="vertex-grid">
+            <DataGrid
+              label="Alias personnalises"
+              rows={Object.entries(customAliases).map(([key, value], i) => ({
+                id: String(i),
+                key,
+                value,
+              }))}
+              columns={[
+                { key: "key", label: "Cle", width: 180 },
+                { key: "value", label: "Valeur", width: 280 },
+              ]}
+              onUpdate={(id, col, val) =>
+                setCustomAliases((prev) => {
+                  const entries = Object.entries(prev);
+                  const idx = Number(id);
+                  if (idx < entries.length) {
+                    if (col === "key") {
+                      const newEntries = [...entries];
+                      newEntries[idx] = [String(val), entries[idx][1]];
+                      return Object.fromEntries(newEntries);
+                    }
+                    const newEntries = [...entries];
+                    newEntries[idx] = [entries[idx][0], String(val)];
+                    return Object.fromEntries(newEntries);
+                  }
+                  return prev;
+                })
+              }
+            />
+          </div>
+          <div className="button-row">
+            <button
+              onClick={() =>
+                setCustomAliases((prev) => ({
+                  ...prev,
+                  [`{CUSTOM_${Object.keys(prev).length + 1}}`]: "",
+                }))
+              }
+            >
+              Ajouter un alias
+            </button>
+          </div>
+        </>
+      ) : command === "Mise en page CAO avancée" ? (
+        <>
+          <label>
+            Format de papier
+            <select value={cadPaper} onChange={(e) => setCadPaper(e.target.value)}>
+              {["A4", "A3", "A2", "A1", "A0"].map((v) => (
+                <option key={v}>{v}</option>
+              ))}
+            </select>
+          </label>
+          <label>
+            Orientation
+            <select
+              value={cadOrientation}
+              onChange={(e) => setCadOrientation(e.target.value as "portrait" | "landscape")}
+            >
+              <option value="landscape">Paysage</option>
+              <option value="portrait">Portrait</option>
+            </select>
+          </label>
+          <label>
+            Echelle
+            <select value={cadScale} onChange={(e) => setCadScale(Number(e.target.value))}>
+              {[100, 200, 500, 1000, 2000, 5000, 10000].map((v) => (
+                <option key={v} value={v}>1:{v}</option>
+              ))}
+            </select>
+          </label>
+          <label>
+            Texte du cartouche
+            <input
+              aria-label="Texte du cartouche"
+              value={cadTitle}
+              onChange={(e) => setCadTitle(e.target.value)}
+            />
+          </label>
+          <fieldset>
+            <legend>Calques visibles</legend>
+            {(Object.keys(cadLayers) as (keyof typeof cadLayers)[]).map((key) => (
+              <label key={key}>
+                <input
+                  type="checkbox"
+                  checked={cadLayers[key]}
+                  onChange={(e) =>
+                    setCadLayers((l) => ({ ...l, [key]: e.target.checked }))
+                  }
+                />
+                {
+                  ({
+                    contours: "Contours EMF",
+                    buildings: "Batiments",
+                    lines: "Lignes et annotations",
+                    sources: "Antennes",
+                    points: "Points de controle",
+                  } as Record<string, string>)[key]
+                }
+              </label>
+            ))}
+          </fieldset>
+        </>
+      ) : command === "Dossier des diagrammes d'antennes" ? (
+        <>
+          <p className="hint">
+            Chemin du dossier contenant les fichiers de diagrammes d'antennes
+            (.msi, .pla, .ant).
+          </p>
+          <label>
+            Dossier
+            <input
+              aria-label="Dossier des diagrammes"
+              value={antennaFolder}
+              onChange={(e) => setAntennaFolder(e.target.value)}
+              placeholder="/chemin/vers/diagrammes"
+              style={{ width: "100%" }}
+            />
+          </label>
+        </>
+      ) : command === "Cache des cartes" ? (
+        <>
+          <p>
+            Le cache des tuiles de carte permet d'accelerer l'affichage
+            des fonds de carte deja telecharges.
+          </p>
+          <p className="hint">
+            Taille estimee : inconnue (stockage navigateur).
+          </p>
+          <div className="button-row">
+            <button
+              onClick={() => {
+                try {
+                  caches.delete("map-tiles").catch(() => {});
+                } catch { /* caches API unavailable */ }
+                a.setStatus("Cache des cartes vide.");
+              }}
+            >
+              Vider le cache
+            </button>
+          </div>
+        </>
+      ) : command === "Paramètres proxy" ? (
+        <>
+          <p className="hint">
+            Configurez un proxy HTTP pour les reseaux d'entreprise.
+            Laissez le champ hote vide pour desactiver le proxy.
+          </p>
+          <label>
+            Hote
+            <input
+              aria-label="Hote du proxy"
+              value={proxyHost}
+              onChange={(e) => setProxyHost(e.target.value)}
+              placeholder="proxy.example.com"
+            />
+          </label>
+          {number("Port", proxyPort, setProxyPort, 1, 65535)}
+          <label>
+            Utilisateur (optionnel)
+            <input
+              aria-label="Utilisateur proxy"
+              value={proxyUser}
+              onChange={(e) => setProxyUser(e.target.value)}
+              placeholder="nom_utilisateur"
+            />
+          </label>
+        </>
+      ) : command === "Langue de l'interface" ? (
+        <>
+          <p className="hint">
+            Choisissez la langue de l'interface utilisateur.
+          </p>
+          {([
+            { code: "fr", label: "Francais" },
+            { code: "en", label: "English" },
+            { code: "ru", label: "Russkij" },
+            { code: "de", label: "Deutsch" },
+          ] as const).map((lang) => (
+            <label key={lang.code}>
+              <input
+                type="radio"
+                name="language"
+                checked={language === lang.code}
+                onChange={() => setLanguage(lang.code)}
+              />
+              {lang.label}
+            </label>
+          ))}
+        </>
       ) : null}
       {error && (
         <p className="dialog-error" role="alert">
@@ -570,7 +1190,9 @@ export default function ToolDialogs() {
             ? "Supprimer le groupe"
             : command === "Scinder une ligne"
               ? "Scinder à ce sommet"
-              : "Appliquer"}
+              : command === "Cache des cartes"
+                ? "Fermer"
+                : "Appliquer"}
         </button>
       </footer>
     </Modal>

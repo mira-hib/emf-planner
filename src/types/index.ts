@@ -82,6 +82,8 @@ export interface ProjectData {
   custom_maps?: CustomMap[];
   terrain_contours?: TerrainContour[];
   volume_options?: VolumeOptions;
+  report_aliases?: Record<string, string>;
+  word_template?: string;
 }
 
 export interface SourceContribution {
@@ -169,6 +171,7 @@ export interface DrawingLine {
   points: [number, number][];
   color: string;
   width: number;
+  icon?: string;
 }
 export interface HorizontalCut {
   id: string;
@@ -176,6 +179,12 @@ export interface HorizontalCut {
   height_m: number;
   color: string;
   line_style?: string;
+}
+export interface CutDimension {
+  id: string;
+  x: number;
+  y1: number;
+  y2: number;
 }
 export interface VerticalCut {
   id: string;
@@ -186,6 +195,7 @@ export interface VerticalCut {
   backward_m: number;
   forward_m: number;
   max_height_m: number;
+  dimensions?: CutDimension[];
 }
 export interface LimitRow {
   frequency: number;
@@ -217,6 +227,14 @@ export interface CalculationSettings {
   coordinate_format?: "decimal" | "dms" | "dm";
   contour_width?: number;
   contour_opacity?: number;
+  language?: string;
+  antenna_folder?: string;
+  cache_enabled?: boolean;
+  proxy_url?: string;
+  proxy?: { host: string; port: number; user?: string };
+  include_charts_in_word?: boolean;
+  report_aliases?: Record<string, string>;
+  word_template_name?: string;
 }
 export interface StoredAntenna {
   id: string;

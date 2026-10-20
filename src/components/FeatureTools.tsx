@@ -24,6 +24,7 @@ import { usePlanner } from "../lib/usePlanner";
 import { COLORS, uid } from "../lib/project";
 import { terrainHeight } from "../lib/geometry";
 import { useExtraActions } from "../lib/useExtraActions";
+import { chooseFile, importExcel } from "../lib/files";
 import OriginalIcon from "./OriginalIcon";
 
 // Secondary commands identified in the recovered UC_*.cs forms.
@@ -185,6 +186,18 @@ export default function FeatureTools({ section }: { section: Section }) {
   };
   const actions: Record<string, { run: () => void; enabled: boolean }> = {
     ...extraActions,
+    "Importer Excel .xlt": {
+      run: () =>
+        void a.task(async () => {
+          const file = await chooseFile(["xlsx", "xls", "xlt"]);
+          if (file) {
+            const sources = await importExcel(p, file.bytes);
+            commit((v) => ({ ...v, sources: [...v.sources, ...sources] }));
+          }
+          return file;
+        }, "Sources importées depuis Excel"),
+      enabled: true,
+    },
     "Diagramme V : −1°": {
       run: () => rotate(-1),
       enabled: !!source?.pattern_v,

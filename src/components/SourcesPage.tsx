@@ -159,7 +159,7 @@ export default function SourcesPage() {
   }
   function importXlsx() {
     void task(async () => {
-      const file = await chooseFile(["xlsx"]);
+      const file = await chooseFile(["xlsx", "xls", "xlt"]);
       if (file) {
         const sources = await importExcel(project, file.bytes);
         commit((p) => ({ ...p, sources: [...p.sources, ...sources] }));

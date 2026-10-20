@@ -25,7 +25,9 @@ export type DrawTool =
   | "label"
   | "terrain"
   | "terrain-contour"
-  | "ruler";
+  | "ruler"
+  | "calibrate-2lines"
+  | "calibrate-line-point";
 export const TILES: Record<string, { url: string; attribution: string }> = {
   "Carto clair": {
     url: "https://basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png",
