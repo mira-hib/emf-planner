@@ -37,8 +37,26 @@ export function importXemf(buffer: ArrayBuffer, name: string): PlannerProject {
         }
       : undefined;
   const provider = s(settings, "NameTileServer");
+  const areaWM = arr(settings.HorAreaCoordWM).map(obj);
+  const site = obj(settings.PRTOCoordWGS);
+  const divisions = arr(settings.MaxHorSize).map(Number);
   p.settings = {
     ...p.settings,
+    site_coordinates: [
+      n(site, "Lat", p.origin[0]),
+      n(site, "Lon", p.origin[1]),
+    ],
+    calculation_area_wm:
+      areaWM.length === 2
+        ? (areaWM.map((c) => [n(c, "Xwm"), n(c, "Ywm")]) as [
+            [number, number],
+            [number, number],
+          ])
+        : undefined,
+    horizontal_grid_divisions:
+      divisions.length === 2 ? [divisions[0], divisions[1]] : [600, 200],
+    show_calculation_area: bool(settings, "ShowHorizPlaneScale"),
+    show_origin: bool(settings, "ShowOrigin"),
     reflection: n(settings, "KoefOslabl", 1),
     consider_terrain: bool(settings, "ConsiderRelief"),
     buildings_mode:
@@ -60,7 +78,7 @@ export function importXemf(buffer: ArrayBuffer, name: string): PlannerProject {
         : "Carto clair",
     contour_width: n(settings, "LineWidthZO", 2),
     display_options: {
-      grid: bool(settings, "ShowCircles", false),
+      grid: bool(settings, "ShowHorizPlaneScale", false),
       buildings: bool(settings, "ShowAllBuildings"),
       terrain: bool(settings, "ShowRelief", false),
       lines:
@@ -291,6 +309,7 @@ export function importXemf(buffer: ArrayBuffer, name: string): PlannerProject {
       azimuth_deg: n(c, "Azimuth"),
       x: n(coord, "Xm"),
       y: n(coord, "Ym"),
+      geo_position: c.CoordWM ? geo(c.CoordWM) : undefined,
       backward_m: n(c, "L2", 100),
       forward_m: n(c, "L1", 100),
       max_height_m: n(c, "H1", 100),
@@ -307,21 +326,15 @@ export function importXemf(buffer: ArrayBuffer, name: string): PlannerProject {
     use_alpha24: arr(settings.LimitAlpha24)[i] === true,
     use_ftdc: arr(settings.LimitFtdc)[i] === true,
     use_fpr: arr(settings.LimitFpr)[i] === true,
-    rows: limitRows
-      .map((r) => {
-        const t = obj(r);
-        return {
-          frequency: n(t, "Freq"),
-          value: Number(arr(t.E)[i]),
-          exponent: Number(arr(t.A)[i]),
-        };
-      })
-      .filter((r) => r.frequency >= 0 && r.value > 0),
+    rows: limitRows.map((r) => {
+      const t = obj(r);
+      return {
+        frequency: n(t, "Freq"),
+        value: Number(arr(t.E)[i]),
+        exponent: Number(arr(t.A)[i]),
+      };
+    }),
   }));
-  if (p.limits.some((l) => !l.rows.length))
-    throw new Error(
-      "Le projet utilise un tableau de limites non pris en charge.",
-    );
   // The original rounds local coordinates of sources/control points to 0.1 m.
   const rounded = (lat: number, lng: number): [number, number] => {
     const a = (lat * Math.PI) / 180,

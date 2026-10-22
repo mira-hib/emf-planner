@@ -14,6 +14,7 @@ import { TILES } from "./PlannerMap";
 import Modal from "./Modal";
 import DataGrid from "./DataGrid";
 import type { CustomMap } from "../types";
+import { AreaSizeDialog } from "./OriginPanel";
 export const DIALOG_COMMANDS = [
   "Hauteurs par intervalle",
   "Coupes par intervalle d’angles",
@@ -49,6 +50,7 @@ export const DIALOG_COMMANDS = [
   "Langue de l’interface",
   "Calcul inverse de puissance",
   "Coordonnées du site",
+  "Dimensions de la zone de calcul",
   "Relief DEM / SRTM",
   "Ajouter une cote",
 ];
@@ -120,8 +122,12 @@ export default function ToolDialogs() {
   const [targetField, setTargetField] = useState(28);
   const [targetDistance, setTargetDistance] = useState(100);
   // --- Site coordinates ---
-  const [siteLat, setSiteLat] = useState(p.origin[0]);
-  const [siteLng, setSiteLng] = useState(p.origin[1]);
+  const [siteLat, setSiteLat] = useState(
+    p.settings.site_coordinates?.[0] ?? p.origin[0],
+  );
+  const [siteLng, setSiteLng] = useState(
+    p.settings.site_coordinates?.[1] ?? p.origin[1],
+  );
   const close = () => a.setCommand("");
   const accept = (action: () => void) => {
     try {
@@ -471,7 +477,9 @@ export default function ToolDialogs() {
     action = () => {
       if (!Number.isFinite(siteLat) || !Number.isFinite(siteLng))
         throw new Error("Coordonnées invalides.");
-      a.changeOrigin([siteLat, siteLng]);
+      if (Math.abs(siteLat) > 85 || Math.abs(siteLng) > 180)
+        throw new Error("Coordonnées hors limites.");
+      a.settings({ site_coordinates: [siteLat, siteLng] });
     };
   else if (command === "Relief DEM / SRTM")
     action = () => {
@@ -498,6 +506,8 @@ export default function ToolDialogs() {
         ),
       }));
     };
+  if (command === "Dimensions de la zone de calcul")
+    return <AreaSizeDialog close={close} />;
   return (
     <Modal
       title={command}
@@ -1083,9 +1093,10 @@ export default function ToolDialogs() {
       ) : command === "Coordonnées du site" ? (
         <>
           <p className="hint">
-            Modifiez les coordonnées géographiques de l'origine du projet.
+            Coordonnées du site destinées au rapport, indépendantes de l’origine
+            du projet.
           </p>
-          {number("Latitude, °", siteLat, setSiteLat, -90, 90)}
+          {number("Latitude, °", siteLat, setSiteLat, -85, 85)}
           {number("Longitude, °", siteLng, setSiteLng, -180, 180)}
         </>
       ) : command === "Relief DEM / SRTM" ? (

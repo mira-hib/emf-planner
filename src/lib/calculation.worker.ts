@@ -61,7 +61,12 @@ self.onmessage = (
           });
           const grid =
             kind === "horizontal"
-              ? horizontalGrid(p, (cut as { height_m: number }).height_m, step)
+              ? horizontalGrid(
+                  p,
+                  (cut as { height_m: number }).height_m,
+                  step,
+                  p.settings.horizontal_grid_divisions?.[fine ? 1 : 0],
+                )
               : verticalGrid(
                   p,
                   cut as Parameters<typeof verticalGrid>[1],

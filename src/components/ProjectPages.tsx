@@ -12,146 +12,18 @@ import {
 import { usePlanner } from "../lib/usePlanner";
 import { calculatePoints, exposureAt } from "../lib/engine";
 import { rad, terrainHeight } from "../lib/geometry";
-import { exportExcel, exportPdf, exportWord } from "../lib/files";
+import {
+  exportExcel,
+  exportPdf,
+  exportWord,
+  siteCoordinatesText,
+} from "../lib/files";
 import { mapProviders } from "./PlannerMap";
 import DataGrid from "./DataGrid";
 import { NumberField } from "./Controls";
 import { ResultTable } from "./Results";
-export function LimitsPage() {
-  const { project, commit } = usePlanner();
-  return (
-    <div className="limits-page">
-      <h1>Limites d’exposition EMF</h1>
-      <p className="muted">
-        Chaque ligne définit E = coefficient × fréquence<sup>exposant</sup>. Les
-        fréquences sont en MHz.
-      </p>
-      <div className="limits-grid">
-        {project.limits.map((limit, li) => (
-          <fieldset key={limit.id}>
-            <legend style={{ color: limit.color }}>Limites {li + 1}</legend>
-            <label>
-              Description
-              <input
-                value={limit.name}
-                onChange={(e) =>
-                  commit((p) => ({
-                    ...p,
-                    limits: p.limits.map((l, i) =>
-                      i === li ? { ...l, name: e.target.value } : l,
-                    ),
-                  }))
-                }
-              />
-            </label>
-            <label>
-              Couleur
-              <input
-                type="color"
-                value={limit.color}
-                onChange={(e) =>
-                  commit((p) => ({
-                    ...p,
-                    limits: p.limits.map((l, i) =>
-                      i === li ? { ...l, color: e.target.value } : l,
-                    ),
-                  }))
-                }
-              />
-            </label>
-            <DataGrid
-              label={`Limites ${li + 1}`}
-              rows={limit.rows.map((r, i) => ({ ...r, id: String(i) }))}
-              columns={[
-                {
-                  key: "frequency",
-                  label: "Jusqu’à, MHz",
-                  kind: "number",
-                  min: 0,
-                  width: 100,
-                },
-                {
-                  key: "value",
-                  label: "Coefficient",
-                  kind: "number",
-                  min: 0.000001,
-                  width: 85,
-                },
-                {
-                  key: "exponent",
-                  label: "Exposant",
-                  kind: "number",
-                  width: 80,
-                },
-              ]}
-              onUpdate={(id, key, value) =>
-                commit((p) => ({
-                  ...p,
-                  limits: p.limits.map((l, i) =>
-                    i === li
-                      ? {
-                          ...l,
-                          rows: l.rows.map((r, j) =>
-                            j === Number(id) ? { ...r, [key]: value } : r,
-                          ),
-                        }
-                      : l,
-                  ),
-                }))
-              }
-              onAdd={() =>
-                commit((p) => ({
-                  ...p,
-                  limits: p.limits.map((l, i) =>
-                    i === li
-                      ? {
-                          ...l,
-                          rows: [
-                            ...l.rows,
-                            { frequency: 100000, value: 28, exponent: 0 },
-                          ],
-                        }
-                      : l,
-                  ),
-                }))
-              }
-            />
-            <button
-              disabled={limit.rows.length < 2}
-              onClick={() =>
-                commit((p) => ({
-                  ...p,
-                  limits: p.limits.map((l, i) =>
-                    i === li ? { ...l, rows: l.rows.slice(0, -1) } : l,
-                  ),
-                }))
-              }
-            >
-              Retirer la dernière ligne
-            </button>
-            {(["use_alpha24", "use_ftdc", "use_fpr"] as const).map((key, i) => (
-              <label key={key}>
-                <input
-                  type="checkbox"
-                  checked={limit[key]}
-                  onChange={(e) =>
-                    commit((p) => ({
-                      ...p,
-                      limits: p.limits.map((l, j) =>
-                        j === li ? { ...l, [key]: e.target.checked } : l,
-                      ),
-                    }))
-                  }
-                />{" "}
-                Utiliser {["α24", "Ftdc", "Fpr"][i]}
-              </label>
-            ))}
-          </fieldset>
-        ))}
-      </div>
-    </div>
-  );
-}
+import { GridSettings } from "./OriginPanel";
+export { LimitsPage } from "./LimitsPage";
 export function TablesPage() {
   const { project, results, task, verticalResults } = usePlanner(),
     [height, setHeight] = useState(1.5),
@@ -401,6 +273,7 @@ export function ReportPage() {
         <h1>{project.name}</h1>
         <p>{project.description}</p>
         <p>Limites : {project.limits[project.settings.selected_limit].name}</p>
+        <p>Coordonnées du site : {siteCoordinatesText(project)}</p>
         {content === "sources" && (
           <>
             <h2>Sources rayonnantes</h2>
@@ -448,18 +321,7 @@ export function SettingsPage() {
           max={5}
           onChange={(v) => settings({ reflection: v })}
         />
-        <NumberField
-          label="Pas grille 1, m"
-          value={project.settings.grid_step_m}
-          min={0.2}
-          onChange={(v) => settings({ grid_step_m: v })}
-        />
-        <NumberField
-          label="Pas grille 2, m"
-          value={project.settings.fine_step_m}
-          min={0.2}
-          onChange={(v) => settings({ fine_step_m: v })}
-        />
+        <GridSettings />
         <NumberField
           label="Demi-largeur de la zone, m"
           value={project.settings.radius_m}

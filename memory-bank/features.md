@@ -1,6 +1,6 @@
 # Fonctionnalités — état vérifié du clone
 
-Mise à jour : 22 octobre 2026, après le premier lot de reproduction des Sources. Voir `menu-reproduction.md` pour l’ordre de reprise et les écarts encore présents dans cette rubrique.
+Mise à jour : 22 octobre 2026, après les lots essentiels Sources, EMF Limits et Origin and Grid. Voir `menu-reproduction.md` pour l’ordre de reprise et les écarts encore présents.
 
 Le précédent état « implémentation complète » était trop affirmatif : plusieurs
 commandes ouvraient une boîte ou annonçaient un succès sans réaliser la fonction.
@@ -15,7 +15,8 @@ Les commandes inachevées restent visibles et grisées. Le catalogue central est
 | Import .xemf | Sources, points, bâtiments, relief, lignes, coupes, limites ; zone rectangulaire, couleurs, réglages d’affichage et contours H/V enregistrés | Autres variantes de sérialisation et propriétés non encore mappées |
 | Antennes | MSI, bibliothèque/éditeur, enveloppes, génération symétrique, câbles ; panneau 30 dB H/V rempli, six icônes, rotation native des échantillons avec ElectUg | Catalogue fabricant complet, lecture d’un dossier d’antennes |
 | Calculs | Points, grilles H/V, quatre limites, terrain, bâtiments, volume 3D | Concordance globale non démontrée : 15 références point/hauteur sur un projet |
-| Limites | Quatre tableaux éditables ; préréglages fournis dans le dépôt | Les préréglages ne constituent pas une validation réglementaire actuelle |
+| Limites | Tableau commun F/E1/A1…E4/A4, descriptions multilignes, couleurs/facteurs, graphique logarithmique, ajout/suppression, 16 préréglages historiques exacts remplaçant les quatre jeux après confirmation ; jeux vides importés et sauvegardés | Comparaison dynamique fraîche avec l’original non réalisée ; préréglages historiques et repli technique natif ne constituent pas une validation réglementaire actuelle |
+| Origine et grille | Origine en lecture seule, déplacement à la souris/centre confirmé, PRTO de rapport indépendant et exports, quatre dimensions natives, poignées de rectangle, graduations dynamiques, grilles H1/H2 natives en divisions, règle de 50 m à deux extrémités ; emprise géographique conservée au changement d’origine | Cadre Mercator du rendu et repère sphérique natif distincts ; branches verticales encore à pas métrique ; préférences globales de l’original non importées ; détails visuels/saisie native encore à comparer |
 | Carte et dessin | Fonds Leaflet et plan local, zoom/déplacement/règle, calques, fonds personnalisés ; bâtiments, sommets, KML/OSM ; relief/triangulation ; lignes et groupes de points | Cache explicite et proxy gris ; fidélité des styles/annotations sur toutes les vues à poursuivre |
 | Relief | Points et courbes, interpolation, import local HGT | Téléchargement automatique DEM/SRTM non implémenté |
 | Coupes | Calculs H/V, intervalles, propriétés, tracés sauvegardés importés ; PDF du tableau des coupes | Rapports illustrés et Word des coupes ; les contours importés ne contiennent pas de champs numériques, un recalcul est nécessaire pour les tableaux |

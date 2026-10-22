@@ -15,6 +15,7 @@ import { rad, toGeo } from "../lib/geometry";
 import TerrainLayer from "./TerrainLayer";
 import { dashPattern } from "../lib/presentation";
 import "leaflet/dist/leaflet.css";
+import OriginMapLayer, { type OriginMapProps } from "./OriginMapLayer";
 export type DrawTool =
   | "pan"
   | "source"
@@ -65,6 +66,11 @@ export interface DisplayOptions {
   azimuths: boolean;
 }
 interface Props {
+  ruler?: OriginMapProps["ruler"];
+  onOriginMove?: OriginMapProps["onOriginMove"];
+  onRulerChange?: OriginMapProps["onRulerChange"];
+  onAreaChange?: OriginMapProps["onAreaChange"];
+  editableOriginGrid?: boolean;
   project: PlannerProject;
   contours: Contour[];
   display: DisplayOptions;
@@ -177,6 +183,16 @@ export default function PlannerMap(props: Props) {
     return [point.x, -point.y];
   };
   const units = radius / 250;
+  const originLayer = {
+    project: p,
+    grid: display.grid,
+    units,
+    editable: props.editableOriginGrid ?? false,
+    ruler: props.ruler,
+    onOriginMove: props.onOriginMove,
+    onRulerChange: props.onRulerChange,
+    onAreaChange: props.onAreaChange,
+  };
   return (
     <div className={`planner-map tool-${tool}`}>
       <div className="map-tools">
@@ -252,6 +268,7 @@ export default function PlannerMap(props: Props) {
             selected={props.selectedObject}
             onSelect={tool === "pan" ? props.onSelectObject : undefined}
           />
+          <OriginMapLayer {...originLayer} leaflet />
           {display.buildings &&
             p.buildings.map((b) => (
               <Polygon
@@ -439,7 +456,7 @@ export default function PlannerMap(props: Props) {
             y={-offset[1] - radius}
             width={radius * 2}
             height={radius * 2}
-            fill={display.grid ? "url(#plan-grid)" : "#fcfcfc"}
+            fill="#fcfcfc"
           />
           {p.background_image &&
             (() => {
@@ -665,12 +682,7 @@ export default function PlannerMap(props: Props) {
                 )}
               </g>
             ))}
-          <path
-            d={`M${-5 * units} 0H${5 * units}M0 ${-5 * units}V${5 * units}`}
-            stroke="#2a7b41"
-            strokeWidth="1"
-            vectorEffect="non-scaling-stroke"
-          />
+          <OriginMapLayer {...originLayer} />
           {draft.length > 0 && (
             <>
               <polyline

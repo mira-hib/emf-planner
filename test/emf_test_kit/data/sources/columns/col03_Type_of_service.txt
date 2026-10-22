@@ -1,0 +1,7 @@
+GSM
+UMTS
+PtP
+PtP
+LTE
+Other
+Other

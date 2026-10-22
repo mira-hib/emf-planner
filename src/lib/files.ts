@@ -4,6 +4,7 @@ import { importXemf } from "./import-xemf";
 import { calculatePoints } from "./engine";
 import { buildCadDrawing, cadDrawingDxf, type CadOptions } from "./cad";
 import { cutNumericSummary } from "./cut-report";
+import { formatCoordinate } from "./coordinates";
 import type {
   Contour,
   PlannerProject,
@@ -136,6 +137,7 @@ export async function exportExcel(
   const { default: ExcelJS } = await import("exceljs"),
     book = new ExcelJS.Workbook();
   book.creator = "EMF Planner";
+  book.subject = `Coordonnées du site : ${siteCoordinatesText(project)}`;
   const sources = book.addWorksheet("Sources");
   sources.addRow(SOURCE_COLUMNS.map((c) => c[1]));
   sources.addRow(SOURCE_COLUMNS.map((c) => c[0]));
@@ -283,6 +285,9 @@ export async function exportWord(
           }),
           new Paragraph(project.description),
           new Paragraph(
+            `Coordonnées du site : ${siteCoordinatesText(project)}`,
+          ),
+          new Paragraph(
             `Jeu de limites : ${project.limits[project.settings.selected_limit].name}`,
           ),
           ...(includeSources
@@ -321,9 +326,11 @@ export async function exportPdf(
     14,
     23,
   );
+  const site = project.settings.site_coordinates ?? project.origin;
+  pdf.text(`Site : ${site[0].toFixed(7)}; ${site[1].toFixed(7)}`, 14, 28);
   if (includeSources) {
     autoTable(pdf, {
-      startY: 30,
+      startY: 34,
       head: [["Source", "MHz", "Puissance TX, W", "Gain, dBi", "Hauteur, m"]],
       body: project.sources.map((s) => [
         s.name,
@@ -339,7 +346,7 @@ export async function exportPdf(
     pdf.text("Calculs aux points", 14, 20);
   }
   autoTable(pdf, {
-    startY: 30,
+    startY: includeSources ? 30 : 34,
     head: [resultHeaders],
     body: resultRows(calculatePoints(project)).map((r) =>
       r.map((v) => (typeof v === "number" ? v.toFixed(6) : v)),
@@ -662,9 +669,16 @@ export function resolveAliases(
     NB_COUPES_H: String(project.horizontal_cuts.length),
     NB_COUPES_V: String(project.vertical_cuts.length),
     CONFORME: pts.every((p) => p.exposure_ratio <= 1) ? "Oui" : "Non",
+    Coordinates: siteCoordinatesText(project),
     ...(project.settings.report_aliases ?? {}),
   };
   return template.replace(/\{(\w+)\}/g, (m, key) => values[key] ?? m);
+}
+
+export function siteCoordinatesText(project: PlannerProject): string {
+  const [lat, lng] = project.settings.site_coordinates ?? project.origin;
+  const format = project.settings.coordinate_format ?? "decimal";
+  return `${formatCoordinate(lat, format, true)}; ${formatCoordinate(lng, format, false)}`;
 }
 
 /** Native Word-template processing is deliberately unavailable until implemented. */

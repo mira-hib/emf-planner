@@ -1,0 +1,112 @@
+\section{Comment utiliser ce guide}
+\subsection{Principe : tester sans connaître la « bonne » réponse}
+EMF Planner calcule des champs électromagnétiques. Pour un tel logiciel, comparer deux captures d'écran ne prouve rien : il faut un \emph{oracle}, c'est-à-dire une source de vérité indépendante du logiciel. Ce guide en utilise cinq, et chaque test indique lequel s'applique.
+\begin{center}\small\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{@{}cY{3.1cm}Y{10.6cm}@{}}\toprule
+\textbf{Code} & \textbf{Oracle} & \textbf{Définition}\\\midrule
+\textbf{[M]} & Manuel & Valeur chiffrée écrite dans le manuel (capture d'écran, exemple, tableau). Le logiciel doit la reproduire.\\
+\textbf{[F]} & Formule & Valeur recalculée par script avec une formule indépendante (section~\ref{sec:formules}). Les fichiers \code{expected\_*.tsv} du kit les contiennent.\\
+\textbf{[R]} & Relation & Relation métamorphique : on modifie l'entrée d'une façon dont on connaît l'effet exact (puissance $\times4$ $\Rightarrow$ champ $\times2$). On n'a pas besoin de la valeur absolue.\\
+\textbf{[X]} & Croisement & Deux fonctions du logiciel doivent donner le même nombre (coupe verticale et point de contrôle, écran et rapport Word).\\
+\textbf{[O]} & Observation & Le manuel ne dit rien. On note ce qui se passe, sans verdict. Le résultat sert à décider ensuite si c'est un défaut ou une limite à documenter.\\\bottomrule
+\end{tabular}\end{center}
+\subsection{Priorités et statuts}
+\textbf{P1} : exactitude d'un résultat de calcul, perte ou corruption de données, plantage. \textbf{P2} : fonction importante qui ne doit pas échouer en usage normal. \textbf{P3} : confort, finition. La dernière colonne de chaque tableau est une case à cocher ; recopiez \textbf{KO} ou \textbf{N/A} à la main si besoin et ouvrez une fiche de défaut (annexe~\ref{sec:fiche}).
+
+\subsection{Déroulement d'un test}
+\begin{enumerate}
+\item Repartir d'un projet propre : \ui{New project}, ou le projet de base \code{BASE-0} (section~\ref{sec:base}).
+\item Exécuter les actions du tableau. Quand le tableau dit « Bloc \code{C-3} », ouvrir l'annexe~\ref{sec:blocs}, sélectionner le bloc dans le PDF, copier (\code{Ctrl+C}) et coller dans la cellule indiquée (\code{Ctrl+V}).
+\item Comparer au résultat attendu avec la tolérance de la section~\ref{sec:tol}.
+\item En cas d'écart : capture d'écran, sauvegarde du \code{.xemf}, version affichée dans \ui{Help}, puis fiche de défaut.
+\end{enumerate}
+\begin{alerte}Copier depuis un PDF peut remplacer des guillemets droits par des guillemets typographiques ou perdre les tabulations. Les blocs de l'annexe ont été composés pour l'éviter, mais \textbf{les fichiers du kit font foi} : si une valeur collée semble étrange, utilisez le fichier correspondant (\code{data/...}).\end{alerte}
+
+\section{Préparation}
+\subsection{Contenu du kit}
+\begin{Verbatim}[fontsize=\footnotesize,frame=single,framesep=2mm,rulecolor=\color{accent}]
+emf_test_kit/
+  guide/      EMF_Planner_Guide_de_test.pdf  et ses sources .tex
+  data/
+    limits/          limites plates (6/20/4.5/10 V/m), table ICNIRP, contrôle aux frontières
+    sources/         6+1 sources de référence (.tsv + une colonne par fichier), 1000 sources
+    units/           conversions W / mW / dBW / dBm
+    coords/          X,Y -> R, azimut ; formats lat/lon ; coordonnées à coller
+    buildings/       KML sains, cas limites, corrompus, 2000 bâtiments, scénario de blindage
+    msi/             diagrammes d'antenne sains / défectueux, enveloppe, F.699-8 attendu
+    images/          mire de calibrage (5 formats), image tournée, images pièges
+    fuzz/            chaînes de texte, nombres, bornes par champ
+    aliases/         alias personnalisés pour les rapports Word
+    control_points/  points de contrôle et valeurs attendues
+  tools/    gen_all.py  tile_server.py  msi_check.py  env_check.py
+\end{Verbatim}
+Les scripts demandent Python~3 (et Pillow pour \code{gen\_all.py} et \code{tile\_server.py}). Ils ne servent qu'à générer ou comparer des fichiers ; le logiciel testé n'en a pas besoin. \code{python3 tools/gen\_all.py} régénère tout le dossier \code{data/} à l'identique.
+
+\subsection{Environnements à couvrir}
+\begin{center}\small\renewcommand{\arraystretch}{1.15}
+\begin{tabular}{@{}lY{5.2cm}Y{7.6cm}@{}}\toprule
+\textbf{Axe} & \textbf{Valeurs} & \textbf{Pourquoi}\\\midrule
+Windows & 10 et 11, 64 bits\man{6} & Les systèmes 7/8/8.1 sont cités mais ne sont plus supportés par Microsoft ; test facultatif.\\
+Office & Word et Excel installés / absents\man{6} & Rapports, import/export Excel et CAD en dépendent.\\
+Région Windows & Français (virgule décimale) et Anglais (point) & \textbf{Risque n°1 pour vous} : KML, MSI, presse-papiers et fichiers projet peuvent mal lire \code{12,5} ou \code{12.5}. Voir \code{ROB-09}.\\
+Écran & 1920$\times$1080 à 100\,\%, 125\,\%, 150\,\% ; 1366$\times$768 & Le manuel fixe 1920$\times$1080 comme minimum\man{6}.\\
+Machine & 4\,Go / Core i3 (minimum) et 16\,Go / Core i5 (recommandé)\man{6} & Mémoire et vitesse de calcul.\\
+Réseau & Normal, hors ligne, proxy & Fonds de carte, OSM, DEM, mises à jour.\\\bottomrule
+\end{tabular}\end{center}
+Utilisez de préférence une machine virtuelle avec instantané (snapshot) avant l'installation : les essais d'essai gratuit et d'activation (\code{INS-03} à \code{INS-05}) ne sont pas réversibles autrement.
+
+\subsection{Projet de base BASE-0}\label{sec:base}
+Ce projet sert de point de départ à la plupart des tests de calcul. Il est volontairement simple : limites plates, une origine connue, aucun bâtiment, aucun terrain.
+\begin{enumerate}
+\item \ui{New project}. Dans \ui{Settings} : \ui{Reflection coefficient} $=1$, \ui{Grid N\textdegree1} $=800$, \ui{Grid N\textdegree2} $=200$, format \ui{Decimal Degree}.
+\item \ui{EMF Limits} : ligne unique du bloc \code{C-1} (limites 6 / 20 / 4,5 / 10~V/m, constantes sur toute la bande, $A=0$).
+\item \ui{Origin and Grid} : coller l'origine du bloc \code{C-2} (lat 45,485337 ; lon 9,198818, point du manuel\man{25}) ; grille $\pm100$~m.
+\item \ui{Radiating Sources} : coller les sources de référence (blocs \code{A-1} à \code{A-12}, ou \code{sources\_oracle.tsv}).
+\item \ui{Antenna Locations} : toutes les antennes à $X=0$, $Y=0$ sauf indication contraire.
+\item Enregistrer sous \code{BASE-0.xemf} (nécessite une licence : l'essai gratuit n'enregistre pas\man{6}).
+\end{enumerate}
+
+\subsection{Tolérances}\label{sec:tol}
+\begin{itemize}
+\item \textbf{Affichage} : l'écart toléré est d'une unité du dernier chiffre affiché (4 décimales pour un champ en V/m dans les tables du manuel\man{52}).
+\item \textbf{Calcul en champ lointain} : 0,5\,\% en relatif. Le logiciel applique la méthode des sources ponctuelles de l'UIT-T K.70\man{4} ; la formule de l'section~\ref{sec:formules} n'est exacte qu'au-delà de la zone de champ proche, donc ne comparez pas à moins de $2D^2/\lambda$ de l'antenne.
+\item \textbf{Contours} : deux cellules de grille (0,25~m avec une matrice de 800 sur $\pm100$~m).
+\item \textbf{Pointage à la souris} : au moins 2~px ; zoomez pour réduire l'incertitude.
+\item \textbf{Régularité} : deux calculs identiques doivent donner exactement le même résultat (tolérance $10^{-9}$ en relatif entre nombres de fils d'exécution différents).
+\end{itemize}
+
+\section{Boîte à outils : les oracles}\label{sec:formules}
+\subsection{Formules de référence}
+Notations : $P_{\mathrm{TX}}$ puissance d'un émetteur (W), $N$ nombre d'émetteurs (\ui{Number of TX}), $A$ affaiblissement total (dB), $G$ gain (dBi), $k$ coefficient de réflexion (\ui{Reflection coefficient}, 1 à 1,6\man{61}), $r$ distance 3D antenne--point (m), $f_{\mathrm{rel}}\le1$ gain relatif du diagramme dans la direction du point.
+\begin{align}
+P_{\mathrm{dBW}}&=10\log_{10}P_{\mathrm W},\qquad P_{\mathrm{dBm}}=P_{\mathrm{dBW}}+30\\
+P_{\mathrm{port}}&=N\,P_{\mathrm{TX}}\,10^{-A/10}\qquad(\times F_{\mathrm{TDC}}F_{\mathrm{PR}}\ \text{ou}\ \times\alpha_{24},\ \text{éq.\,[1]}\man{20})\\
+\mathrm{EIRP}&=P_{\mathrm{port}}\,10^{G/10}\\
+E&=k\,\frac{\sqrt{30\,\mathrm{EIRP}\,f_{\mathrm{rel}}}}{r}\ \ (\mathrm{V/m}),\qquad S=\frac{E^2}{377}\ \ (\mathrm{W/m^2})\\
+E_L(F)&=E_i\,F^{A_i}\ \text{par tranche de fréquence}\man{21},\qquad E_{\mathrm{tot}}=\sqrt{E_{\mathrm{calc}}^2+E_{\mathrm{mes}}^2}\man{52}\\
+\text{Exposition simultanée}&=100\sum_i\Big(\frac{E_i}{E_{L,i}}\Big)^2\ (\%)\man{50}\\
+L_{m}&=\frac{k\sqrt{30\,\mathrm{EIRP}}}{E_L}\ \Rightarrow\ L_m\,E_L=\text{constante}\\
+R&=\sqrt{x^2+y^2},\qquad \mathrm{az}=\operatorname{atan2}(x,y)\bmod 360^\circ\ \text{(depuis le nord, sens horaire)}
+\end{align}
+Atténuation de ligne\man{14} : $A=\dfrac{\ell_f a_f}{100}+\dfrac{\ell_j a_j}{100}+n_c a_c+A_{\mathrm{add}}$ ($a_f,a_j$ en dB/100~m, $n_c$ connecteurs).\\
+Conversion locale (tangente) : $\Delta y\approx111\,132{,}92\,\Delta\varphi$, $\;\Delta x\approx111\,412{,}84\cos\varphi\,\Delta\lambda$ (mètres, degrés).\\
+Mercator : à l'échelle $z$, une tuile de 256~px couvre $x=\lfloor(\lambda+180)/360\cdot2^z\rfloor$ ; résolution $156\,543{,}03\cos\varphi/2^z$ m/px.
+
+\subsection{Ce qui a déjà été recoupé (avant même de lancer le logiciel)}
+Les formules ci-dessus ont été confrontées aux chiffres du manuel par script. Ce sont des garanties que \emph{les oracles sont corrects}, pas que le logiciel l'est.
+\begin{center}\small\renewcommand{\arraystretch}{1.15}
+\begin{tabular}{@{}Y{4.6cm}Y{7.4cm}Y{3.9cm}@{}}\toprule
+\textbf{Élément (page)} & \textbf{Résultat du recoupement} & \textbf{Verdict}\\\midrule
+Conversion de puissance\man{13} & 12,05~W $\to$ 10,8099~dBW et 40,81~dBm ; le manuel affiche 10,8 et 40,8 & cohérent\\
+Calculateur EIRP\man{19} & $12{,}05\cdot10^{1{,}6}=479{,}72$~W (manuel : 479,7) ; $18{,}3667\cdot10^{1{,}8}=1158{,}86$~W (1158,9) & cohérent\\
+Atténuation de ligne\man{14} & $1{,}944+0{,}774+0{,}3=3{,}018$~dB (manuel : 3,018) & cohérent\\
+Continuité des limites\man{21} & $824/30=27{,}47$ vs 27,5 ; $1{,}585\sqrt{1500}=61{,}39$ vs 61,4 ; idem professionnel & continu à 0,1~\%\\
+Volumes de sécurité\man{62} & $L_{m1}$ calculé : 19,99 / 41,97 / 40,77 / 41,73~m ; manuel : 20,0 / 41,9 / 40,8 / 41,7 & cohérent à 0,2~\%\\
+Constante $L_mE_L$\man{62} & 120,0 / 252 selon la source, identique pour les 4 limites & les limites de cet exemple valent 6 / 20 / 4,5 / 10~V/m\\
+Coordonnées polaires\man{62} & 6 points sur 6 : $R$ et azimut identiques au centième & cohérent\\
+Champ total mesuré+calculé\man{52} & $\sqrt{0{,}07^2+0{,}0635^2}=0{,}0945$ (manuel : 0,0945) & cohérent\\
+Exposition simultanée\man{62} & $100(0{,}063538/6)^2=0{,}011214$ (manuel : 0,011214) & cohérent\\
+Coordonnées géographiques\man{27} & 8 antennes : l'origine déduite varie de $3\cdot10^{-6}$° ($\approx0{,}3$~m) & cohérent à l'arrondi près\\
+Densité de puissance $S$\man{70} & 11 lignes sur 11 s'expliquent par $E^2/377$ \textbf{tronqué}, pas arrondi (par ex. $1{,}071\cdot10^{-5}\to0{,}000010$) & \textbf{observation} : voir \code{DOC-10}\\\bottomrule
+\end{tabular}\end{center}
+\begin{note}\textbf{Pour la Rec.\ UIT-R F.699-8} (générateur de diagramme d'antenne parabolique\man{18}), les formules de l'annexe sont reconstituées de mémoire. Elles sont continues aux frontières de zone (vérifié numériquement), mais \textbf{relisez-les contre le texte de la Recommandation} avant de conclure à un défaut du logiciel.\end{note}

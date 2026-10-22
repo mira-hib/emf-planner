@@ -1,0 +1,41 @@
+{
+    "date_utc":  "2026-10-22T09:08:50.9200302Z",
+    "scope":  "Origin and Grid essential workflow: independent report site, native area bounds, preserved world anchors, horizontal matrix divisions and two-endpoint ruler",
+    "base_commit":  "754baaaaff2d43df43bea3fb069dec246368c800",
+    "partial_module":  true,
+    "native_build":  {
+                         "command":  "npm run tauri build -- --no-bundle --target x86_64-pc-windows-msvc",
+                         "path":  "src-tauri/target/x86_64-pc-windows-msvc/release/emf-planner.exe",
+                         "bytes":  6711808,
+                         "sha256":  "02C57E29A0E492F756EA9C61934300EDBD96046A3DC11F5EB34291EAEE4CAA5A",
+                         "launched":  true,
+                         "default_release_path_untouched":  true
+                     },
+    "validation":  {
+                       "unit_tests_passed":  81,
+                       "edge_full_suite_passed":  28,
+                       "edge_origin_scenarios_reverified_after_open_confirmation_fix":  4,
+                       "edge_runtime":  "Node 24.22.0 / Microsoft Edge",
+                       "castelfranco_imported_sources_asserted":  9,
+                       "original_point_height_references":  15,
+                       "max_absolute_field_error":  9.9455311142193636E-07,
+                       "typescript_vite_build_passed":  true,
+                       "windows_release_build_passed":  true,
+                       "fresh_original_runtime_observation":  false,
+                       "mac_runtime_verified":  false
+                   },
+    "screenshots":  [
+                        "reference/origin-grid-interface/origin-asymmetric-grid.png",
+                        "reference/origin-grid-interface/origin-rebased-castelfranco.png"
+                    ],
+    "audit":  "reference/origin-grid-native-audit-2026-10-22.md",
+    "remaining_work":  "memory-bank/menu-reproduction.md",
+    "launch_observation":  {
+                               "date":  "2026-10-22",
+                               "launcher":  "scripts/Start-EmfPlanner.ps1",
+                               "pid_observed":  35952,
+                               "window_title":  "EMF Planner — Clone",
+                               "responding_observed":  true,
+                               "verification_scope":  "Window/process presence and response only; functional scenarios validated in Edge"
+                           }
+}

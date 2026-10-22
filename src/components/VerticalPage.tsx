@@ -130,7 +130,15 @@ export default function VerticalPage() {
               commit((p) => ({
                 ...p,
                 vertical_cuts: p.vertical_cuts.map((c) =>
-                  c.id === id ? { ...c, [key]: value } : c,
+                  c.id === id
+                    ? {
+                        ...c,
+                        [key]: value,
+                        ...(key === "x" || key === "y"
+                          ? { geo_position: undefined }
+                          : {}),
+                      }
+                    : c,
                 ),
               }))
             }

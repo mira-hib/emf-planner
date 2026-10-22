@@ -1,0 +1,77 @@
+\section{Campagnes de test --- sorties, réglages, projets}
+\subsection{Report by Template, Word et Excel}
+Alias personnalisés : bloc \code{R-1} (fichier \code{aliases/custom\_aliases.tsv}). Modèle Word : créez un \code{.dot} contenant les 12 alias standard de l'annexe~1 du manuel\man{62--75} et quelques alias personnalisés.
+\begin{tests}
+\T{RPT-01}{P1}{Chemin de modèle hors d'un \textbf{emplacement approuvé} Microsoft Office, puis dans un emplacement approuvé\man{56}.}{\textbf{[M]} le modèle doit être dans un emplacement approuvé\man{56} : hors de là, message explicite (pas de blocage de Word en arrière-plan).}
+\T{RPT-02}{P2}{Modèle dans le dossier du projet avec nom seul ; chemin avec espaces, accents, \code{\#}, 200 caractères ; extension \code{.dot}, \code{.dotx}, \code{.docx}.}{Nom seul accepté\man{56}. Autres : \textbf{[O]}.}
+\T{RPT-03}{P1}{Remplir la table d'alias (bloc \code{R-1}) : texte long, guillemets, \code{\&}, \code{<}, \code{>}, point-virgule, Unicode, valeur vide, nom en double, nom avec espace, alias qui reprend le nom d'un alias standard.}{\textbf{[M]} chaque \code{\{alias\}} remplacé par son texte\man{55}. Texte inséré tel quel (pas de balise interprétée). Doublon, conflit avec alias standard, alias vide, alias non défini : \textbf{[O]}, mais jamais de document corrompu.}
+\T{RPT-04}{P2}{Alias dans en-tête, pied de page, tableau, zone de texte, répété 10 fois.}{Tous remplacés ou \textbf{[O]} liste de ceux qui ne le sont pas.}
+\T{RPT-05}{P3}{Boutons copier / coller / restaurer le jeu d'alias\man{56}.}{Copie entre projets ; « Restore » rétablit le jeu d'origine.}
+\T{RPT-06}{P1}{Générer avec chacun des 12 alias : \code{\{CardinalPointsChart\}}, \code{\{ControlPoints\_1\}}, \code{\{EMF\_Safety\_Volumes1\}}, \code{\{AntennaPatterns\}}, \code{\{HorizontalCutsA4\_1\}}, \code{\{VerticalCuts\_1\}}, \code{\{EFieldStrengthGraph\_1\}}, \code{\{SimultaneousExposureGraph\_1\}}, \code{\{RadiatingSources\_1\}}, \code{\{ControlPoints\_2\}}, \code{\{EFieldStrengthVerticalCutTables\_1\}}, \code{\{SimultaneousExposureVerticalCutTables\_1\}}.}{Chaque alias produit le tableau ou l'image décrit(e)\man{62--76}, avec format de page et orientation indiqués. \code{\{RadiatingSources\_1\}} : colonnes № à Owner, \textbf{nouvelles sources surlignées}\man{70}.}
+\T{RPT-07}{P1}{\textbf{Cohérence écran/rapport} : comparer chaque nombre du rapport (sources, points, tables) à l'écran, en région \emph{française} et \emph{anglaise}.}{\textbf{[X]} mêmes valeurs. Séparateur décimal du rapport cohérent avec la région, jamais « 0,0635 » lu comme 635.}
+\T{RPT-08}{P2}{Rapport sans calcul préalable (coupes vides), sans source, sans point.}{Message ou section vide propre, pas de plantage ni de Word figé.}
+\T{RPT-09}{P2}{Word déjà ouvert avec un document modifié ; Word en mode protégé ; Word 32 bits ; fermeture de Word pendant la génération ; 100 sources.}{Pas de perte du document de l'utilisateur ; erreur gérée ; temps raisonnable.}
+\T{RPT-10}{P3}{Rapport de tableau de sources, diagrammes d'antenne, volumes de sécurité, rose des points cardinaux (bouton Word de \ui{Radiating Sources}\man{12}).}{Quatre rapports distincts, valeurs conformes à l'écran.}
+\T{RPT-11}{P2}{Excel absent de la machine\man{6}.}{Boutons Excel : message clair, reste du logiciel utilisable.}
+\end{tests}
+
+\subsection{Settings}
+\begin{tests}
+\T{SET-01}{P1}{\ui{Reflection coefficient} : 1 ; 1,3 ; 1,6 ; 0,99 ; 1,61 ; 0 ; $-1$ ; « 1,3 » avec virgule ; texte\man{60,61}.}{$E\propto k$ (\code{MET-05}). Hors plage 1 à 1,6\man{61} : rejet attendu. La virgule ne doit pas devenir 13. \textbf{[O]} les messages.}
+\T{SET-02}{P1}{Taille de matrice (Grid N\textdegree1 et N\textdegree2) : 0, 49, 50, 800, 1000, 1001, 100\,000, texte\man{60,61}.}{\textbf{[M]} plage 50 à 1000 : 49 et 1001 refusés ou ramenés à la borne. Petite matrice = rapide et grossier, grande = précis et lent\man{61} (voir \code{VCT-08}).}
+\T{SET-03}{P2}{Dossier de cache : valide, inexistant, en lecture seule, avec accents, de 250 caractères, chemin réseau.}{Création automatique au premier lancement\man{61}. Cas invalides : message, pas de crash.}
+\T{SET-04}{P2}{Dossier des diagrammes d'antenne\man{61} : valide, vide, inexistant.}{Voir \code{SRC-33}.}
+\T{SET-05}{P2}{Proxy\man{61} : coché avec IP et port valides/invalides (0, 65536, texte, IPv6) ; authentification.}{Messages clairs, pas de gel. \textbf{[O]} sécurité : le mot de passe est-il stocké en clair dans les fichiers de configuration ?}
+\T{SET-06}{P3}{Liste des propriétaires : ajouter, supprimer, couleur\man{60,61}.}{Reprise dans la colonne \ui{Owner} ; persistante.}
+\T{SET-07}{P2}{Format des coordonnées\man{61} : changer puis relancer le logiciel.}{Choix mémorisé ; toutes les vues l'appliquent (\code{ORI-03}).}
+\T{SET-08}{P1}{Coefficient de réflexion et tailles de matrice sont des \emph{paramètres de projet}\man{60} : enregistrer un projet avec $k=1{,}3$ puis ouvrir un autre projet.}{Le $k$ du projet est restauré à la réouverture ; l'autre projet garde le sien. Un $k$ qui « fuit » d'un projet à l'autre fausse les résultats.}
+\end{tests}
+
+\subsection{Projets (\code{.xemf}), licence, installation}
+\begin{tests}
+\T{PRJ-01}{P1}{Enregistrer, fermer, rouvrir (licence requise\man{6}). Comparer toutes les tables, couleurs, calibrage, coupes, alias.}{Rien ne change. Réenregistrer sans modification : fichier fonctionnellement identique.}
+\T{PRJ-02}{P1}{Ouvrir : fichier tronqué, de 0 octet, \code{.txt} renommé, projet 7.0, chemin unicode, chemin de 250 caractères, fichier en lecture seule, disque réseau.}{Message d'erreur, jamais de plantage ni de projet ouvert à moitié. Projet 7.0 : \textbf{[O]} (les captures p.44--45 montrent encore l'ancien menu).}
+\T{PRJ-03}{P1}{Fermer avec des modifications non enregistrées ; tuer le processus pendant un calcul puis relancer.}{Invite d'enregistrement. Après arrêt brutal : \textbf{[O]} projet récupérable ?}
+\T{PRJ-04}{P2}{Ouvrir chaque projet exemple fourni\man{8}.}{Chaque projet s'ouvre et se calcule. Comparer, si disponible, aux valeurs de l'annexe 1 du manuel (\code{Lm1}, points de contrôle).}
+\T{PRJ-05}{P1}{Charge : 1000 sources + 2000 bâtiments, enregistrer et rouvrir.}{Durées et mémoire relevées ; pas de perte.}
+\T{PRJ-06}{P2}{\ui{New project} depuis un projet chargé.}{Tout est réinitialisé (diagrammes, calibrage, limites, alias).}
+\T{INS-01}{P2}{Installer sur une machine propre : choix de langue, licence, bouton \ui{Next} bloqué tant que \ui{I accept the terms} n'est pas coché\man{6}.}{Ligne dans le menu Démarrer et raccourci bureau\man{6}.}
+\T{INS-02}{P2}{Résolutions, mise à l'échelle 100/125/150\,\%, 1366$\times$768\man{6,9}.}{Fenêtre utilisable, rien de coupé ; séparateur de panneaux fonctionnel\man{9}.}
+\T{INS-03}{P2}{Essai gratuit de 7 jours\man{6}.}{Tout fonctionne \textbf{sauf} l'enregistrement du projet ; message clair à la tentative d'enregistrer.}
+\T{INS-04}{P2}{\textbf{VM jetable uniquement} : avancer l'horloge de 8 jours.}{L'essai se termine avec un message clair. N'avancez jamais l'horloge pour prolonger une licence : ne testez que le comportement d'expiration.}
+\T{INS-05}{P2}{\ui{Help} $\to$ \ui{Enter your Activation ID} : vide ; espaces ; 5 caractères ; 200 caractères ; \code{'";--} ; code valide d'un autre poste (bloc \code{S-1}).}{Refus propre à chaque cas, sans plantage ni activation partielle. \textbf{Ne tentez pas de deviner des codes.}}
+\T{INS-06}{P2}{Mise à jour\man{7} : au démarrage hors ligne, puis \ui{Help} $\to$ \ui{Check for Updates} hors ligne, puis en ligne.}{Pas de gel au démarrage hors ligne. En ligne : fenêtre avec version courante et disponible\man{7}. Installer la mise à jour logiciel fermé conserve projets, cache, liste des propriétaires, ordre des colonnes.}
+\T{INS-07}{P3}{Désinstaller puis réinstaller.}{Les \code{.xemf} de l'utilisateur ne sont pas supprimés.}
+\T{INS-08}{P3}{Numéro de version : \ui{Help}, titre de fenêtre\man{9,47}.}{7.1 partout. Couverture du manuel : « 7.1\_240610 ». Captures p.44--45, 59 : « 7.0 » (\code{DOC-02}).}
+\end{tests}
+
+\subsection{Robustesse, performance, régionalisation}
+\begin{tests}
+\T{ROB-01}{P1}{Coller chaque ligne de \code{fuzz/strings\_text.txt} (bloc \code{F-1} et fichier) dans : \ui{Radiation source name}, \ui{Sector ID}, \ui{Type of service}, \ui{Antenna model}, \ui{Owner}, texte de bâtiment, étiquette, description de limite, description de point, alias Word. Enregistrer, rouvrir, générer un rapport.}{Texte stocké tel quel (Unicode inclus). Aller-retour identique. Rapport Word intact. Pas de plantage avec 5000 caractères, caractères de direction (RTL), \code{\{SiteName\}} imbriqué, \code{\%s}, noms réservés Windows.}
+\T{ROB-02}{P1}{Pour chaque champ numérique (fréquence, puissance, nombre de TX, affaiblissement, gain, hauteur, azimut, inclinaison, coefficient, matrice, grille, hauteur de bâtiment), coller \code{fuzz/numbers\_text.txt} (bloc \code{F-2}) et les bornes de \code{fuzz/boundaries.tsv} (bloc \code{F-3}).}{Règle : valeur invalide $\Rightarrow$ rejet avec message \emph{ou} retour à la valeur précédente. \textbf{Jamais} \code{NaN}/\code{Infinity} dans un résultat, jamais de conversion silencieuse de \code{1,5} en 15, jamais de calcul avec une valeur invisible. Fréquence : bornes 0,1~MHz et 300\,000~MHz de la somme\man{50}.}
+\T{ROB-03}{P1}{Collages : 1000 lignes ; trop de colonnes, trop peu ; fins de ligne CRLF/LF ; texte dans une colonne numérique ; ligne d'en-tête collée ; guillemets.}{Aucune cellule décalée silencieusement. Refus ou collage partiel signalé.}
+\T{ROB-04}{P1}{Double clic rapide sur \ui{Calcul} ; modifier un paramètre pendant un calcul ; changer de panneau ; fermer pendant le calcul.}{Pas de blocage, pas de résultat mélangeant deux états.}
+\T{ROB-05}{P2}{Charge : 1000 sources $\times$ coupes horizontales 50 hauteurs ; 2000 bâtiments en blindage complet ; matrice 1000.}{Temps (barre d'état, par ex. « 18,184 sec.\man{9} »), mémoire (Gestionnaire des tâches), pas de plantage même à 4~Go.}
+\T{ROB-06}{P1}{\textbf{Fils d'exécution}\man{4}. Même calcul avec l'affinité processeur limitée à 1, 2, 4, 8 c\oe urs et à tous (bloc \code{W-1}). Relever le temps $T_n$.}{\textbf{[M]} le manuel annonce un calcul « 4 à 24 fois » plus rapide selon les fils\man{4}. Accélération $S_n=T_1/T_n$ à relever. Résultats identiques à $10^{-9}$ quel que soit $n$ ; si une source de variabilité apparaît, la lister.}
+\T{ROB-07}{P3}{Redimensionner les panneaux, minimiser pendant un calcul, deux écrans, molette de la souris rapide, clic sur la molette\man{9}.}{Interface stable, aucune donnée perdue.}
+\T{ROB-08}{P2}{Hors ligne complet : démarrer, charger un projet avec fond OSM, OSM/MNT, mise à jour.}{Fonctions locales intactes ; fonctions réseau échouent proprement.}
+\T{ROB-09}{P1}{\textbf{Matrice de régions} : Windows en français (virgule), puis en anglais (point). Refaire \code{SRC-13}, \code{SRC-27}, \code{BLD-03} (\code{12,5}), \code{SRC-31} (\code{comma\_decimal.msi}), \code{LIM-03}, \code{RPT-07}. Enregistrer un projet dans une région et l'ouvrir dans l'autre.}{Mêmes résultats numériques dans les deux régions. Le projet enregistré en FR s'ouvre à l'identique en EN et inversement. Aucune valeur décimale ne change d'un facteur 10 ou 100.}
+\T{ROB-10}{P2}{Fichiers d'entrée « hostiles » : MSI de 100\,000 lignes, KML de 50~Mo, image de 30\,000$\times$30\,000, XML profondément imbriqué.}{Refus ou chargement lent mais borné ; pas de plantage ni de consommation mémoire illimitée.}
+\end{tests}
+
+\subsection{Cohérence manuel $\leftrightarrow$ logiciel}
+Observations déjà relevées dans le manuel lui-même. Le but est de vérifier si elles se retrouvent dans votre installation.
+\begin{tests}
+\T{DOC-01}{P3}{Étape 3 du démarrage rapide : « Conversion Factors menu »\man{8}. Comparer au menu réel (captures p.9, 47, 57).}{Ce menu n'existe pas dans les captures 7.1 ; les facteurs sont dans \ui{Radiating Sources} (Attenuation factors\man{20}) et \ui{EMF Limits}\man{21}. Si votre version n'a pas ce menu : défaut de documentation.}
+\T{DOC-02}{P3}{Versions affichées\man{44,45,59}.}{Captures « EMF Planner 7.0 » dans un manuel 7.1 ; menus \ui{Conversion Factors} et \ui{Project Information} visibles seulement dans ces captures.}
+\T{DOC-03}{P3}{Alias \code{\{HorizontalCutsA4\_1\}} décrit deux fois (A4 portrait, p.65 ; A3 album, p.76).}{La version A3 porte le nom « A4 ». Vérifier le vrai nom d'alias dans l'aide du logiciel (bouton \code{?}).}
+\T{DOC-04}{P3}{Noms des facteurs : \ui{Rdc}/\ui{Fpr} dans l'interface\man{21}, $F_{\mathrm{TDC}}$/$F_{\mathrm{PR}}$ dans le texte\man{20}.}{Correspondance $R_{dc}\leftrightarrow F_{TDC}$ à confirmer. Le texte dit « 0,75 » en virgule dans une phrase anglaise\man{20}.}
+\T{DOC-05}{P2}{Atténuation interne des bâtiments : p.28 montre N\textdegree1 = 3~dB, N\textdegree2 = 6~dB, frontière 400~MHz ; p.52 montre 6~dB, 3~dB, 500~MHz.}{Valeurs par défaut du logiciel ? Physiquement la perte de pénétration augmente avec la fréquence : l'exemple p.52 semble inversé. Si l'interface l'accepte sans avertissement : noter.}
+\T{DOC-06}{P2}{Tailles de matrice : 800 / 200 par défaut\man{60} ; plage 50 à 1000\man{61}.}{Bornes appliquées à la saisie (\code{SET-02}).}
+\T{DOC-07}{P3}{Suppression d'un point de contrôle : clic droit\man{52} ou \code{Suppr}\man{52}.}{Laquelle fonctionne ? Le texte du manuel est ambigu.}
+\T{DOC-08}{P2}{Calcul sur plage de hauteurs et affaiblissement manuel\man{53}.}{Comportement documenté, mais surprenant : voir \code{PNT-08}. À signaler comme limite à rendre visible dans l'interface.}
+\T{DOC-09}{P2}{Cadre p.54 : volumes de sécurité N\textdegree1 à N\textdegree4 listés avec des valeurs différentes de p.62 pour le même nom de source.}{Les projets diffèrent (limites déduites : 20/6/4,5/3 ici, 6/20/4,5/10 là). Rien d'anormal si les limites diffèrent : $L\cdot E_L$ constant dans les deux cas (\code{HCT-11}).}
+\T{DOC-10}{P1}{\textbf{Arrondi ou troncature ?} Densité de puissance p.62\man{62,70} : 11 lignes sur 11 correspondent à $E^2/377$ tronqué (ex. $1{,}071\cdot10^{-5}\to0{,}000010$). Puissance au port p.11\man{11} : $15\cdot10^{-0{,}03}=13{,}9988$ affiché 13,998 ; $20\cdot10^{-0{,}037}=18{,}3667$ affiché 18,366 (tableau) mais 18,367 (calculateur).}{À reproduire. Si votre logiciel tronque : l'effet est de $10^{-6}$ en absolu, négligeable pour la conformité mais visible dans une comparaison. Si le tableau et le calculateur ne s'accordent pas, signaler l'incohérence.}
+\T{DOC-11}{P3}{Page 4 : fonds Bing cités ; page 60 : liste visible sans Bing\man{4,60}.}{Faire défiler la liste complète des fonds de carte (\code{CAL-10}).}
+\T{DOC-12}{P3}{Formats d'export CAD : « DWG/DXF »\man{4,57}.}{Les deux formats sont proposés et ouvrables (\code{HCT-12}).}
+\end{tests}

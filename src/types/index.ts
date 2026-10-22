@@ -205,6 +205,7 @@ export interface CutDimension {
   y2: number;
 }
 export interface VerticalCut {
+  geo_position?: [number, number];
   id: string;
   active: boolean;
   azimuth_deg: number;
@@ -231,6 +232,11 @@ export interface LimitSet {
   active: boolean;
 }
 export interface CalculationSettings {
+  site_coordinates?: [number, number];
+  calculation_area_wm?: [[number, number], [number, number]];
+  horizontal_grid_divisions?: [number, number];
+  show_calculation_area?: boolean;
+  show_origin?: boolean;
   reflection: number;
   radius_m: number;
   grid_step_m: number;

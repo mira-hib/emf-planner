@@ -1,0 +1,8 @@
+Radiation source name	Sector ID	Type of service	Frequency, MHz	Transmitter power, W	Number of TX	Total atten., dB	Antenna model	Antenna azimuth, deg	Antenna gain, dBi	Antenna height, m	Antenna size, m
+TS01_900_man	A	GSM	900	12.05	1	0	742265V02	60	16	29	1.9
+TS02_2100_3tx	B	UMTS	2100	10.42	3	0	742265V02	130	18.3	29	1.9
+TS03_23GHz_PtP	C	PtP	23000	0.1995	1	0	23G 0.6	125	40	27.2	0.6
+TS04_18GHz_PtP	C	PtP	18000	0.2512	1	0	18G 0.6	220	39.2	27.2	0.6
+TS05_LTE_att	A	LTE	2600	20	1	0.37	AMB4519	180	18	40	1.5
+TS06_ISO_1W	-	Other	900	1	1	0	isotropic	0	0	10	0.1
+TS07_ISO_1kW	-	Other	900	1000	1	0	isotropic	0	0	10	0.1

@@ -1,0 +1,10 @@
+{SiteName}	TEST SITE é/ü 😀
+{ProjectName}	Project <A&B> "quoted"
+{SiteAddress}	Long address Long address Long address Long address Long address Long address Long address Long address Long address Long address Long address Long address Long address Long address Long address Long address Long address Long address Long address Long address Long address Long address Long address Long address Long address Long address Long address Long address Long address Long address Long address Long address Long address Long address Long address Long address Long address Long address Long address Long address Long address Long address Long address Long address Long address Long address Long address Long address Long address Long address Long address Long address Long address Long address Long address Long address Long address Long address Long address Long address Long address Long address Long address Long address Long address Long address Long address Long address Long address Long address Long address Long address Long address Long address Long address Long address Long address Long address Long address Long address 
+{Customer}	ACME;Corp
+{Designer}	
+{Date}	2026-10-20
+{RadiatingSources_1}	collision with standard alias
+{Unused}	never used in template
+{SiteName}	duplicate name
+{ with space }	space in name

@@ -1,0 +1,83 @@
+\section{Campagnes de test --- données d'entrée}
+Chaque tableau suit l'ordre des menus du logiciel. Les blocs \code{A-x}, \code{C-x}\ldots{} sont dans l'annexe~\ref{sec:blocs}.
+
+\subsection{Radiating Sources}
+\begin{tests}
+\T{SRC-01}{P2}{Démarrer le logiciel.}{Un projet vide est créé par défaut\man{8}. Le panneau \ui{Radiating Sources} s'ouvre\man{10}.}
+\T{SRC-02}{P1}{Coller les colonnes des blocs \code{A-1} à \code{A-12} une à une, avec \code{Ctrl+V} puis avec \code{Shift+Insert}\man{15}. Essai bonus : coller \code{sources\_oracle.tsv} en une fois.}{6 lignes (7 avec \code{TS07}), valeurs strictement identiques aux fichiers. Collage complet : \textbf{[O]}, l'ordre des colonnes est modifiable par l'utilisateur\man{15}.}
+\T{SRC-03}{P2}{Décocher des lignes ; cliquer sur l'en-tête de la 1\textsuperscript{re} colonne ; utiliser le bouton d'activation globale\man{10,11}.}{Une source non cochée est ignorée dans tous les calculs\man{10}. L'en-tête bascule toutes les lignes.}
+\T{SRC-04}{P2}{Sélectionner plusieurs lignes avec \code{Ctrl}, puis une plage ; appuyer sur \code{Suppr}.}{Ligne courante = triangle noir, lignes sélectionnées = fond bleu\man{10}. \code{Suppr} supprime uniquement la sélection\man{15}.}
+\T{SRC-05}{P2}{Sélectionner 3 cellules d'une même colonne, taper \code{7}.}{Les 3 cellules valent 7\man{15}. Un clic sur l'en-tête sélectionne toute la colonne.}
+\T{SRC-06}{P1}{Déplacer des lignes (haut, bas, début, fin) puis relancer le calcul du test \code{PNT-03}.}{Contenu des lignes inchangé. \textbf{[R]} Les résultats sont strictement identiques quel que soit l'ordre.}
+\T{SRC-07}{P1}{Copier des lignes, les coller après la ligne courante ; ouvrir une 2\textsuperscript{e} instance avec une \textbf{origine décalée de 100~m vers l'est} et y coller\man{11,15}.}{Position géographique des antennes inchangée\man{15} ; leurs $X$ diminuent de $\approx100$~m et leurs $Y$ restent à $\pm0{,}5$~m près.}
+\T{SRC-08}{P3}{Colorer des lignes avec les 4 couleurs de la barre.}{Couleur persistante après enregistrement et réouverture\man{12}.}
+\T{SRC-09}{P3}{Glisser une colonne ; changer une largeur ; fermer puis relancer.}{L'ordre est mémorisé\man{15}.}
+\T{SRC-10}{P1}{Saisir \code{x} (non numérique) dans \ui{Antenna azimuth}.}{Rapport : texte « 0÷360 » ; calcul avec azimut $0^\circ$\man{16}.}
+\T{SRC-11}{P1}{Double-clic sur \ui{Transmitter power} : saisir 12,05 W, puis modifier chacun des 4 champs du convertisseur.}{12,05~W = 12050~mW = 10,8~dBW = 40,8~dBm\man{13}. Seule la valeur en W est écrite à la validation (\ui{OK}).}
+\T{SRC-12}{P2}{Même convertisseur avec le fichier \code{unit\_conversion\_cases.tsv} : 1, 0,001, 100, 0,1, $10^{-12}$, $10^6$, 0, $-5$, texte.}{Valeurs du fichier \textbf{[F]}. 0~W et valeur négative : \textbf{[O]}, mais pas de plantage ni de \code{NaN}/\code{Infinity} affiché. \textbf{Piège} : saisir 40,8~dBm donne 12,02~W (non 12,05) car la boîte n'affiche qu'une décimale.}
+\T{SRC-13}{P1}{Double-clic sur \ui{Total atten.} : feeder \code{LDF5-50A 7/8"} 50~m ; jumper \code{LDF1-50 1/4"} longueur \code{3+3} ; connecteurs 0,05~dB cochés ; supplémentaire 0, source à 900~MHz\man{14}.}{\textbf{[M]} 3,887~dB/100~m ; 1,944~dB ; 12,905~dB/100~m ; 0,774~dB ; connecteurs 0,3~dB ; total \textbf{3,018~dB}.}
+\T{SRC-14}{P2}{Variantes de \code{SRC-13} : feeder 100~m ; décocher les connecteurs ; supplémentaire 1,5 ; jumpers \code{2+3} ; longueur de feeder 0.}{\textbf{[F]} 4,961 ; 2,718 ; 4,518 ; jumper $12{,}905\cdot0{,}05=0{,}645$~dB ; 1,074~dB. Relever le nombre de connecteurs compté pour \code{3} et \code{3+3+3} (\textbf{[O]}, 0,3~dB $=6\times0{,}05$ pour \code{3+3}).}
+\T{SRC-15}{P2}{Refaire \code{SRC-13} avec la fréquence de la source à 1800, 2600, 3500~MHz.}{\textbf{[F physique]} l'affaiblissement linéique augmente avec la fréquence pour un même câble. Noter les valeurs.}
+\T{SRC-16}{P2}{Après \code{SRC-13}, simple clic sur la cellule et saisir 2.}{Écrasement autorisé\man{14}. Rouvrir le double-clic : \textbf{[O]} comportement du formulaire.}
+\T{SRC-17}{P1}{Vérifier \ui{Power at antenna port} pour (P, N, A) : (15, 1, 0,3), (15, 1, 0,37), (20, 1, 0,37), (20, 2, 0,3), (10, 1, 0,2), (1000, 1, 2,66).}{\textbf{[F]} 13,9988 ; 13,7750 ; 18,3667 ; 37,3302 ; 9,5499 ; 542,0009~W. Le manuel affiche 13,998 ; 13,774 ; 18,366 ; 9,5499 ; 542,00 pour les cas correspondants\man{11}. \textbf{[O]} Notez si votre logiciel arrondit ou tronque (\code{DOC-10}).}
+\T{SRC-18}{P1}{Calculateur EIRP : (12,05~W, 1, 0~dB, 16~dBi) puis (20~W, 1, 0,37~dB, 18~dBi).}{\textbf{[M]} port 12,05~W, EIRP 479,7~W\man{19} ; port 18,367~W, EIRP 1158,9~W\man{11}.}
+\T{SRC-19}{P2}{Calculateur : changer les unités avec le petit bouton triangle (W, dBW, mW, dBm). Fixer deux grandeurs, laisser le calculateur trouver la 3\textsuperscript{e} (puissance, affaiblissement, puissance au connecteur)\man{19}.}{Résultat identique quelle que soit l'unité. Entrée port 18,367~W + TX 20~W $\Rightarrow$ affaiblissement 0,37~dB.}
+\T{SRC-20}{P2}{\ui{Number of TX} : 0, 1, 1,5, $-1$, 1000.}{Puissance port = $N\cdot P\cdot10^{-A/10}$. 0, 1,5, négatif : \textbf{[O]}, rejet ou valeur corrigée, jamais de calcul silencieux faux.}
+\T{SRC-21}{P1}{Dans \ui{EMF Limits}, cocher \ui{$\alpha_{24}$} \emph{et} \ui{Rdc}/\ui{Fpr} pour la même limite\man{20,21}.}{\textbf{[M]} usage simultané interdit. Décocher \ui{$\alpha_{24}$} : impossible de saisir sa valeur\man{21}.}
+\T{SRC-22}{P1}{Mesurer l'effet des facteurs sur $E$ (point isotrope, \code{PNT-03}) : $F_{\mathrm{TDC}}=0{,}75$ ; $F_{\mathrm{TDC}}F_{\mathrm{PR}}=0{,}25$ ; $\alpha_{24}=0{,}25$ ; $\alpha_{24}=0$.}{\textbf{[R]} $E$ multiplié par $0{,}8660$ ; $0{,}5$ ; $0{,}5$ ; $0$.}
+\T{SRC-23}{P2}{Saisir $\alpha_{24}$ = 1,01 ; $-0{,}1$ ; texte.}{\textbf{[M]} le facteur va de 0 à 1\man{20} ; au-delà : rejet attendu. \textbf{[O]} le message.}
+\T{SRC-24}{P2}{Changer \ui{Electrical Tilt}, \ui{Antenna BW H-plane}, \ui{BW V-plane} sans toucher au reste.}{\textbf{[M]} usage rapport seulement\man{15} : les résultats de calcul ne changent pas du tout.}
+\T{SRC-25}{P1}{Source \code{sector65x7} (fichier \code{ok\_sector65x7\_17dBi.msi}), hauteur 30~m, \ui{Mechanical tilt} $-10^\circ$, coupe verticale sur son azimut.}{\textbf{[F]} le lobe touche le sol vers $30/\tan10^\circ=170$~m ($\pm15\,\%$). Avec $+10^\circ$ : aucun pic au sol à cette distance. « Vers le bas = valeur négative »\man{15}.}
+\T{SRC-26}{P3}{\ui{Owner} : liste de \ui{Settings}, puis « Specify manually »\man{15}.}{Les deux voies fonctionnent ; couleur de l'owner reprise si définie.}
+\T{SRC-27}{P1}{Bouton Excel : exporter, ré-importer sans rien changer ; refaire avec \code{sources\_stress\_1000.tsv} puis en région française (virgule décimale)\man{12}.}{Aller-retour sans aucune modification de cellule. 1000 lignes sans plantage. Décimales non corrompues (\code{0,37} $\ne$ \code{37}).}
+\T{SRC-28}{P2}{Boutons de largeur de faisceau (toutes sources / source courante)\man{11} avec \code{sector65x7}.}{\textbf{[F]} H $\approx65^\circ$, V $\approx7^\circ$ ($\pm1^\circ$ ; niveau $-3$~dB\man{11}). Isotrope : \textbf{[O]}.}
+\T{SRC-29}{P2}{Gain et nom de modèle après chargement d'un MSI\man{14}.}{Modèle = nom du fichier, gain lu dans le fichier, les deux modifiables à la main.}
+\end{tests}
+
+\subsubsection*{Diagrammes d'antenne (MSI, enveloppe, F.699-8)}
+\begin{tests}
+\T{SRC-30}{P1}{Charger \code{ok\_isotropic.msi}, \code{ok\_sector65x7\_17dBi.msi}, \code{ok\_lowercase\_keywords.msi}, \code{ok\_crlf.msi}, \code{ok\_utf8\_bom.msi}, \code{ok\_long\_unicode\_name.msi}.}{Les six se chargent. Le diagramme (H bleu, V rouge\man{16}) a la forme attendue. Mots-clés en minuscules, CRLF, BOM : \textbf{[O]} si refus, mais message explicite.}
+\T{SRC-31}{P1}{Charger chaque \code{bad\_*.msi} (11 fichiers : \code{no\_vertical}, \code{horizontal\_359/361\_lines}, \code{negative\_attenuation}, \code{nonnumeric\_value}, \code{huge\_attenuation}, \code{missing\_gain}, \code{comma\_decimal}, \code{unsorted\_duplicate\_angles}, \code{gain\_text}, \code{empty}, \code{binary}) \textbf{avec un diagramme valide déjà chargé}.}{Aucun plantage, message clair, \textbf{ancien diagramme conservé} (pas de chargement partiel). Noter pour chacun : refusé / accepté / corrigé silencieusement.}
+\T{SRC-32}{P1}{Charger \code{gain\_in\_dBd.msi} (\code{GAIN 0 dBd}). Lire le gain affiché puis l'EIRP.}{\textbf{[F]} si l'unité est prise en compte : $0+2{,}15=2{,}15$~dBi. Si le logiciel lit 0~dBi, c'est un écart de 2,15~dB (+64\,\% de puissance). \textbf{[O]} à documenter.}
+\T{SRC-33}{P2}{\ui{Select antenna pattern from the list}\man{16}~: dossier vide, inexistant, avec des \code{.zip}, avec 10\,000 fichiers.}{Premier balayage lent mais non bloquant (« dizaines de secondes »\man{16}). Aperçu et largeurs mesurées affichés\man{17}. Dossier absent : message, pas de plantage.}
+\T{SRC-34}{P2}{Boutons \ui{+} et \ui{--}\man{17} : 5 clics \ui{+} sur \code{sector65x7}, coupe verticale avant/après.}{\textbf{[R]} le maximum du lobe se déplace de $5^\circ$ vers le haut.}
+\T{SRC-35}{P1}{\ui{Envelope}\man{17,18} : dossier \code{msi/envelope/} (3 fichiers), \ui{Use antenna gain} coché puis décoché ; enregistrer le résultat en MSI.}{\textbf{[F]} \code{python3 tools/env\_check.py env.msi msi/envelope/*.msi} : écart $\le0{,}05$~dB. Gains lus : 17,0 ; 16,8 ; 16,5~dBi. Décocher une ligne l'exclut du calcul.}
+\T{SRC-36}{P1}{Générateur Rec.\ F.699-8\man{18,19} : $f=7000$, $G=31$, $D=0{,}6$ (valeurs du manuel). Enregistrer le MSI.}{\textbf{[F]} \code{python3 tools/msi\_check.py out.msi 7000 31 0.6} : écart max $\le0{,}3$~dB (0,5~dB près de $\varphi_m=4{,}9^\circ$). Valeurs-clés : 31,00 / 29,04 / 19,20 / 15,54 / 8,01 / $-1{,}46$~dBi à $0^\circ$ / $2^\circ$ / $6^\circ$ / $10^\circ$ / $20^\circ$ / $\ge48^\circ$.}
+\T{SRC-37}{P2}{Générateur avec $f=40000$, $G=50$, $D=2$ (branche $D/\lambda>100$).}{\textbf{[F]} fichier \code{f699\_expected\_40GHz\_50dBi\_2.0m.tsv} (par ex. 29,00~dBi à $1^\circ$, $-13{,}00$ au-delà de $48^\circ$).}
+\T{SRC-38}{P3}{Générateur : $f=99$, $f=86001$, $G=0$, $G=-5$, $D=0$, $D=10^6$.}{\textbf{[O]} la Recommandation couvre 100~MHz à 86~GHz. Pas de plantage ni de diagramme vide non signalé.}
+\T{SRC-39}{P3}{Exporter le MSI de la source courante\man{16} puis le recharger.}{Diagramme identique (aller-retour) ; gain conservé.}
+\end{tests}
+
+\subsection{EMF Limits}
+\begin{tests}
+\T{LIM-01}{P1}{Cliquer chacun des drapeaux (ICNIRP, UE, Belgique, Bulgarie, Chine, Croatie, Grèce, Inde, Italie, Lituanie, Pologne, Russie, Slovénie, Suisse, Royaume-Uni, États-Unis\man{21}).}{Le tableau et la description se remplissent. \textbf{[F]} pour ICNIRP général : 47,55~V/m à 900~MHz, 61,4 à 2100. Autres pays : comparer à leur texte réglementaire (\textbf{[O]}).}
+\T{LIM-02}{P1}{Coller le bloc \code{C-1} (limites plates 6, 20, 4,5, 10).}{Courbes horizontales dans le graphique\man{21} ; $E_L$ identique à toute fréquence.}
+\T{LIM-03}{P1}{Coller le bloc \code{C-3} (table ICNIRP du manuel\man{21}).}{\textbf{[M/F]} 824/30=27,47 ; 27,5 ; $1{,}585\sqrt F$ ; 61,4. Courbe continue, sans marche.}
+\T{LIM-04}{P1}{\textbf{Mesure directe de la fonction limite} : source de puissance 0~W (ou source décochée), point de contrôle, \ui{Measured E-field} $=E_L(f)$ ; \ui{Frequency for EMF limit}=$f$. Parcourir les fréquences de \code{limit\_check\_icnirp.tsv}.}{\textbf{[F]} exposition simultanée = 100\,\% (et 25\,\% pour $E_L/2$). À 30~MHz exactement : 100\,\% si la tranche est « jusqu'à 30 inclus » (27,4667), 99,8\,\% sinon (27,5). \textbf{[O]} 0,1~MHz et 300\,000~MHz sont les bornes de la somme\man{50}.}
+\T{LIM-05}{P1}{Fréquence 0 ; $-900$ ; 1\,000\,001~MHz (hors table) ; texte.}{\textbf{[O]} Pas de \code{NaN}, \code{Infinity}, ni de division par zéro non traitée dans l'écran ou le rapport.}
+\T{LIM-06}{P2}{Éditer la table : ajouter/supprimer une ligne ; fréquences non triées ; doublon ; $E<0$ ; $A$ non numérique ; coller 1000 lignes.}{Rejet ou tri signalé. Jamais de limite silencieusement fausse.}
+\T{LIM-07}{P2}{Changer les 4 couleurs ; recalculer des coupes.}{Les contours et la légende des rapports reprennent ces couleurs\man{21,65}.}
+\T{LIM-08}{P1}{Dans les coupes, décocher \ui{Limits N\textdegree3} et N\textdegree4\man{39,41}. Dans \ui{Tables and Graphs}, choisir la limite par bouton radio\man{47}.}{Seules les limites cochées sont calculées et tracées.}
+\T{LIM-09}{P1}{Facteurs d'atténuation par limite : $F=1$ pour N1 et $F=0{,}5$ pour N2, recalculer.}{\textbf{[R]} contours N2 plus petits que sans facteur ; N1 inchangés. Un facteur d'une limite n'influence pas les autres.}
+\end{tests}
+
+\subsection{Origin and Grid --- coordonnées, règle, échelle}
+\begin{tests}
+\T{ORI-01}{P2}{Définir l'origine par clic droit, par glisser, par \ui{Set origin point in the screen center}\man{25}.}{L'origine suit ; \ui{Elevation: 0\,m} par défaut.}
+\T{ORI-02}{P1}{Coller une à une les lignes du bloc \code{C-2} avec le bouton \ui{Insert origin point coordinates}\man{26}.}{Ligne 1 : lat \code{45.485337°}, lon \code{09.198818°} (zéro de tête, comme le manuel\man{25}). Lignes 91 / 181 / texte : rejet. Les autres formats : \textbf{[O]}.}
+\T{ORI-03}{P1}{Basculer \ui{Decimal Degree} / \ui{Degrees, Minutes, Seconds} / \ui{Degrees, Decimal Minutes}\man{60,61} avec le bloc \code{C-4}.}{\textbf{[F]} 45,485337$^\circ$ = 45°29'07,21'' = 45°29,1202' ; 9,198818 = 9°11'55,74'' = 9°11,9291'. Aller-retour DD$\to$DMS$\to$DD : écart $<10^{-6}$°. Hémisphères corrects pour $(-33{,}8688;\,151{,}2093)$ et $(5{,}36;\,-4{,}0083)$. $10{,}999999$ : \textbf{11°00'00,00''} attendu, jamais « 10°59'60'' ».}
+\T{ORI-04}{P1}{\textbf{Invariance à l'origine} : calculer \code{PNT-03} ; déplacer l'origine de 100~m ; recalculer.}{\textbf{[M\,R]} latitude/longitude des antennes et points \emph{inchangées}\man{25} ; $X,Y$ décalés ; résultats \emph{identiques}\man{25}.}
+\T{ORI-05}{P2}{\ui{Calculation grid dimensions}\man{26} : 100/100/100/100 ; puis 50/200/10/300 ; 0 ; $-100$ ; 0,5 ; $10^9$ ; texte.}{Quatre côtés indépendants. Limites absurdes : rejet ou plafonnement signalé. Glisser les bords à la souris donne les mêmes valeurs dans la boîte.}
+\T{ORI-06}{P2}{Boutons \ui{Site coordinate for the report}\man{25,26} : modifier l'origine puis lire les coordonnées du site.}{\textbf{[O]} le site est un champ de rapport distinct de l'origine.}
+\T{ORI-07}{P1}{Règle (\ui{Ruler}\man{10}) : placer des antennes en (0,0), (100,0), (0,100), ($-70{,}71$, $-70{,}71$) ; mesurer avec la règle de l'une à l'autre. Clic droit pour sortir.}{\textbf{[F]} 100~m et 90$^\circ$ ; 100~m et 0$^\circ$ ; 100~m et 225$^\circ$ ($\pm0{,}5$~m, $\pm0{,}5^\circ$).}
+\T{ORI-08}{P2}{Même mesure avec l'origine à latitude 0$^\circ$, 45,5$^\circ$ et 60$^\circ$.}{\textbf{[F]} les mètres affichés restent exacts malgré la projection Mercator (distance $\propto\cos\varphi$ par pixel).}
+\end{tests}
+
+\subsection{Antenna Locations}
+\begin{tests}
+\T{ANT-01}{P1}{Saisir $X,Y$ dans le tableau\man{27} : (100,0), (0,100), ($-50$,$-50$).}{Latitude/longitude mises à jour : $\Delta y=\Delta\varphi\cdot111\,132{,}92$, $\Delta x=\Delta\lambda\cdot111\,412{,}84\cos\varphi$ à 0,5\,\% près \textbf{[F]}. Valeurs du manuel cohérentes à 0,3~m\man{27}.}
+\T{ANT-02}{P2}{Glisser une antenne ; clic droit \ui{Move selected antennas} ; boutons de la barre\man{27,28}. Curseur \ui{Maximum capture distance}.}{$X,Y$ et lat/lon suivent. La distance de capture règle l'attraction pendant le glisser\man{28}.}
+\T{ANT-03}{P2}{Boutons : centrer sur l'antenne, ramener à l'origine, déplacer l'origine sur l'antenne\man{27,28}.}{Le déplacement de l'origine ne modifie ni positions géographiques ni résultats (\code{ORI-04}).}
+\T{ANT-04}{P1}{Cas extrêmes : 100 antennes au même point ; antenne exactement à l'origine ; antenne à 50~km ; deux antennes superposées avec azimuts différents.}{Pas de plantage. Le calcul de \code{PNT-13} reste fini. \textbf{[O]} temps de calcul.}
+\T{ANT-05}{P1}{\ui{Location}~: \code{Tower}, \code{Roof}, \code{Facade}\man{15}, avec terrain et bâtiments (\code{TER-04}, \code{BLD-07}).}{\code{Tower} : hauteur comptée depuis le terrain au point de la tour ; \code{Roof}/\code{Facade} : depuis l'altitude de base du bâtiment\man{15}.}
+\end{tests}

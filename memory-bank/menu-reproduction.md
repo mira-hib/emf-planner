@@ -62,3 +62,74 @@ Résultat final : **63 tests unitaires et 21 parcours Edge réussis**, compilati
 La compilation Windows utilise la cible explicite `x86_64-pc-windows-msvc` pour produire un nouvel exécutable sans remplacer celui actuellement ouvert dans `src-tauri/target/release/`. Ne pas fermer une session native contenant des modifications sans les sauvegarder. Le contrôle du bureau est indisponible dans cette session ; la validation visuelle s’appuie sur Edge et les références déjà capturées, pas sur une nouvelle manipulation de l’original.
 
 `scripts/Start-EmfPlanner.ps1` choisit le plus récent des deux exécutables release, sans fermer une application déjà ouverte.
+
+## Rubrique 2 — EMF Limits, lot essentiel intégré le 22 octobre
+
+Reprise explicitement demandée par l’utilisateur après lecture du memory bank.
+Audit statique : [commandes et preuves C#](../reference/limits-native-audit-2026-10-22.md).
+
+- Remplacement des quatre tableaux séparés par la table native à neuf colonnes : fréquence commune F, puis E/A pour chacun des quatre jeux. Descriptions multilignes, couleurs, douze cases α24/Ftdc/Fpr.
+- Ajout d’une ligne entièrement vide, suppression de la ligne choisie (sélection multiple Ctrl/Maj ajoutée au clone), Suppr, annuler/rétablir et sauvegarde/réouverture `.emfp`.
+- Bornes natives : `0 < F ≤ 1000000`, `0 < E ≤ 100000`, `-3 ≤ A ≤ 3`. Virgule décimale, conversion Single et effacement des valeurs invalides. Sentinelle `-999` conservée pour les cellules vides, y compris à l’import `.xemf`.
+- Graphique à deux axes logarithmiques, X de 10 MHz à 100 GHz, Y de 1 à 1000 V/m, quatre couleurs, segments discontinus séparés. Une cellule manquante supprime la courbe du jeu entier, comme dans l’original.
+- 16 préréglages historiques portés intégralement de `Public2.SetLimitsPRJ`, tuples et descriptions comparés automatiquement au C#. Confirmation avant remplacement des quatre jeux ; conservation des identifiants, couleurs, activité et facteurs. Particularité native Grèce : descriptions conservées.
+- Nouveaux projets alignés sur `SetLimitsAPP` : jeux Public/Occupational, jeux 3/4 vides, rouge/bleu/vert/cyan et facteurs cochés.
+- Moteur : ordre saisi conservé, intervalles `(borne précédente, F]`, pas de tri ni d’extrapolation. Table vide/incomplète ou fréquence hors domaine : repli natif PDU=1000000, E équivalent `sqrt(3.77e6)`. C’est un comportement technique historique, pas une limite réelle d’exposition. Les 15 résultats de Castelfranco sont inchangés.
+- Compatibilité des anciens `.emfp` du clone : leurs tableaux indépendants sont affichés sur une union de fréquences ; la table commune est enregistrée lors de l’édition. Aucune modification silencieuse à la simple ouverture.
+
+L’interface et les parcours sont vérifiés dans Edge, sur projet vide et Castelfranco,
+avec captures relues dans [reference/limits-interface](../reference/limits-interface/).
+Aucune nouvelle observation dynamique du logiciel original ; la fidélité repose
+sur les sources C# récupérées et les références déjà conservées. Le calcul ne
+reproduit pas encore tous les arrondis intermédiaires Single de `CalcTmp`.
+Les préréglages représentent la version historique 7.1, sans affirmation de
+conformité aux réglementations actuelles.
+
+Code : `src/components/LimitsPage.tsx`, `src/lib/limits.ts`, `src/lib/presets.ts`.
+Validation : **72 tests unitaires, 24 parcours Edge**, TypeScript/Vite et 15
+références numériques conservées. Suite UI : 23 parcours réussis sous Node 22,
+puis le parcours de rapport ExcelJS réussi sous Node portable 24.22.0 après une
+erreur de cache de module dans le runtime Node 22 (sans changement de code).
+Release Windows recompilée avec la cible `x86_64-pc-windows-msvc`, sans fermer
+la session native existante et sans lancer le nouvel exécutable. Chemin, taille
+et SHA-256 dans [limits-menu-build.json](../reference/limits-menu-build.json).
+La prochaine rubrique dans l’ordre est **Origin and Grid** ; les écarts Sources
+restent suivis séparément et ne sont pas déclarés achevés.
+
+## Rubrique 3 — Origin and Grid, lot essentiel intégré le 22 octobre
+
+Audit statique : [champs, commandes et preuves C#](../reference/origin-grid-native-audit-2026-10-22.md).
+
+- Origine latitude/longitude en lecture seule, altitude du terrain au dixième ; centrage sur l’origine et déplacement au centre de l’écran après confirmation. La poignée de l’origine se déplace aussi à la souris.
+- `settings.site_coordinates` conserve les coordonnées PRTO indépendantes pour le rapport. Édition décimale/DM/DMS, copier origine, centrer site ; déplacer l’origine laisse PRTO inchangé. L’ancien dialogue « Coordonnées du site » modifiait l’origine : il est corrigé. Aperçu, Word, PDF, sujet Excel et alias `{Coordinates}` utilisent les coordonnées du site.
+- Zone rectangulaire avec gauche/droite/haut/bas indépendants, dialogue annulable, bornes natives gauche/bas `[0,5000]`, droite/haut `[10,5000]`, marge de ±0,1 unité Web Mercator. Le rectangle est redimensionnable sur les cartes locale et Leaflet ; les bords croisés sont réordonnés au relâchement.
+- Coordonnées WM des deux coins conservées à l’import/sauvegarde et lors du changement d’origine, puis nouvelles coordonnées locales calculées. Les autres objets conservent leurs positions géographiques. Les sources, points et plans verticaux utilisent `nativeLocal` avec Single distance/azimut et arrondi 0,1 m ; les coupes gardent leur ancre géographique. Annuler/rétablir restent disponibles.
+- Grille dessinée DarkBlue dans le rectangle avec graduations dynamiques 8–13 intervalles (algorithme déjà utilisé en CAO). Correction de l’import : l’affichage de grille correspond à `ShowHorizPlaneScale`, et non à `ShowCircles`.
+- Résolution horizontale native en nombre de divisions du grand axe, de 50 à 1000 ; défauts 600/200, deuxième axe proportionnel arrondi au pair et nœuds inclusifs. Le Worker utilise effectivement les deux résolutions. Les anciens projets métriques conservent leur mode ; un sélecteur permet de choisir divisions ou pas en mètres.
+- Nouveaux projets : rectangle WM ±100 et deux grilles natives. Le lieu initial Abidjan du clone est conservé. Les préférences d’application de l’original ne sont pas importées.
+- Règle 50 m au centre, deux extrémités ajustables, distance au dixième, angle et bascule d’affichage. La mesure reste disponible pour la création d’une coupe verticale le long de la règle.
+
+Validation : **81 tests métier**, **28 parcours Edge** sous Node portable 24.22.0,
+TypeScript/Vite, 15 références originales inchangées. Le helper d’ouverture des
+nouveaux tests accepte explicitement la confirmation d’abandon et attend « Projet
+ouvert » ; deux parcours vérifient les neuf sources importées. Captures relues :
+[zone asymétrique](../reference/origin-grid-interface/origin-asymmetric-grid.png),
+[Castelfranco après déplacement d’origine](../reference/origin-grid-interface/origin-rebased-castelfranco.png).
+
+### Écarts encore suivis
+
+- Pas de nouvelle comparaison dynamique de l’écran original. Les matrices verticales, dont le natif utilise une grille carrée et des hauteurs basse/haute distinctes, restent traitées par l’ancien pas métrique du clone jusqu’à la rubrique Coupes verticales. La nouvelle résolution est explicitement libellée horizontale.
+- Le rendu de carte et les objets surfaciques restent dans le cadre Mercator à échelle locale du clone, distinct du repère sphérique natif des sources/points. La concordance générale des calculs après un déplacement arbitraire d’origine n’est pas démontrée ; seules les ancres et les conversions ciblées sont vérifiées.
+- Le parseur de coordonnées du clone accepte zéro, les suffixes d’hémisphère et la plage latitude ±85/longitude ±180. Il ne reproduit pas les particularités natives de rejet de zéro et des composantes degrés limitées à 80/179.
+- Poignées de coins au lieu des seuls bords natifs ; déplacement visuel de la poignée pendant le geste, recalcul au relâchement. La saisie géographique exacte de l’origine passe par le déplacement/centrage, comme dans le natif.
+- Les paramètres ajoutés au panneau Origine pour la résolution et la visibilité de la zone sont des commodités du clone ; leur emplacement n’est pas identique au natif (Setup pour les matrices).
+
+Code : `OriginPanel.tsx`, `OriginMapLayer.tsx`, `lib/origin-grid.ts`,
+`lib/native-coordinates.ts`. La prochaine rubrique est **Antenna Locations**.
+
+Release Windows recompilée, 6 711 808 octets ; chemin et SHA-256 dans
+[origin-grid-build.json](../reference/origin-grid-build.json). Le nouvel exécutable
+a ensuite été lancé à la demande de l’utilisateur via `Start-EmfPlanner.ps1` :
+fenêtre « EMF Planner — Clone », PID observé 35952, processus répondant.
+Aucune session native ouverte n’a été fermée par l’agent. Ce contrôle de lancement
+ne remplace pas une validation des parcours dans l’application native.

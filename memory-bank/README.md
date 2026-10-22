@@ -8,7 +8,7 @@ Base de connaissances pour le projet de reverse engineering et reproduction d'EM
 |---------|-------------|
 | `architecture.md` | Architecture du logiciel original (PE, .NET, ODA, Enigma) |
 | `features.md` | Fonctions disponibles, partielles et grisées du clone actuel |
-| `menu-reproduction.md` | **Ordre des 16 rubriques ; lot essentiel Sources intégré et écarts précis à poursuivre** |
+| `menu-reproduction.md` | **Ordre des 16 rubriques ; lots essentiels Sources, EMF Limits et Origin and Grid intégrés, écarts et validations** |
 | `castelfranco-fidelity.md` | Comparaison directe Windows de l’antenne, CAO et 3D ; corrections et limites vérifiées |
 | `interface-refinement.md` | Affinage visuel, nouveaux outils, surface EMF 3D et validation |
 | `clone-interface.md` | **Reprise du clone Windows : 16 rubriques, commandes secondaires, moteur, vérifications et lancement** |
@@ -26,6 +26,32 @@ Base de connaissances pour le projet de reverse engineering et reproduction d'EM
 | `windows-toolchain.md` | Installation Windows effective : REA, Ghidra, débogueur, outils .NET, commandes et vérifications |
 | `windows-dynamic-analysis.md` | **Résultat actuel : payload .NET récupéré, 137 fichiers C# exportés, code métier lisible** |
 | `windows-scenario-validation.md` | Calculs, coupes, CAO/3D et exports testés ; comparaison mémoire avant/après et 15 références numériques |
+
+## Reprise du 22 octobre — Origin and Grid
+
+Origine affichée en lecture seule et déplaçable, coordonnées du site indépendantes
+pour le rapport, quatre dimensions du rectangle de calcul et poignées sur la carte,
+grille graduée, deux résolutions horizontales natives en divisions et règle à deux
+extrémités. Les changements d’origine préservent les positions géographiques et les
+coins Web Mercator de la zone. **81 tests métier et 28 parcours Edge validés** ;
+voir `menu-reproduction.md` et
+[`origin-grid-native-audit-2026-10-22.md`](../reference/origin-grid-native-audit-2026-10-22.md).
+
+La release Windows a ensuite été lancée à la demande de l’utilisateur : fenêtre
+« EMF Planner — Clone » présente et processus répondant. Métadonnées dans
+[`origin-grid-build.json`](../reference/origin-grid-build.json). La prochaine
+rubrique est **Antenna Locations**.
+
+Le kit fourni dans `test/emf_test_kit/` et son archive sont conservés dans le
+dépôt ; ses scénarios ne sont pas encore exécutés ni intégrés à la suite automatisée.
+
+## Reprise précédente — EMF Limits
+
+La rubrique Limites EMF utilise désormais le tableau commun natif, les quatre
+descriptions/couleurs/facteurs, le graphique logarithmique et les 16 préréglages
+historiques exacts d’EMFPlanner 7.1. Voir `menu-reproduction.md` et
+[`limits-native-audit-2026-10-22.md`](../reference/limits-native-audit-2026-10-22.md).
+Le projet Castelfranco conserve ses valeurs et les 15 références numériques.
 
 ## État actuel — après exécution Windows
 

@@ -1,0 +1,88 @@
+\section{Campagnes de test --- calculs}
+\subsection{Point Calculations}
+Scénario de référence \textbf{PNT-03} (réutilisé par les relations \code{MET}) : \code{BASE-0}, seule la source \code{TS06} (1~W, isotrope, 0~dBi, hauteur 10~m, à l'origine) est active, diagramme \code{ok\_isotropic.msi}, limites plates, $k=1$. Quatre points \code{Ground} à (50,0), (100,0), (200,0), (400,0), hauteur 1,5~m (fichier \code{control\_points\_oracle.tsv}).
+\begin{tests}
+\T{PNT-01}{P2}{Créer un point (barre d'outils, menu contextuel), le glisser, saisir $X,Y$, \code{Suppr}\man{50,52}. Groupes : activer/désactiver, monter/descendre, préfixe d'étiquette.}{Groupe inactif exclu du calcul\man{51}. Le manuel parle aussi d'une suppression par clic droit\man{52} : \textbf{[O]} la voie qui marche (\code{DOC-07}).}
+\T{PNT-02}{P2}{Bouton \ui{Move points less than 2 m from the azimuth line}\man{51} : points à 0, 1,5, 2,0 et 2,5~m de la ligne d'azimut.}{Les points à moins de 2~m sont ramenés exactement sur la ligne (distance $<10^{-6}$~m) ; à 2,5~m : inchangé ; à 2,0~m : \textbf{[O]}.}
+\T{PNT-03}{P1}{Calculer en tous points\man{51}.}{\textbf{[F]} $E=\sqrt{30}/r$ avec $r=\sqrt{x^2+8{,}5^2}$ : \textbf{0,1080 ; 0,0546 ; 0,0274 ; 0,0137~V/m} (fichier \code{iso\_expected\_1W\_0dBi\_h10\_cp1.5.tsv}, tolérance $\pm0{,}0001$). Rapport $E(2d)/E(d)\to0{,}5$ quand $d\gg8{,}5$~m.}
+\T{PNT-04}{P1}{Renseigner \ui{Measured E-field strength} 0,07~V/m au point 1 et 0,05 au point 2 ; fréquence de mesure 1000~MHz\man{50,52}.}{\textbf{[M]} $E_{\mathrm{tot}}=\sqrt{E_{\mathrm{calc}}^2+E_{\mathrm{mes}}^2}$ : par ex. $\sqrt{0{,}07^2+0{,}0635^2}=0{,}0945$\man{52}. Exposition simultanée calculée avec la valeur mesurée.}
+\T{PNT-05}{P1}{Lire \ui{Simultaneous exposure (\%)} avec un seul jeu de limites (6~V/m).}{\textbf{[M\,X]} exposition $=100\,(E_{\mathrm{tot}}/6)^2$ : $0{,}063538\to0{,}011214\,\%$\man{62}. Contrôle sur \code{PNT-03} : au point à 100~m, $100\,(0{,}05458/6)^2=0{,}0083\,\%$.}
+\T{PNT-06}{P1}{Lire \ui{Total eq. plane-wave power density (W/m$^2$)} pour $E=0{,}063538$ ; 0,120968 ; 0,432815 ; 0,471055.}{\textbf{[M]} $E^2/377$ (6 décimales) : manuel $0{,}000010$ ; $0{,}000038$ ; $0{,}000496$ ; $0{,}000588$\man{62,70}. Arrondi correct donnerait 11, 39, 497, 589. \textbf{[O]} notez lequel votre version fournit (\code{DOC-10}).}
+\T{PNT-07}{P1}{Calcul sur plage de hauteurs : point 1, $H_{\min}=0$, $H_{\max}=10$, pas 1\man{53}. Puis $H_{\min}>H_{\max}$, pas 0, pas négatif, pas $>$ plage, $10^5$ valeurs.}{11 colonnes (0 à 10~m). \textbf{[X]} la colonne $h$ égale le calcul en tous points avec un point de hauteur $h$. Entrées absurdes : rejet ; pas de boucle infinie.}
+\T{PNT-08}{P1}{Mettre 6~dB dans l'onglet \ui{Control point heights}\man{50,53} ; comparer « tous les points » et « plage de hauteurs ».}{\textbf{[M]} le calcul sur plage de hauteurs \emph{ne tient pas compte} de cet affaiblissement manuel, seulement de celui des bâtiments\man{53} : les deux résultats diffèrent d'un facteur 2 ($6$~dB).}
+\T{PNT-09}{P1}{Point à moins de 1~mm d'une antenne ; point exactement à son emplacement et à sa hauteur ; point à 100~km.}{Résultat fini et positif ou nul (pas de \code{Infinity}/\code{NaN}). À 100~km : $E\approx0$, sans dépassement.}
+\T{PNT-10}{P2}{Import/export Excel de \code{control\_points\_oracle.tsv}\man{51}, avec latitudes/longitudes cohérentes puis volontairement \emph{incohérentes} avec $X,Y$.}{Aller-retour exact. Incohérence : \textbf{[O]} la source prioritaire (lat/lon ou $X,Y$).}
+\T{PNT-11}{P1}{Rapport Word des points ; comparer avec \code{xy\_to\_polar.tsv}.}{\textbf{[M]} colonnes $R$ et azimut\man{62,70} : (0,3 ; $-5{,}1$) $\to$ 5,11 et 176,63 ; ($-28{,}2$ ; $-81{,}8$) $\to$ 86,52 et 199,02 ; (111,3 ; 33,5) $\to$ 116,23 et 73,25 ; ($-40{,}3$ ; 68,8) $\to$ 79,73 et 329,64. Point en (0,0) : azimut \textbf{[O]}.}
+\end{tests}
+
+\subsection{Vertical Cuts}
+\begin{tests}
+\T{VCT-01}{P1}{Remplir la liste d'après les azimuts des sources actives\man{39}. Utiliser \code{sources\_oracle.tsv} puis ajouter une 2\textsuperscript{e} source à l'azimut 60.}{Un azimut par valeur distincte : les sources de même azimut partagent une coupe, noms regroupés\man{39}.}
+\T{VCT-02}{P2}{Version « antennes bidirectionnelles »\man{39} avec \code{ok\_backfire\_180.msi} (lobe principal à $180^\circ$).}{La direction de coupe suit le maximum du diagramme ($\mathrm{azimut}+180^\circ$).}
+\T{VCT-03}{P2}{\ui{+} (coupes supplémentaires par plage d'angles\man{39}) : 0 à 350 pas 10 ; plage inversée ; pas 0 ; pas 400 ; tri par azimut.}{36 coupes triées. Entrées invalides : rejet, pas de boucle infinie.}
+\T{VCT-04}{P1}{Modifier $L_1$, $L_2$, $H_1$, $H_2$, $X_o$, $Y_o$\man{39} sans recalculer.}{\textbf{[M]} aucun recalcul automatique\man{40} : l'ancienne image reste jusqu'au calcul. Relever le rôle de chaque paramètre avec la figure en bas de la fenêtre (\textbf{[O]}).}
+\T{VCT-05}{P1}{Source \code{TS07} (1~kW isotrope, $h=10$~m), coupe verticale, limite N1 (6~V/m).}{\textbf{[F]} contour = disque de rayon $\sqrt{30\cdot1000}/6=28{,}87$~m centré sur l'antenne : hauteur max $\approx38{,}9$~m, étendue horizontale $\pm28{,}9$~m (N2 : 8,66~m ; N3 : 38,49~m ; N4 : 17,32~m).}
+\T{VCT-06}{P1}{Lire la table \ui{EFieldStrengthVerticalCutTables\_1}\man{72--75} (ou \ui{Tables and Graphs}) pour la source \code{TS06}, antenne à $h=10$~m.}{\textbf{[F]} $E(R,H)$ : (5 ; 10) 1,0954 ; (10 ; 10) 0,5477 ; (50 ; 10) 0,1095 ; (100 ; 10) 0,0548 ; (50 ; 20) 0,1074 ; (100 ; 0) 0,0545 ; (20 ; 30) 0,1937~V/m.}
+\T{VCT-07}{P1}{\textbf{Croisement} : placer un point sur la ligne d'azimut (\code{PNT-02}) à $R=50$~m, hauteurs 10 et 20~m ; comparer à \code{VCT-06}.}{\textbf{[X]} écart $<1\,\%$ entre la table de coupe et le calcul de point.}
+\T{VCT-08}{P1}{\textbf{Convergence} : fixer la taille de matrice (\ui{Settings}) à 50, 100, 200, 400, 800, 1000 et relever longueur et hauteur de la zone d'exposition (lignes rouges\man{39,40}).}{\textbf{[R]} les valeurs se stabilisent ; écart entre 800 et 1000 $\le2\,\%$ ; pas de changement de signe de la tendance. Comparer grilles N\textdegree1 et N\textdegree2 (boutons dédiés\man{39,40}).}
+\T{VCT-09}{P2}{Réduire la longueur / la hauteur des coupes d'après le résultat ; effacer les cotes ; ajouter un point de mesure par menu contextuel\man{40}.}{Les cotes (rouge) s'ajustent à la zone ; effacer retire toutes les cotes de toutes les coupes.}
+\T{VCT-10}{P2}{Options d'affichage : longueur, hauteur bas/max/haut, distance minimale, cotes, points de contrôle ; \ui{Add a line above terrain} 2,0~m\man{39}.}{Chaque case ajoute ou retire l'élément correspondant. La ligne à 2~m suit le relief.}
+\T{VCT-11}{P2}{Bâtiments et tours en coupe\man{38,39,67}.}{Hauteurs des bâtiments = valeurs de \ui{Buildings} ; tour dessinée depuis son étiquette (\code{LBL-03}).}
+\T{VCT-12}{P2}{Règle active, \ui{Set vertical cut along the ruler}\man{42,46}.}{\textbf{[F]} azimut de la nouvelle coupe = azimut de la règle à $0{,}1^\circ$ près.}
+\T{VCT-13}{P2}{Rapport Word des coupes verticales (\code{\{VerticalCuts\_1\}}).}{Une coupe par page, titre « Vertical cut along azimuth \ldots{} (along direction of antenna \ldots{}) »\man{66,67}.}
+\end{tests}
+
+\subsection{Horizontal Cuts et volumes de sécurité}
+\begin{tests}
+\T{HCT-01}{P2}{Remplir la liste avec les hauteurs des antennes des sources actives\man{41}.}{Une ligne par hauteur distincte, hauteurs comptées depuis l'origine\man{43}.}
+\T{HCT-02}{P2}{Ajouter les hauteurs des maxima des coupes verticales (et variante avec marge)\man{41,42}, \emph{avant} puis \emph{après} le calcul vertical.}{Après calcul vertical : de nouvelles hauteurs apparaissent\man{43}. Avant : \textbf{[O]} message ou aucune action.}
+\T{HCT-03}{P2}{\ui{+} plage de hauteurs ; tri par hauteur ; une couleur pour la sélection ; couleurs et types de ligne différents\man{42}.}{Chaque bouton agit sur la sélection attendue.}
+\T{HCT-04}{P1}{\code{TS07}, cut à 10~m, limite N1 seule (type 1\man{40}). Matrice 800, grille $\pm100$~m.}{\textbf{[F]} cercle de rayon $28{,}87\pm0{,}5$~m. N2 : 8,66 ; N3 : 38,49 ; N4 : 17,32. Cuts à 20 et 0~m : N1 $27{,}08$ ; N3 $37{,}17$ ; N4 $14{,}14$ ; N2 \textbf{absent} (rayon sphère $<10$~m).}
+\T{HCT-05}{P1}{Plusieurs limites à une seule hauteur, puis plusieurs hauteurs (type 2\man{41,43}).}{\textbf{[M]} avec une hauteur : coupe exactement à cette hauteur ; avec plusieurs : projection au sol du maximum de la plage\man{41}.}
+\T{HCT-06}{P1}{Options \ui{Make a projection of the lower cuts onto the upper ones} et \ui{Merge cuts with the same colors}\man{44}.}{\textbf{[M]} projection : aire cumulée jamais inférieure à celle d'une coupe inférieure ; fusion : coupes de même couleur adjacentes se superposent\man{44}. Désactivées pour le rendu 3D\man{44,58}.}
+\T{HCT-07}{P1}{Modifier hauteur, activité, couleur, type de ligne puis \emph{ne pas} recalculer.}{\textbf{[M]} l'image n'est plus à jour ; ces données alimentent aussi le calcul suivant\man{46}. Recalculer après toute modification.}
+\T{HCT-08}{P1}{Grille de calcul rétrécie à $\pm20$~m puis agrandie à $\pm300$~m, même cut.}{\textbf{[M]} le contour doit rester entièrement dans la grille (cadre bleu\man{43}). Trop petite : contour tronqué (attendu) ; assez grande : contour fermé.}
+\T{HCT-09}{P1}{\textbf{Croisement} : point de contrôle posé sur le contour N1 (limite 6~V/m), à la hauteur du cut.}{\textbf{[X]} $E_{\mathrm{tot}}=6{,}0\pm3\,\%$ au point du contour.}
+\T{HCT-10}{P2}{Cliquer sur une ligne violette pointillée de la carte\man{46}.}{Fenêtre de coupe verticale avec \ui{Remove cut} et \ui{Show cut}.}
+\T{HCT-11}{P1}{\textbf{Volumes de sécurité}\man{54} pour les 4 sources du tableau ci-dessous, avec 6 / 20 / 4,5 / 10~V/m.}{\textbf{[F\,M]} $L_{m1}$ à $\pm1\,\%$ (voir tableau). \textbf{[R]} $L\cdot E_L$ constant entre limites. Colonnes : $L_v$ hauteur, $L_h$ largeur, $L_{m1}$ avant, $L_{m2}$ arrière\man{54,62}.}
+\T{HCT-12}{P2}{Export CAD\man{57,58} : couches, échelle 1:1000, format A3 ; ouvrir le DXF et le DWG dans un outil tiers.}{Couches présentes : cadre, zone d'exposition, bâtiments, terrain, lignes/étiquettes, fond de carte, antennes, points, origine, zone de calcul\man{57}. \textbf{[F]} $100$~m réels = 100~mm sur papier à 1:1000. Zoom du fond de carte élevé pour la qualité\man{58}.}
+\T{HCT-13}{P1}{3D\man{58,59} : calculer coupes verticales et horizontales (options de \code{HCT-06} \emph{décochées}) ; ViewCube ; export PDF interactif.}{La zone suit la géométrie des coupes, bâtiments et tours inclus. Avec les options cochées : \textbf{[O]} avertissement ou rendu déformé (figure p.44--45). Hauteurs de coupes réparties régulièrement\man{58}.}
+\T{HCT-14}{P2}{3D impossible : conserver des objets très éloignés d'un ancien projet, puis \ui{Delete objects outside the screen}\man{58}.}{Le message ou l'échec se produit ; après nettoyage la 3D fonctionne.}
+\end{tests}
+\begin{center}\small\renewcommand{\arraystretch}{1.15}
+\begin{tabular}{@{}lrrrrrr@{}}\toprule
+\textbf{Source (p.62)} & \textbf{EIRP (W)} & \textbf{$L_{m1}$, 6 V/m} & \textbf{20 V/m} & \textbf{4,5 V/m} & \textbf{10 V/m} & \textbf{Manuel N1}\\\midrule
+900\_60 (12,05~W, 16~dBi) & 479,7 & 19,99 & 6,00 & 26,66 & 12,00 & 20,0\\
+2100 (3$\times$10,42~W, 18,3~dBi) & 2113,4 & 41,97 & 12,59 & 55,96 & 25,18 & 41,9\\
+23~GHz (0,1995~W, 40~dBi) & 1995,0 & 40,77 & 12,23 & 54,37 & 24,46 & 40,8\\
+18~GHz (0,2512~W, 39,2~dBi) & 2089,4 & 41,73 & 12,52 & 55,64 & 25,04 & 41,7\\\bottomrule
+\end{tabular}\end{center}
+
+\subsection{Tables and Graphs}
+\begin{tests}
+\T{TBL-01}{P2}{Valeurs par défaut : 200~m / pas 5~m, 50~m / pas 2~m ; graphiques 200$\times$50\man{47}.}{\textbf{[F]} $41$ colonnes ($0,5,\ldots,200$) $\times$ $26$ lignes ($0,2,\ldots,50$). Tables sur plusieurs pages (p.72--75).}
+\T{TBL-02}{P1}{Bornes : pas 0, négatif, pas $>$ distance, distance non multiple du pas (par ex. 203 et pas 5), $10^6$ m.}{Rejet clair ou calcul borné ; pas de blocage ; dernier point = distance (ou plus grand multiple $\le$ distance).}
+\T{TBL-03}{P1}{Graphe $E(R)$ à 1,5~m et exposition simultanée\man{48,49} ; limite choisie par bouton radio.}{\textbf{[X]} les valeurs du graphe égalent la table et le calcul de point à $<1\,\%$.}
+\T{TBL-04}{P3}{Boutons Word ($\times2$) et le point d'interrogation (liste des alias)\man{47}.}{Rapports générés ; l'aide liste les alias de l'annexe 1 du manuel.}
+\end{tests}
+
+\subsection{Relations métamorphiques}
+Base : \code{PNT-03} au point (100,0), $E_0=0{,}05458$~V/m. Tolérance : un chiffre du dernier affiché.
+\begin{tests}
+\T{MET-01}{P1}{$P_{\mathrm{TX}}$ : 1 $\to$ 4~W.}{$E=2E_0=0{,}10916$.}
+\T{MET-02}{P1}{Affaiblissement total $+6{,}0206$~dB.}{$E=E_0/2$.}
+\T{MET-03}{P1}{\ui{Number of TX} : 1 $\to$ 4.}{$E=2E_0$.}
+\T{MET-04}{P1}{Gain saisi à la main $+6{,}0206$~dBi (diagramme isotrope inchangé).}{$E=2E_0$.}
+\T{MET-05}{P1}{Coefficient de réflexion 1,3 puis 1,6\man{61}.}{$E=1{,}3E_0$ puis $1{,}6E_0$. Valeurs 0,99 et 1,61 : \textbf{[O]} (plage 1--1,6).}
+\T{MET-06}{P1}{Dupliquer la source (copier/coller\man{11}) ; ou \ui{Number of TX}=2.}{$E=\sqrt2\,E_0=0{,}07719$ dans les deux cas.}
+\T{MET-07}{P1}{Deux sources de fréquences différentes (900 et 2100~MHz) au même endroit, 1~W chacune, limites plates.}{$E_{\mathrm{tot}}=\sqrt2E_0$ ; exposition simultanée = somme des expositions individuelles.}
+\T{MET-08}{P1}{Puissance saisie en 30~dBm au lieu de 1~W.}{Résultat identique à $E_0$ (arrondi du convertisseur compris).}
+\T{MET-09}{P1}{Décocher une source $\equiv$ la supprimer ; réordonner les lignes.}{Résultats identiques bit à bit.}
+\T{MET-10}{P1}{Limite N2 = 2$\times$ limite N1.}{Exposition (N2) = exposition (N1)/4.}
+\T{MET-11}{P1}{Source \code{sector65x7}, azimut 60, point à l'azimut 60 puis source azimut 200 et point à l'azimut 200 ; points à $\pm10^\circ$ de l'axe.}{Rotation d'ensemble : résultats identiques. Symétrie : $E(+10^\circ)=E(-10^\circ)$ (diagramme H symétrique).}
+\T{MET-12}{P1}{Puissance 0 puis $10^{-12}$~W.}{$E=0$ exactement puis $\approx10^{-6}E_0$, jamais négatif.}
+\T{MET-13}{P1}{Facteurs de \code{SRC-22}.}{Voir \code{SRC-22}.}
+\T{MET-14}{P1}{Déplacement d'origine, translation d'altitude, champs de rapport seuls (\code{ORI-04}, \code{TER-04}, \code{SRC-24}).}{Résultats identiques.}
+\T{MET-15}{P1}{Répéter 5 fois le même calcul ; changer le nombre de fils d'exécution (\code{ROB-06}).}{Résultats identiques à $10^{-9}$ en relatif ; dans un même état, \emph{exactement} identiques.}
+\T{MET-16}{P2}{Fond de carte, zoom, panneau affiché.}{Aucun chiffre ne change.}
+\end{tests}

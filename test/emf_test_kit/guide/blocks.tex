@@ -1,0 +1,296 @@
+\subsection{Sources de référence : une colonne par bloc (\code{A-1} à \code{A-12})}\label{sec:blocsA}
+Sélectionner un bloc, copier, cliquer sur la \textbf{première cellule} de la colonne correspondante dans \ui{Radiating Sources}, puis \code{Ctrl+V}. Les sept lignes sont \code{TS01}\ldots\code{TS07}.
+\noindent
+\begin{minipage}[t]{0.325\textwidth}\small\textbf{A-1} Radiation source name\\[-2pt]
+\begin{Verbatim}[frame=single,framesep=1mm,fontsize=\footnotesize,rulecolor=\color{accent}]
+TS01_900_man
+TS02_2100_3tx
+TS03_23GHz_PtP
+TS04_18GHz_PtP
+TS05_LTE_att
+TS06_ISO_1W
+TS07_ISO_1kW
+\end{Verbatim}
+\end{minipage}\hfill
+\begin{minipage}[t]{0.325\textwidth}\small\textbf{A-2} Sector ID\\[-2pt]
+\begin{Verbatim}[frame=single,framesep=1mm,fontsize=\footnotesize,rulecolor=\color{accent}]
+A
+B
+C
+C
+A
+-
+-
+\end{Verbatim}
+\end{minipage}\hfill
+\begin{minipage}[t]{0.325\textwidth}\small\textbf{A-3} Type of service\\[-2pt]
+\begin{Verbatim}[frame=single,framesep=1mm,fontsize=\footnotesize,rulecolor=\color{accent}]
+GSM
+UMTS
+PtP
+PtP
+LTE
+Other
+Other
+\end{Verbatim}
+\end{minipage}\hfill
+\par\medskip
+\noindent
+\begin{minipage}[t]{0.325\textwidth}\small\textbf{A-4} Frequency, MHz\\[-2pt]
+\begin{Verbatim}[frame=single,framesep=1mm,fontsize=\footnotesize,rulecolor=\color{accent}]
+900
+2100
+23000
+18000
+2600
+900
+900
+\end{Verbatim}
+\end{minipage}\hfill
+\begin{minipage}[t]{0.325\textwidth}\small\textbf{A-5} Transmitter power, W\\[-2pt]
+\begin{Verbatim}[frame=single,framesep=1mm,fontsize=\footnotesize,rulecolor=\color{accent}]
+12.05
+10.42
+0.1995
+0.2512
+20
+1
+1000
+\end{Verbatim}
+\end{minipage}\hfill
+\begin{minipage}[t]{0.325\textwidth}\small\textbf{A-6} Number of TX\\[-2pt]
+\begin{Verbatim}[frame=single,framesep=1mm,fontsize=\footnotesize,rulecolor=\color{accent}]
+1
+3
+1
+1
+1
+1
+1
+\end{Verbatim}
+\end{minipage}\hfill
+\par\medskip
+\noindent
+\begin{minipage}[t]{0.325\textwidth}\small\textbf{A-7} Total atten., dB\\[-2pt]
+\begin{Verbatim}[frame=single,framesep=1mm,fontsize=\footnotesize,rulecolor=\color{accent}]
+0
+0
+0
+0
+0.37
+0
+0
+\end{Verbatim}
+\end{minipage}\hfill
+\begin{minipage}[t]{0.325\textwidth}\small\textbf{A-8} Antenna model\\[-2pt]
+\begin{Verbatim}[frame=single,framesep=1mm,fontsize=\footnotesize,rulecolor=\color{accent}]
+742265V02
+742265V02
+23G 0.6
+18G 0.6
+AMB4519
+isotropic
+isotropic
+\end{Verbatim}
+\end{minipage}\hfill
+\begin{minipage}[t]{0.325\textwidth}\small\textbf{A-9} Antenna azimuth, deg\\[-2pt]
+\begin{Verbatim}[frame=single,framesep=1mm,fontsize=\footnotesize,rulecolor=\color{accent}]
+60
+130
+125
+220
+180
+0
+0
+\end{Verbatim}
+\end{minipage}\hfill
+\par\medskip
+\noindent
+\begin{minipage}[t]{0.325\textwidth}\small\textbf{A-10} Antenna gain, dBi\\[-2pt]
+\begin{Verbatim}[frame=single,framesep=1mm,fontsize=\footnotesize,rulecolor=\color{accent}]
+16
+18.3
+40
+39.2
+18
+0
+0
+\end{Verbatim}
+\end{minipage}\hfill
+\begin{minipage}[t]{0.325\textwidth}\small\textbf{A-11} Antenna height, m\\[-2pt]
+\begin{Verbatim}[frame=single,framesep=1mm,fontsize=\footnotesize,rulecolor=\color{accent}]
+29
+29
+27.2
+27.2
+40
+10
+10
+\end{Verbatim}
+\end{minipage}\hfill
+\begin{minipage}[t]{0.325\textwidth}\small\textbf{A-12} Antenna size, m\\[-2pt]
+\begin{Verbatim}[frame=single,framesep=1mm,fontsize=\footnotesize,rulecolor=\color{accent}]
+1.9
+1.9
+0.6
+0.6
+1.5
+0.1
+0.1
+\end{Verbatim}
+\end{minipage}\hfill
+\par\medskip
+\begin{note}Pour \code{TS07} (1~kW isotrope), l'oracle des contours circulaires (\code{HCT-04}) suppose une \textbf{hauteur d'antenne de 10~m} et le diagramme \code{ok\_isotropic.msi}. Pour \code{BLD-11}, passez-la à 20~m.\end{note}
+\subsection{Limites, origine, formats}\label{sec:blocsC}
+\paragraph*{Bloc \code{C-1} --- limites plates (9 valeurs, de gauche à droite dans la ligne 1 du tableau \ui{EMF Limits})}
+\begin{center}\small\begin{tabular}{@{}ccccccccc@{}}\toprule \textbf{Freq.\ to F} & \textbf{E1} & \textbf{A1} & \textbf{E2} & \textbf{A2} & \textbf{E3} & \textbf{A3} & \textbf{E4} & \textbf{A4}\\\midrule 1000000 & 6 & 0 & 20 & 0 & 4.5 & 0 & 10 & 0\\\bottomrule\end{tabular}\end{center}
+Fichier à coller en une fois : \code{data/limits/limits\_flat.tsv}.
+\paragraph*{Bloc \code{C-2} --- chaînes à coller pour l'origine (une ligne à la fois, \code{ORI-02})}\vspace{-2pt}
+\begin{Verbatim}[frame=single,framesep=1.5mm,fontsize=\footnotesize,rulecolor=\color{accent}]
+45.485337, 9.198818
+45.485337 9.198818
+45,485337; 9,198818
+N45.485337 E9.198818
+45°29'07.2"N 9°11'55.7"E
+45°29.1202'N 9°11.9291'E
+   45.485337 ,   9.198818   
+9.198818, 45.485337
+91.0, 9.198818
+45.485337, 181.0
+abc, def
+45.485337
+\end{Verbatim}
+\paragraph*{Bloc \code{C-3} --- table ICNIRP du manuel (p.21), 4 lignes}
+\begin{center}\small\begin{tabular}{@{}rrrrr@{}}\toprule \textbf{Freq.\ to F} & \textbf{E1} & \textbf{A1} & \textbf{E2} & \textbf{A2}\\\midrule 30 & 824 & $-1$ & 1842 & $-1$\\ 300 & 27.5 & 0 & 61.4 & 0\\ 1500 & 1.585 & 0.5 & 3.545 & 0.5\\ 1000000 & 61.4 & 0 & 137.3 & 0\\\bottomrule\end{tabular}\end{center}
+Fichier à coller : \code{data/limits/limits\_icnirp.tsv}.\\ Valeurs attendues de $E_L$ aux fréquences de test : \code{data/limits/limit\_check\_icnirp.tsv}.
+\paragraph*{Bloc \code{C-4} --- aller-retour des formats de coordonnées (\code{ORI-03})}
+\begin{center}\scriptsize\renewcommand{\arraystretch}{1.1}\begin{tabular}{@{}rrp{4.6cm}p{5.2cm}@{}}\toprule \textbf{lat} & \textbf{lon} & \textbf{DMS attendu} & \textbf{DM attendu}\\\midrule
+45.485337 & 9.198818 & 45°29'07.21'' N 9°11'55.74'' E & 45°29.1202' N 9°11.9291' E\\
+0 & 0 & 0°00'00.00'' N 0°00'00.00'' E & 0°00.0000' N 0°00.0000' E\\
+-33.8688 & 151.2093 & 33°52'07.68'' S 151°12'33.48'' E & 33°52.1280' S 151°12.5580' E\\
+5.36 & -4.0083 & 5°21'36.00'' N 4°00'29.88'' W & 5°21.6000' N 4°00.4980' W\\
+90 & 180 & 90°00'00.00'' N 180°00'00.00'' E & 90°00.0000' N 180°00.0000' E\\
+-90 & -180 & 90°00'00.00'' S 180°00'00.00'' W & 90°00.0000' S 180°00.0000' W\\
+10.999999 & 10.999999 & 11°00'00.00'' N 11°00'00.00'' E & 10°59.9999' N 10°59.9999' E\\
+44.345678 & -134.567893 & 44°20'44.44'' N 134°34'04.41'' W & 44°20.7407' N 134°34.0736' W\\
+\bottomrule\end{tabular}\end{center}
+\subsection{Textes et nombres pour la robustesse}\label{sec:blocsF}
+\paragraph*{Bloc \code{F-1} --- chaînes de texte (une par ligne ; les lignes vides, très longues et multi-scripts sont dans \code{fuzz/strings\_text.txt})}\vspace{-2pt}
+\begin{Verbatim}[frame=single,framesep=1.5mm,fontsize=\footnotesize,rulecolor=\color{accent}]
+   leading and trailing   
+quote ' and " and `
+semi;colon;list
+back\slash C:\temp\x
+../../etc/passwd
+<script>alert(1)</script>
+&amp; <b>bold</b> &lt;
+%s %d %n {0} {1}
+{SiteName}
+{RadiatingSources_1}
+{{nested}}
+'; DROP TABLE sources;--
+=cmd|' /C calc'!A0
+CON
+NUL.txt
+0÷360
+\end{Verbatim}
+Chaînes longues à fabriquer au besoin : \code{python3 -c "print('A'*5000)"} (5000 caractères). Pour l'Unicode multi-scripts, utilisez le fichier : les polices du PDF ne les contiennent pas.
+\paragraph*{Bloc \code{F-2} --- nombres écrits de façon piégeuse (\code{ROB-02})}\vspace{-2pt}
+\begin{Verbatim}[frame=single,framesep=1.5mm,fontsize=\footnotesize,rulecolor=\color{accent}]
+0
+-0
+-1
++5
+5.
+  .5
+1e3
+1E-3
+1,5
+1.5
+1 500
+1'500
+1.2.3
+--5
+1..2
+0x10
+12abc
+abc
+NaN
+Infinity
+-Infinity
+1e400
+1e-400
+2147483647
+2147483648
+4294967296
+9223372036854775808
+0.1+0.2
+3,14159
+3.14159265358979323846264338327950288
+\end{Verbatim}
+\paragraph*{Bloc \code{F-3} --- bornes à essayer par champ (\code{fuzz/boundaries.tsv})}
+\begin{center}\scriptsize\renewcommand{\arraystretch}{1.1}\begin{tabular}{@{}lp{12.2cm}@{}}\toprule \textbf{Champ} & \textbf{Valeurs} \\\midrule
+frequency\_MHz & 0 | 0.001 | 0.099999 | 0.1 | 300000 | 300000.001 | 1000000 | 1000000.001 | -900\\
+power\_W & 0 | 1e-12 | 1e6 | 1e9 | -1\\
+number\_of\_TX & 0 | 1 | 1.5 | 1000 | -1\\
+total\_atten\_dB & -10 | 0 | 100 | 1000\\
+gain\_dBi & -30 | 0 | 60 | 200\\
+height\_m & 0 | -5 | 0.01 | 1000 | 100000\\
+azimuth\_deg & 0 | 360 | 360.0001 | -1 | 720 | x (non numeric -> '0÷360' per manual p.16)\\
+mech\_tilt\_deg & -90 | -91 | 0 | 90 | 91\\
+reflection\_coef & 0.99 | 1 | 1.3 | 1.6 | 1.61 | 0 | -1 | 1,3\\
+matrix\_size & 0 | 49 | 50 | 800 | 1000 | 1001 | 100000 | abc\\
+grid\_dimension\_m & 0 | -100 | 0.5 | 100 | 100000 | 1e9\\
+building\_height\_m & 0 | -5 | 3 | 12.5 | 10000\\
+\bottomrule\end{tabular}\end{center}
+\paragraph*{Bloc \code{L-1} --- étiquettes de tour (\code{LBL-03}, \code{LBL-04})}\vspace{-2pt}
+\begin{Verbatim}[frame=single,framesep=1.5mm,fontsize=\footnotesize,rulecolor=\color{accent}]
+Tower/15/15/0.5/1.2
+Tower/15/0/0.5/0.5
+Tower/15/15/0.5
+tower/15/15/0.5/1.2
+Tower/-5/15/0.5/1.2
+Tower/0/0/0/0
+Tower/15/15/0,5/1,2
+Tower / 15 / 15 / 0.5 / 1.2
+Tower/abc/15/0.5/1.2
+Tower/1e3/1e3/5/5
+Tower////
+\end{Verbatim}
+\paragraph*{Bloc \code{R-1} --- alias personnalisés (\code{RPT-03}) ; fichier \code{aliases/custom\_aliases.tsv}}
+\begin{center}\scriptsize\renewcommand{\arraystretch}{1.1}\begin{tabular}{@{}lp{11.3cm}@{}}\toprule \textbf{Alias name} & \textbf{Alias text}\\\midrule
+\{SiteName\} & TEST SITE é/ü [emoji]\\
+\{ProjectName\} & Project <A\&B> "quoted"\\
+\{SiteAddress\} & Long address Long address Long\ldots{} (80 répétitions de « Long address », voir fichier)\\
+\{Customer\} & ACME;Corp\\
+\{Designer\} & \emph{(vide)}\\
+\{Date\} & 2026-10-20\\
+\{RadiatingSources\_1\} & collision with standard alias\\
+\{Unused\} & never used in template\\
+\{SiteName\} & duplicate name\\
+\{ with space \} & space in name\\
+\bottomrule\end{tabular}\end{center}
+\paragraph*{Bloc \code{S-1} --- chaînes pour le champ d'activation (\code{INS-05}) --- ne servent qu'à vérifier le refus}\vspace{-2pt}
+\begin{Verbatim}[frame=single,framesep=1.5mm,fontsize=\footnotesize,rulecolor=\color{accent}]
+
+     
+12345
+'";--
+AAAA-AAAA-AAAA-AAAA
+0000-0000-0000-0000
+\end{Verbatim}
+\paragraph*{Bloc \code{W-1} --- limiter les c\oe urs de calcul (\code{ROB-06}), invite de commandes Windows ; adaptez le chemin}\vspace{-2pt}
+\begin{Verbatim}[frame=single,framesep=1.5mm,fontsize=\footnotesize,rulecolor=\color{accent}]
+start "" /affinity 1  "C:\Chemin\vers\EMFPlanner.exe"
+start "" /affinity 3  "C:\Chemin\vers\EMFPlanner.exe"
+start "" /affinity F  "C:\Chemin\vers\EMFPlanner.exe"
+start "" /affinity FF "C:\Chemin\vers\EMFPlanner.exe"
+\end{Verbatim}
+\paragraph*{Bloc \code{P-1} --- commandes de vérification (Python 3, depuis \code{emf\_test\_kit/})}\vspace{-2pt}
+\begin{Verbatim}[frame=single,framesep=1.5mm,fontsize=\footnotesize,rulecolor=\color{accent}]
+python3 tools/gen_all.py
+python3 tools/msi_check.py sortie.msi 7000 31 0.6
+python3 tools/msi_check.py sortie.msi 40000 50 2.0
+python3 tools/env_check.py enveloppe.msi data/msi/envelope/*.msi
+python3 tools/tile_server.py
+\end{Verbatim}

@@ -273,8 +273,10 @@ test("range tools merge cuts and DMS coordinate input is saved as geographic num
   await dialog.getByRole("radio").last().check();
   await dialog.getByRole("button", { name: "Appliquer", exact: true }).click();
   await navigate(page, "Origine et grille");
-  await page.getByLabel("Longitude, °", { exact: true }).fill("4° 01′ 30″ W");
-  await page.getByLabel("Longitude, °", { exact: true }).press("Tab");
+  await page
+    .getByLabel("Longitude du site, °", { exact: true })
+    .fill("4° 01′ 30″ W");
+  await page.getByLabel("Longitude du site, °", { exact: true }).press("Tab");
   const download = page.waitForEvent("download");
   await page
     .getByRole("button", { name: "Enregistrer le projet", exact: true })
@@ -282,7 +284,7 @@ test("range tools merge cuts and DMS coordinate input is saved as geographic num
   const path = ".tools/test-results/refined-project.emfp";
   await (await download).saveAs(path);
   const project = JSON.parse(readFileSync(path, "utf8"));
-  expect(project.origin[1]).toBeCloseTo(-4.025, 7);
+  expect(project.settings.site_coordinates[1]).toBeCloseTo(-4.025, 7);
   expect(
     project.horizontal_cuts.map((c: { height_m: number }) => c.height_m),
   ).toEqual([10, 18, 20, 24, 29, 30]);

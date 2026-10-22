@@ -1,0 +1,5 @@
+limit	EL_Vm	r_sphere_m	R_at_dz0_m	R_at_dz10_m(cut height 20 m)	R_at_dz-10_m(cut height 0 m)
+N1	6	28.87	28.87	27.08	27.08
+N2	20	8.66	8.66	0.00	0.00
+N3	4.5	38.49	38.49	37.17	37.17
+N4	10	17.32	17.32	14.14	14.14

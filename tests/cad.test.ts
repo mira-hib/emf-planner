@@ -179,6 +179,13 @@ test("all ten native CAD layers can be hidden independently and saved paper sett
 });
 test("paper DXF contains the same scaled vertices, layer table, millimetres, text and native line styles", () => {
   const p = newProject();
+  // This export fixture deliberately uses an exactly centred metre rectangle.
+  p.settings.calculation_area_m = {
+    x_min: -150,
+    x_max: 150,
+    y_min: -150,
+    y_max: 150,
+  };
   const drawing = buildCadDrawing(p, [
     {
       level: 1,

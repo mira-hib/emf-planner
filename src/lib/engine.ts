@@ -17,12 +17,11 @@ import {
   toLocal,
   wrap,
 } from "./geometry";
+import { nativeLimitAt } from "./limits";
+import { horizontalDimensions } from "./origin-grid";
 
 export function limitAt(limit: LimitSet, frequency: number): number {
-  const rows = [...limit.rows].sort((a, b) => a.frequency - b.frequency);
-  const row =
-    rows.find((r) => r.frequency >= frequency) ?? rows[rows.length - 1];
-  return row ? Math.max(1e-9, row.value * frequency ** row.exponent) : 28;
+  return nativeLimitAt(limit, frequency);
 }
 export function eirp(source: RadiatingSource): number {
   return (
@@ -234,6 +233,7 @@ export function horizontalGrid(
   project: PlannerProject,
   height: number,
   step: number,
+  divisions?: number,
 ): FieldGrid {
   const radius = project.settings.radius_m;
   const area = project.settings.calculation_area_m ?? {
@@ -242,15 +242,20 @@ export function horizontalGrid(
     y_min: -radius,
     y_max: radius,
   };
-  const countX = Math.max(
-    2,
-    Math.ceil((area.x_max - area.x_min) / Math.max(0.2, step)) + 1,
-  );
-  const countY = Math.max(
-    2,
-    Math.ceil((area.y_max - area.y_min) / Math.max(0.2, step)) + 1,
-  );
-  if (countX > 501 || countY > 501)
+  const dimensions =
+    divisions === undefined
+      ? undefined
+      : horizontalDimensions(project, divisions);
+  const countX =
+    dimensions?.width ??
+    Math.max(2, Math.ceil((area.x_max - area.x_min) / Math.max(0.2, step)) + 1);
+  const countY =
+    dimensions?.height ??
+    Math.max(2, Math.ceil((area.y_max - area.y_min) / Math.max(0.2, step)) + 1);
+  if (
+    countX > (divisions === undefined ? 501 : 1001) ||
+    countY > (divisions === undefined ? 501 : 1001)
+  )
     throw new Error(
       "Grille trop grande. Augmentez le pas ou réduisez la zone (501 × 501 maximum).",
     );

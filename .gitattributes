@@ -1,3 +1,6 @@
 # Preserve forensic reference exports exactly, including their original whitespace.
 reference/original-decompiled/** -text -whitespace
 tests/fixtures/*.xemf -text
+
+# Keep the supplied test kit byte-exact: BOMs, CRLF variants and deliberate whitespace.
+test/emf_test_kit/** -text -whitespace

@@ -1,7 +1,9 @@
 # Suivi d'avancement
 
-État courant après affinage du 20 octobre : voir `interface-refinement.md` et
-`features.md`. 21 tests métier, 14 parcours UI, compilation Windows release.
+État courant du 22 octobre : lots essentiels Sources, EMF Limits et Origin and Grid intégrés ;
+voir `menu-reproduction.md` et `features.md`. **81 tests métier et 28 parcours
+Edge validés**, compilation TypeScript/Vite réussie. Les entrées antérieures
+conservent les résultats et blocages historiques.
 Les entrées ci-dessous conservent l’historique, dont des blocages ensuite résolus.
 
 Affinage poussé sur `main` : `6f97972`. Compilation Windows finale de 6 680 576
@@ -139,3 +141,41 @@ L’utilisateur demande de traiter les éléments du menu un à un, en commença
 - Vérifications : **63 tests unitaires**, **21 parcours Edge**, TypeScript/Vite réussis. Les 15 références originales restent stables. Capture relue dans `reference/sources-interface/`.
 
 Les archives et exécutables historiques restent conservés. Ne pas fermer l’application native déjà ouverte sans sauvegarder son projet ; la nouvelle compilation utilise une cible de sortie distincte.
+
+## 2026-10-22 — EMF Limits
+
+- Lecture du memory bank et reprise explicite de la seconde rubrique selon l’ordre demandé.
+- Audit des sources `UC_Limits`, `Public2.SetLimitsPRJ/SetLimitsAPP` et `CalcSZZ.CalcTmp`, conservé dans `reference/limits-native-audit-2026-10-22.md`.
+- Table commune à neuf colonnes, quatre descriptions multilignes, couleurs/facteurs, graphique logarithmique et édition avec ajout/suppression/annuler/rétablir.
+- 16 préréglages historiques exacts, remplacement confirmé des quatre jeux, préférences conservées ; comparaison exhaustive des valeurs et descriptions au C# par les tests.
+- Bornes natives, cellules vides et jeux incomplets conservés à l’import/sauvegarde ; nouveaux projets alignés sur les valeurs initiales natives.
+- Intervalles natifs sans tri ni extrapolation et repli historique pour jeux absents/incomplets ; les 15 références Castelfranco restent stables, écart maximal de champ `9.945531114219364e-7 V/m`.
+- **72 tests unitaires réussis, 24 parcours Edge validés**, TypeScript/Vite réussis. La suite complète a donné 23/24 sous Node 22.16.0 ; le dernier parcours (import de la dépendance ExcelJS par le test de rapport) est passé seul sous Node portable 24.22.0, sans changement de code. Utiliser `. ./scripts/Use-ReaTools.ps1` avant les commandes de validation Windows.
+- Captures Edge relues et versionnées dans `reference/limits-interface/` : Castelfranco, ICNIRP et fenêtre étroite. Aucune nouvelle observation dynamique de l’original pendant cette passe.
+- Release Windows recompilée avec succès ; métadonnées et empreinte dans `reference/limits-menu-build.json`. Nouvel exécutable non lancé, session native existante conservée.
+
+La portée exacte et les limites de fidélité sont dans `menu-reproduction.md`.
+La prochaine rubrique prévue est **Origin and Grid**.
+
+## 2026-10-22 — Origin and Grid
+
+- Audit statique de `UC_Origin`, `frmAreaSize`, `CalcCoords`, des préférences et de la grille dessinée dans `Form1`, conservé dans `reference/origin-grid-native-audit-2026-10-22.md`.
+- Origine en lecture seule avec altitude au dixième, déplacement par poignée ou centre de l’écran avec confirmation ; vue maintenue, coordonnées locales sources/points/coupes recalculées avec arrondi natif 0,1 m, sans déplacement des ancres géographiques.
+- Coordonnées du site de rapport séparées de l’origine, copier origine, centrer site, conservation dans `.emfp`/import `PRTOCoordWGS` ; texte utilisé en aperçu/Word/PDF, métadonnée Excel et alias `{Coordinates}`.
+- Quatre dimensions natives asymétriques avec bornes et marge WM de ±0,1 ; dialogue annulable, rectangle et poignées de redimensionnement, graduations dynamiques, emprise WM préservée après changement d’origine.
+- Grilles horizontales natives de 50 à 1000 divisions, défaut 600/200, aspect de la matrice conservé et arrondi du petit axe ; mode métrique préservé pour les anciens `.emfp`. Les branches verticales restent à traiter avec la rubrique Coupes verticales.
+- Règle initiale 50 m, deux extrémités déplaçables, distance au dixième et angle, désactivation par bascule.
+- **81 tests unitaires et 28 parcours Edge validés sous Node 24.22.0**, TypeScript/Vite réussis. Les quatre nouveaux parcours ont ensuite été revérifiés après correction du helper d’ouverture : il accepte explicitement la confirmation et vérifie les neuf sources de Castelfranco, afin d’éviter un test passant sur le projet vide.
+- Les 15 références numériques originales sont inchangées, écart maximal `9.945531114219364e-7 V/m`. L’égalité des coordonnées TX locales arrondies de la fixture est aussi testée.
+- Captures effectivement importées puis relues dans `reference/origin-grid-interface/`. Aucune nouvelle observation dynamique du logiciel original. Détails et écarts dans `menu-reproduction.md`.
+- Release Windows réussie : 6 711 808 octets, cible `x86_64-pc-windows-msvc`. Chemin et SHA-256 dans `reference/origin-grid-build.json` ; ancien chemin release par défaut conservé.
+
+La prochaine rubrique prévue est **Antenna Locations**.
+
+## 2026-10-22 — Lancement et synchronisation du dépôt
+
+- Application lancée à la demande de l’utilisateur via `scripts/Start-EmfPlanner.ps1` : dernière release `src-tauri/target/x86_64-pc-windows-msvc/release/emf-planner.exe`, PID observé **35952**, fenêtre **EMF Planner — Clone**, `Responding=True`. Ce contrôle confirme le démarrage et la réponse de la fenêtre ; les 28 scénarios fonctionnels restent ceux vérifiés dans Edge.
+- Empreinte de l’exécutable revérifiée avant synchronisation : `02C57E29A0E492F756EA9C61934300EDBD96046A3DC11F5EB34291EAEE4CAA5A`.
+- Kit de tests présent dans `test/emf_test_kit/`, avec archive `test/emf_test_kit.zip`, guide, données et outils : ajouté au suivi Git conformément à la demande de pousser tous les changements. Le README du kit précise que ses valeurs attendues proviennent du manuel ou de formules indépendantes ; ses scénarios ne sont pas comptés parmi les 81 tests et 28 parcours validés.
+- `.gitattributes` préserve les fichiers du kit à l’identique (`-text -whitespace`) : BOM, variantes CRLF et espaces intentionnels font partie des cas d’essai et ne doivent pas être normalisés par Git.
+- Reprise : continuer **Antenna Locations** ; conserver les écarts des rubriques précédentes et ne pas fermer une session native contenant des modifications non sauvegardées.

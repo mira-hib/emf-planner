@@ -63,7 +63,7 @@ export const EXTRA_TOOLS: Record<Section, string[]> = {
     "Bulgarie",
   ].map((n) => `Préréglage : ${n}`),
   origin: [
-    "Origine sur l’antenne active",
+    "Dimensions de la zone de calcul",
     "Origine au centre de l’écran",
     "Coordonnées du site",
     "Centrer sur le site",

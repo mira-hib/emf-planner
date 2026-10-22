@@ -1,0 +1,74 @@
+\appendix
+\section{Blocs à copier-coller}\label{sec:blocs}
+Tous les blocs ci-dessous sont générés depuis les fichiers de \code{data/} par \code{tools/make\_blocks.py} : ce qui est collé est identique au fichier. Les tabulations se perdent en copiant depuis un PDF, d'où le choix « une colonne par bloc » ou « fichier à coller en une fois ».
+\input{blocks}
+
+\section{Lecture des cas limites du KML}\label{sec:kmledge}
+\code{buildings\_edge.kml} contient 19 éléments. Pour chacun, relevez : importé ? hauteur lue ? libellé lu ? position correcte ?
+\begin{center}\scriptsize\renewcommand{\arraystretch}{1.12}
+\begin{tabular}{@{}rp{3.6cm}p{5.1cm}p{5.2cm}@{}}\toprule
+\textbf{\#} & \textbf{Nom dans le KML} & \textbf{Particularité} & \textbf{À regarder}\\\midrule
+1 & \code{8} & pas de point-virgule & hauteur 8~? libellé vide ? ou refus ?\\
+2 & \code{;NoHeight} & hauteur absente & hauteur par défaut ou 0 ?\\
+3 & \code{abc;NotNumber} & hauteur non numérique & refus, 0 ou valeur silencieuse ?\\
+4 & \code{0;Zero} & hauteur nulle & bâtiment plat, peut-il bloquer ?\\
+5 & \code{-5;Negative} & hauteur négative & refus attendu\\
+6 & \code{10000;Huge} & 10~km de haut & plafonné ? 3D déformée ?\\
+7 & \code{12,5;CommaDecimal} & virgule décimale & 12,5 ou 125 ou 12 ?\\
+8 & \code{9;Église é ü [CJK] [coche]} & Unicode & libellé conservé (le PDF n'affiche pas les idéogrammes)\\
+9 & \code{9;a;b;c} & plusieurs points-virgules & libellé \code{a;b;c} ou \code{a} ?\\
+10 & \code{9;Hole} & polygone avec trou intérieur & trou ignoré ou respecté ?\\
+11 & \code{9;Collinear} & 3 points alignés & rejet attendu\\
+12 & \code{9;Bowtie} & polygone croisé (nœud papillon) & rejet ou rendu cohérent\\
+13 & \code{10;B01} & doublon de \code{buildings\_ok.kml} & doublon créé ?\\
+14 & \code{5;Tiny} & 0,5~m de côté & importé sans plantage\\
+15 & \code{20;Far10km} & à 14~km de l'origine & import OK ; 3D impossible tant qu'il reste (\code{HCT-14})\\
+16 & \code{9;NoAltitude} & coordonnées sans altitude (\code{lon,lat}) & importé normalement\\
+17 & \code{9;Unclosed} & anneau non fermé & fermé automatiquement ou rejeté\\
+18 & \code{7;PointNotPolygon} & \code{Point} & ignoré, aucun bâtiment\\
+19 & \code{7;LineNotPolygon} & \code{LineString} & ignoré, aucun bâtiment\\\bottomrule
+\end{tabular}\end{center}
+
+\section{Formules F.699-8 utilisées comme oracle}\label{sec:f699}
+Avec $\lambda=299{,}792458/f_{\mathrm{MHz}}$ (m), $D/\lambda$ rapport diamètre/longueur d'onde, $\varphi$ angle hors axe (degrés), $G_{\max}$ gain maximal (dBi) :\\[2pt]
+\textbf{Cas $D/\lambda\le100$} : $G_1=2+15\log_{10}(D/\lambda)$ ; $\varphi_m=\dfrac{20\lambda}{D}\sqrt{G_{\max}-G_1}$.
+\[G(\varphi)=\begin{cases}G_{\max}-2{,}5\cdot10^{-3}\left(\frac{D\varphi}{\lambda}\right)^2&0\le\varphi<\varphi_m\\ G_1&\varphi_m\le\varphi<100\lambda/D\\ 52-10\log_{10}\frac D\lambda-25\log_{10}\varphi&100\lambda/D\le\varphi<48^\circ\\ 10-10\log_{10}\frac D\lambda&48^\circ\le\varphi\le180^\circ\end{cases}\]
+\textbf{Cas $D/\lambda>100$} : $G_1=-1+15\log_{10}(D/\lambda)$ ; $\varphi_r=15{,}85\,(D/\lambda)^{-0{,}6}$.
+\[G(\varphi)=\begin{cases}G_{\max}-2{,}5\cdot10^{-3}\left(\frac{D\varphi}{\lambda}\right)^2&0\le\varphi<\varphi_m\\ G_1&\varphi_m\le\varphi<\varphi_r\\ 29-25\log_{10}\varphi&\varphi_r\le\varphi<48^\circ\\ -13&48^\circ\le\varphi\le180^\circ\end{cases}\]
+Atténuation relative écrite dans le MSI : $G_{\max}-G(\varphi)$. Les valeurs de référence sont dans \code{data/msi/f699\_expected\_*.tsv}. Continuité contrôlée aux frontières de zone (écart $<0{,}05$~dB hors $\varphi_m$ où le plateau commence par $G_{\max}-(G_{\max}-G_1)=G_1$ exactement).
+\begin{alerte}Ces formules sont reconstituées de mémoire : relisez-les contre le texte de la Rec.\ UIT-R F.699-8 avant de conclure à un défaut.\end{alerte}
+
+\section{Feuille de résultats et fiche de défaut}\label{sec:fiche}
+\subsection*{Feuille de résultats (à recopier dans un tableur)}
+\begin{center}\small\begin{tabular}{@{}|p{1.5cm}|p{1.9cm}|p{1.5cm}|p{2.1cm}|p{2.2cm}|p{2.1cm}|p{2.8cm}|@{}}\hline
+\textbf{ID} & \textbf{Date} & \textbf{Version} & \textbf{Valeur lue} & \textbf{Valeur attendue} & \textbf{OK/KO/N/A} & \textbf{Preuve (fichier)}\\\hline\ \\[3mm]\hline\ \\[3mm]\hline\end{tabular}\end{center}
+\subsection*{Fiche de défaut}
+\begin{Verbatim}[frame=single,framesep=2mm,fontsize=\footnotesize,rulecolor=\color{accent}]
+Titre            : (une phrase : quoi, où)
+ID du test       : ex. SRC-13            Gravité : bloquant / majeur / mineur / cosmétique
+Version/OS/lang  : EMF Planner 7.1 (build ...), Windows 11, région FR/EN, Office ...
+Étapes           : 1) ...  2) ...  3) ...
+Attendu (oracle) : valeur + [M]/[F]/[R]/[X]/[O] + source (page du manuel ou fichier du kit)
+Observé          : valeur + capture
+Reproductible    : toujours / parfois (n sur 5) / une fois
+Fichiers joints  : .xemf, capture, données collées, message d'erreur exact
+\end{Verbatim}
+
+\section{Glossaire anglais $\leftrightarrow$ français}
+Les libellés du logiciel sont en anglais ; ce petit tableau aide à lire le manuel et les messages d'erreur.
+\begin{center}\small\renewcommand{\arraystretch}{1.1}
+\begin{tabular}{@{}ll@{\qquad}ll@{}}\toprule
+\textbf{English} & \textbf{Français} & \textbf{English} & \textbf{Français}\\\midrule
+radiating source & source rayonnante & feeder & câble d'alimentation\\
+jumper & jarretière & attenuation & affaiblissement\\
+gain & gain & azimuth & azimut\\
+mechanical / electrical tilt & inclinaison mécanique / électrique & beamwidth & largeur de faisceau\\
+antenna pattern & diagramme d'antenne & envelope & enveloppe\\
+exposure limit & limite d'exposition & field strength & intensité de champ\\
+safety volume & volume de sécurité & control point & point de contrôle\\
+horizontal / vertical cut & coupe horizontale / verticale & calculation grid & grille de calcul\\
+base map & fond de carte & tile & tuile\\
+shielding & blindage & contour line & courbe de niveau\\
+trusted location & emplacement approuvé & alias & alias (signet du modèle Word)\\
+reflection coefficient & coefficient de réflexion & duty cycle & rapport cyclique\\\bottomrule
+\end{tabular}\end{center}

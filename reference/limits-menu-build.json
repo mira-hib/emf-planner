@@ -1,0 +1,36 @@
+{
+    "date_utc":  "2026-10-22T01:06:52.5762027Z",
+    "scope":  "EMF Limits: native shared table, historical presets, plot, interval semantics and blank sets",
+    "base_commit":  "754baaaaff2d43df43bea3fb069dec246368c800",
+    "native_build":  {
+                         "command":  "npm run tauri build -- --no-bundle --target x86_64-pc-windows-msvc",
+                         "path":  "src-tauri/target/x86_64-pc-windows-msvc/release/emf-planner.exe",
+                         "bytes":  6707712,
+                         "sha256":  "AA3507C709B15FD892AD7A137BC16703290A341000D5593F89D3C512A7580333",
+                         "launched":  false,
+                         "previous_running_executable_preserved":  true
+                     },
+    "validation":  {
+                       "unit_tests_passed":  72,
+                       "edge_ui_scenarios_verified":  24,
+                       "edge_initial_full_run_passed":  23,
+                       "edge_initial_full_run_total":  24,
+                       "edge_initial_runtime":  "Node 22.16.0",
+                       "edge_report_rerun_passed":  1,
+                       "edge_report_rerun_runtime":  "Node 24.22.0",
+                       "edge_report_rerun_reason":  "Node 22 dependency loader cache error importing ExcelJS in the test; no code change",
+                       "original_point_height_references":  15,
+                       "max_absolute_field_error":  9.9455311142193636E-07,
+                       "typescript_vite_build_passed":  true,
+                       "windows_release_build_passed":  true,
+                       "fresh_original_runtime_observation":  false,
+                       "mac_runtime_verified":  false
+                   },
+    "screenshots":  [
+                        "reference/limits-interface/limits-castelfranco.png",
+                        "reference/limits-interface/limits-icnirp.png",
+                        "reference/limits-interface/limits-narrow.png"
+                    ],
+    "audit":  "reference/limits-native-audit-2026-10-22.md",
+    "remaining_work":  "memory-bank/menu-reproduction.md"
+}

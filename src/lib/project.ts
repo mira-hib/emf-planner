@@ -4,6 +4,8 @@ import type {
   ProjectData,
   RadiatingSource,
 } from "../types";
+import { applyProjectPreset } from "./presets";
+import { initialNativeArea } from "./origin-grid";
 
 export const uid = () => crypto.randomUUID();
 export const COLORS = ["#d32246", "#ed9834", "#2855dd", "#18813d"];
@@ -26,21 +28,13 @@ export function newProject(): PlannerProject {
       { id: uid(), active: true, height_m: 1.5, color: COLORS[0] },
     ],
     vertical_cuts: [],
-    limits: COLORS.map((color, i) => ({
-      id: uid(),
-      name: `Limites ${i + 1}`,
-      color,
-      active: true,
-      use_alpha24: true,
-      use_ftdc: true,
-      use_fpr: true,
-      rows: [
-        { frequency: 400, value: 28, exponent: 0 },
-        { frequency: 2000, value: 1.375, exponent: 0.5 },
-        { frequency: 100000, value: 61, exponent: 0 },
-      ],
-    })),
+    limits: applyProjectPreset("ICNIRP", [])!,
     settings: {
+      site_coordinates: [5.345, -4.025],
+      ...initialNativeArea([5.345, -4.025]),
+      horizontal_grid_divisions: [600, 200],
+      show_calculation_area: true,
+      show_origin: true,
       reflection: 1,
       radius_m: 150,
       grid_step_m: 3,
@@ -134,7 +128,15 @@ export function normalizeProject(data: ProjectData): PlannerProject {
     ...defaults,
     ...data,
     origin: data.origin ?? data.map_center,
-    settings: { ...defaults.settings, ...data.settings },
+    settings: {
+      ...defaults.settings,
+      ...data.settings,
+      site_coordinates:
+        data.settings?.site_coordinates ?? data.origin ?? data.map_center,
+      horizontal_grid_divisions: data.settings?.horizontal_grid_divisions,
+      calculation_area_m: data.settings?.calculation_area_m,
+      calculation_area_wm: data.settings?.calculation_area_wm,
+    },
   } as PlannerProject;
   project.sources = data.sources.map((s) => ({
     ...newSource(project.origin, s.name),

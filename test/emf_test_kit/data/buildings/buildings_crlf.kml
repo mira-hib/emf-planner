@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2"><Document>
+<Placemark><name>10;B01</name><Polygon><outerBoundaryIs><LinearRing><coordinates>9.1994581,45.4852470,0 9.1997142,45.4852470,0 9.1997142,45.4854270,0 9.1994581,45.4854270,0 9.1994581,45.4852470,0</coordinates></LinearRing></outerBoundaryIs></Polygon></Placemark>
+<Placemark><name>12.5;B02</name><Polygon><outerBoundaryIs><LinearRing><coordinates>9.1980499,45.4852470,0 9.1984339,45.4852470,0 9.1984339,45.4854270,0 9.1980499,45.4854270,0 9.1980499,45.4852470,0</coordinates></LinearRing></outerBoundaryIs></Polygon></Placemark>
+<Placemark><name>15;L-shape</name><Polygon><outerBoundaryIs><LinearRing><coordinates>9.1988180,45.4856969,0 9.1993301,45.4856969,0 9.1993301,45.4858319,0 9.1990740,45.4858319,0 9.1990740,45.4860569,0 9.1988180,45.4860569,0 9.1988180,45.4856969,0</coordinates></LinearRing></outerBoundaryIs></Polygon></Placemark>
+<Placemark><name>4;2</name><Polygon><outerBoundaryIs><LinearRing><coordinates>9.1982547,45.4849411,0 9.1983571,45.4849411,0 9.1983571,45.4850131,0 9.1982547,45.4850131,0 9.1982547,45.4849411,0</coordinates></LinearRing></outerBoundaryIs></Polygon></Placemark>
+</Document></kml>

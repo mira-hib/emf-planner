@@ -15,6 +15,7 @@ import {
 } from "./project";
 import { chooseFile, readProject, saveProject } from "./files";
 import { terrainHeight, toGeo, toLocal } from "./geometry";
+import { rebaseProject } from "./origin-grid";
 import type {
   Building,
   Contour,
@@ -76,6 +77,19 @@ export function usePlannerState() {
   } | null>(null);
   const [viewCenter, setViewCenter] = useState<[number, number]>([0, 0]);
   const [ruler, setRuler] = useState<[number, number][]>([]);
+  function toggleRuler() {
+    if (ruler.length === 2) {
+      setRuler([]);
+      setTool("pan");
+    } else {
+      setRuler([
+        [viewCenter[0] - 25, viewCenter[1]],
+        [viewCenter[0] + 25, viewCenter[1]],
+      ]);
+      setDraft([]);
+      setTool("ruler");
+    }
+  }
   function centerView(center: [number, number]) {
     setViewRequest({ center, version: Date.now() });
   }
@@ -315,6 +329,9 @@ export function usePlannerState() {
       "display_options",
       "building_labels",
       "control_point_labels",
+      "site_coordinates",
+      "show_calculation_area",
+      "show_origin",
     ];
     commit(
       (p) => ({
@@ -323,7 +340,7 @@ export function usePlannerState() {
           ...p.settings,
           ...patch,
           ...(patch.radius_m !== undefined
-            ? { calculation_area_m: undefined }
+            ? { calculation_area_m: undefined, calculation_area_wm: undefined }
             : {}),
         },
       }),
@@ -512,18 +529,6 @@ export function usePlannerState() {
   }
   function finish() {
     if (tool === "ruler") {
-      setRuler(draft);
-      if (draft.length >= 2)
-        setStatus(
-          `Distance mesurée : ${draft
-            .slice(1)
-            .reduce(
-              (s, p, i) =>
-                s + Math.hypot(p[0] - draft[i][0], p[1] - draft[i][1]),
-              0,
-            )
-            .toFixed(2)} m`,
-        );
       setTool("pan");
       setDraft([]);
       return;
@@ -587,6 +592,10 @@ export function usePlannerState() {
   function mapClick(x: number, y: number) {
     x = Math.round(x * 10) / 10;
     y = Math.round(y * 10) / 10;
+    if (tool === "ruler") {
+      setRuler((points) => [points[0] ?? [x, y], [x, y]]);
+      return;
+    }
     if (tool === "source") addSource(x, y);
     else if (tool === "point") addPoint(x, y);
     else if (tool === "terrain") {
@@ -617,40 +626,15 @@ export function usePlannerState() {
     } else if (tool !== "pan") setDraft((d) => [...d, [x, y]]);
   }
   function changeOrigin(origin: [number, number]) {
-    const convert = (xy: [number, number]): [number, number] => {
-      const [lat, lng] = toGeo(xy[0], xy[1], project.origin);
-      return toLocal(lat, lng, origin);
-    };
-    commit((p) => ({
-      ...p,
-      origin,
-      map_center: origin,
-      sources: p.sources.map((s) => {
-        const [x_m, y_m] = toLocal(s.lat, s.lng, origin);
-        return { ...s, x_m, y_m };
-      }),
-      control_points: p.control_points.map((c) => {
-        const [x_m, y_m] = toLocal(c.lat, c.lng, origin);
-        return { ...c, x_m, y_m };
-      }),
-      buildings: p.buildings.map((b) => ({
-        ...b,
-        points: b.points.map(convert),
-      })),
-      lines: p.lines.map((l) => ({ ...l, points: l.points.map(convert) })),
-      vertical_cuts: p.vertical_cuts.map((c) => {
-        const [x, y] = convert([c.x, c.y]);
-        return { ...c, x, y };
-      }),
-      terrain_points: p.terrain_points.map((t) => {
-        const [x, y] = convert([t.x, t.y]);
-        return { ...t, x, y };
-      }),
-      terrain_contours: p.terrain_contours?.map((c) => ({
-        ...c,
-        points: c.points.map(convert),
-      })),
-    }));
+    if (Math.abs(origin[1]) > 180)
+      origin = [origin[0], ((((origin[1] + 180) % 360) + 360) % 360) - 180];
+    const before = projectRef.current;
+    const center = toGeo(...viewCenter, before.origin);
+    commit((p) => ({ ...rebaseProject(p, origin), map_center: center }));
+    setDraft([]);
+    setRuler([]);
+    setTool("pan");
+    centerView(toLocal(...center, origin));
   }
   return {
     project,
@@ -664,6 +648,8 @@ export function usePlannerState() {
     viewCenter,
     setViewCenter,
     ruler,
+    setRuler,
+    toggleRuler,
     section,
     setSection,
     source,

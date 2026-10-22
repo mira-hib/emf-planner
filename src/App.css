@@ -1129,23 +1129,270 @@ kbd {
   height: 100%;
   overflow: auto;
 }
-.limits-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(260px, 1fr));
-  gap: 14px;
+.limits-page {
+  padding: 14px;
 }
-.limits-grid fieldset {
-  padding: 12px;
+.origin-panel fieldset {
+  margin: 10px 8px;
+  padding: 10px;
 }
-.limits-grid label {
-  margin: 10px 0;
+.origin-panel button {
+  margin: 5px 0;
   font-size: 11px;
 }
-.limits-grid .data-grid {
-  height: 200px;
+.origin-panel > button {
+  margin: 4px 10px;
 }
-.limits-grid .data-grid thead th {
-  height: 34px;
+.origin-panel label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 8px 0;
+  font-size: 11px;
+}
+.origin-panel label select {
+  min-width: 0;
+  flex: 1;
+}
+.origin-panel .hint {
+  margin: 3px 0 9px;
+}
+.origin-coordinates {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 8px;
+  margin: 8px 0 14px;
+  font-size: 11px;
+}
+.origin-coordinates dd {
+  margin: 0;
+  text-align: right;
+}
+.origin-panel .ruler-reading {
+  margin: 5px 12px;
+  font-size: 12px;
+}
+.origin-map-handle circle {
+  cursor: move;
+  touch-action: none;
+}
+.origin-leaflet-handle {
+  color: #006400;
+  font: bold 24px/14px Arial;
+  text-align: center;
+}
+.origin-grid-tick.leaflet-tooltip {
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  color: #00008b;
+  font-size: 10px;
+  padding: 0;
+}
+.origin-grid-tick.leaflet-tooltip::before {
+  display: none;
+}
+.area-leaflet-handle {
+  background: white;
+  border: 2px solid #00008b;
+  box-sizing: border-box;
+}
+.area-size-fields {
+  display: grid;
+  grid-template-columns: 1fr 60px 1fr;
+  grid-template-rows: auto auto auto;
+  gap: 14px;
+  align-items: center;
+  margin: 20px auto;
+  max-width: 380px;
+}
+.area-size-fields label {
+  display: block;
+  font-size: 12px;
+}
+.area-size-fields input {
+  width: 100%;
+  display: block;
+  margin-top: 5px;
+  text-align: center;
+}
+.area-size-top {
+  grid-column: 2 / 4;
+  grid-row: 1;
+  max-width: 130px;
+}
+.area-size-left {
+  grid-column: 1;
+  grid-row: 2;
+}
+.area-size-right {
+  grid-column: 3;
+  grid-row: 2;
+}
+.area-size-bottom {
+  grid-column: 2 / 4;
+  grid-row: 3;
+  max-width: 130px;
+}
+.area-size-origin {
+  grid-column: 2;
+  grid-row: 2;
+  font-size: 26px;
+  color: #006400;
+  text-align: center;
+}
+.area-size-origin small {
+  display: block;
+  font-size: 10px;
+}
+.limits-overview {
+  display: grid;
+  grid-template-columns: minmax(390px, 1fr) minmax(330px, 1fr);
+  gap: 14px;
+  align-items: stretch;
+  margin: 14px 0;
+}
+.limits-properties {
+  padding: 10px;
+  min-width: 0;
+}
+.limits-properties table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11px;
+}
+.limits-properties th {
+  font-weight: 600;
+  padding: 4px;
+}
+.limits-properties td {
+  padding: 6px 4px;
+  text-align: center;
+}
+.limits-properties td:nth-child(2) {
+  width: 100%;
+}
+.limits-properties textarea {
+  display: block;
+  width: 100%;
+  min-height: 44px;
+  resize: vertical;
+  font: inherit;
+  padding: 5px;
+}
+.limit-color {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.limit-color input {
+  width: 29px;
+  height: 27px;
+  padding: 2px;
+}
+.limits-chart {
+  min-width: 0;
+  margin: 0;
+  border: 1px solid #d0d8de;
+  border-radius: 4px;
+  padding: 10px;
+  background: white;
+}
+.limits-chart figcaption {
+  font-size: 12px;
+  font-weight: 600;
+  margin-bottom: 5px;
+}
+.limits-chart svg {
+  width: 100%;
+  max-height: 280px;
+  display: block;
+  font-size: 10px;
+  fill: #455561;
+}
+.limits-chart-legend {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  font-size: 11px;
+}
+.limits-chart-legend span,
+.limits-state span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.limits-chart-legend i,
+.limits-state i {
+  display: inline-block;
+  width: 15px;
+  height: 3px;
+}
+.limits-table-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: 12px 0 7px;
+  font-size: 11px;
+}
+.limits-table-toolbar strong {
+  margin-right: auto;
+}
+.limits-table-toolbar button {
+  font-size: 11px;
+  padding: 5px 9px;
+}
+.limits-table {
+  height: 255px;
+  min-height: 180px;
+}
+.limits-table table {
+  min-width: 760px;
+}
+.limits-table thead {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+.limits-table thead th {
+  position: static;
+  height: 25px;
+  text-align: center;
+}
+.limits-table tbody th {
+  width: 38px;
+}
+.limits-table tbody th button {
+  border: 0;
+  width: 100%;
+  background: transparent;
+  font: inherit;
+  color: inherit;
+}
+.limits-table td {
+  min-width: 65px;
+}
+.limits-table td:first-of-type {
+  min-width: 110px;
+}
+.limits-state {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  font-size: 11px;
+}
+.limits-preset-note {
+  font-size: 11px;
+  max-width: 900px;
+}
+@media (max-width: 1120px) {
+  .limits-overview {
+    grid-template-columns: 1fr;
+  }
+  .limits-chart svg {
+    max-height: 230px;
+  }
 }
 .settings-page > fieldset {
   max-width: 650px;

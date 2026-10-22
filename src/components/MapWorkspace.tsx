@@ -7,13 +7,12 @@ import {
   MapPin,
   Play,
   Plus,
-  Ruler,
   Trash2,
   Upload,
 } from "lucide-react";
 import { usePlanner } from "../lib/usePlanner";
 import { COLORS, uid } from "../lib/project";
-import { terrainHeight, toGeo } from "../lib/geometry";
+import { toGeo } from "../lib/geometry";
 import { chooseFile, exportExcel, exportWord } from "../lib/files";
 import type {
   Building,
@@ -29,6 +28,7 @@ import SplitWorkspace from "./SplitWorkspace";
 import { CalculateButton, LimitSelector, NumberField, Tool } from "./Controls";
 import FeatureTools from "./FeatureTools";
 import { styledContours } from "../lib/presentation";
+import { OriginPanel, GridSettings } from "./OriginPanel";
 const POINT_COLUMNS: Column<ControlPoint>[] = [
   { key: "name", label: "Point", width: 70 },
   {
@@ -391,18 +391,18 @@ export default function MapWorkspace({ title }: { title: string }) {
               max={20000}
               onChange={(v) => settings({ radius_m: v })}
             />
-            <NumberField
-              label="Pas grille 1, m"
-              value={p.settings.grid_step_m}
-              min={0.2}
-              onChange={(v) => settings({ grid_step_m: v })}
-            />
-            <NumberField
-              label="Pas grille 2, m"
-              value={p.settings.fine_step_m}
-              min={0.2}
-              onChange={(v) => settings({ fine_step_m: v })}
-            />
+            <GridSettings />
+            {a.cutResults[0]?.grid.fields.length > 0 && (
+              <p
+                className="hint"
+                aria-label="Grille calculée"
+                data-grid-width={a.cutResults[0].grid.width}
+                data-grid-height={a.cutResults[0].grid.height}
+              >
+                Grille calculée : {a.cutResults[0].grid.width} ×{" "}
+                {a.cutResults[0].grid.height} points
+              </p>
+            )}
             <CalculateButton kind="horizontal" />
             <fieldset>
               <legend>Visualisation des contours</legend>
@@ -423,66 +423,7 @@ export default function MapWorkspace({ title }: { title: string }) {
             </fieldset>
           </>
         )}
-        {section === "origin" && (
-          <>
-            <fieldset>
-              <legend>Origine des coordonnées locales</legend>
-              <NumberField
-                label="Latitude, °"
-                value={p.origin[0]}
-                min={-85}
-                max={85}
-                onChange={(v) => a.changeOrigin([v, p.origin[1]])}
-              />
-              <NumberField
-                label="Longitude, °"
-                value={p.origin[1]}
-                min={-180}
-                max={180}
-                onChange={(v) => a.changeOrigin([p.origin[0], v])}
-              />
-              <div className="calculated-value">
-                <span>Altitude du terrain</span>
-                <output>{terrainHeight(p, 0, 0).toFixed(2)} m</output>
-              </div>
-            </fieldset>
-            <fieldset>
-              <legend>Grille de calcul</legend>
-              <NumberField
-                label="Demi-largeur de la zone, m"
-                value={p.settings.radius_m}
-                min={5}
-                max={20000}
-                onChange={(v) => settings({ radius_m: v })}
-              />
-              <NumberField
-                label="Pas grille 1, m"
-                value={p.settings.grid_step_m}
-                min={0.2}
-                onChange={(v) => settings({ grid_step_m: v })}
-              />
-              <NumberField
-                label="Pas grille 2, m"
-                value={p.settings.fine_step_m}
-                min={0.2}
-                onChange={(v) => settings({ fine_step_m: v })}
-              />
-              <label>
-                <input
-                  type="checkbox"
-                  checked={a.display.grid}
-                  onChange={(e) =>
-                    a.setDisplay((d) => ({ ...d, grid: e.target.checked }))
-                  }
-                />{" "}
-                Afficher la grille
-              </label>
-            </fieldset>
-            <button onClick={() => a.setTool("ruler")}>
-              <Ruler size={13} /> Mesurer sur le plan
-            </button>
-          </>
-        )}
+        {section === "origin" && <OriginPanel />}
         {section === "antennas" && (
           <>
             <div className="section-tools">
@@ -892,6 +833,11 @@ export default function MapWorkspace({ title }: { title: string }) {
         onCenterChange={a.setViewCenter}
         selectedObject={a.selectedObject}
         onSelectObject={a.setSelectedObject}
+        ruler={a.ruler}
+        editableOriginGrid={section === "origin" || section === "horizontal"}
+        onRulerChange={a.setRuler}
+        onOriginMove={(x, y) => a.changeOrigin(toGeo(x, y, p.origin))}
+        onAreaChange={(bounds) => a.settings(bounds)}
       />
     </SplitWorkspace>
   );

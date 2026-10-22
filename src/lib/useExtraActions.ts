@@ -7,7 +7,7 @@ import { uid } from "./project";
 import { chooseFile, projectDxf, importDxf, saveText } from "./files";
 import { styledContours } from "./presentation";
 import { importKmlBuildings } from "./kml";
-import { applyPreset } from "./presets";
+import { applyProjectPreset, PRESETS } from "./presets";
 export function useExtraActions(): Record<
   string,
   { run: () => void; enabled: boolean }
@@ -43,39 +43,22 @@ export function useExtraActions(): Record<
     ]),
   );
   const presetActions = Object.fromEntries(
-    [
-      "ICNIRP",
-      "Union européenne",
-      "États-Unis",
-      "Suisse",
-      "Royaume-Uni",
-      "Belgique",
-      "Italie",
-      "Chine",
-      "Russie",
-      "Pologne",
-      "Inde",
-      "Lituanie",
-      "Slovénie",
-      "Grèce",
-      "Croatie",
-      "Bulgarie",
-    ].map((name) => [
+    PRESETS.map(({ label: name }) => [
       `Préréglage : ${name}`,
       {
         run: () => {
-          const limit = applyPreset(name);
-          if (!limit) return;
+          if (
+            !window.confirm(
+              `Appliquer « ${name} » aux quatre jeux de limites ? Les tableaux et descriptions existants seront remplacés.`,
+            )
+          )
+            return;
           commit((v) => ({
             ...v,
-            limits: v.limits.map((l, i) =>
-              i === p.settings.selected_limit
-                ? { ...limit, id: l.id, active: l.active }
-                : l,
-            ),
+            limits: applyProjectPreset(name, v.limits) ?? v.limits,
           }));
           a.setStatus(
-            `Préréglage « ${name} » appliqué au jeu ${p.settings.selected_limit + 1}.`,
+            `Préréglage historique « ${name} » appliqué aux quatre jeux de limites.`,
           );
         },
         enabled: true,
@@ -166,9 +149,22 @@ export function useExtraActions(): Record<
       run: () => source && a.centerView([source.x_m ?? 0, source.y_m ?? 0]),
       enabled: !!source,
     },
-    "Centrer sur le site": { run: () => a.centerView([0, 0]), enabled: true },
+    "Centrer sur le site": {
+      run: () =>
+        a.centerView(
+          toLocal(...(p.settings.site_coordinates ?? p.origin), p.origin),
+        ),
+      enabled: true,
+    },
     "Origine au centre de l’écran": {
-      run: () => a.changeOrigin(toGeo(...a.viewCenter, p.origin)),
+      run: () => {
+        if (
+          window.confirm(
+            "Déplacer l’origine au centre de l’écran ? Les positions géographiques et la zone de calcul seront conservées.",
+          )
+        )
+          a.changeOrigin(toGeo(...a.viewCenter, p.origin));
+      },
       enabled: true,
     },
     "Points sélectionnés au centre de l’écran": {
