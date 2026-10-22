@@ -14,6 +14,12 @@ test.beforeEach(async ({ page }) => {
   await page
     .getByRole("button", { name: "Projet de démonstration", exact: true })
     .click();
+  // Exercise the offline drawing surface independently of the basemap default.
+  await navigate(page, "Origine et grille");
+  await page
+    .getByRole("checkbox", { name: "Fond de carte", exact: true })
+    .uncheck();
+  await navigate(page, "Sources rayonnantes");
 });
 test("cable library and inverse power calculator update source parameters", async ({
   page,
@@ -58,24 +64,16 @@ test("cable library and inverse power calculator update source parameters", asyn
   );
   expect(power).toBeCloseTo(10 ** (loss / 10), 2);
   await page.screenshot({ path: ".tools/test-results/refined-sources.png" });
-  await page
-    .locator(".source-inspector")
-    .getByRole("button", { name: "V", exact: true })
-    .click();
-  await page
-    .locator(".source-inspector")
-    .getByRole("checkbox", { name: "H + V", exact: true })
-    .check();
   await expect(
-    page.locator('.source-inspector .polar path[stroke="#274fdb"]'),
+    page.locator('.source-inspector .polar path[data-plane="H"]'),
   ).toHaveCount(1);
   expect(
     await page
-      .locator('.source-inspector .polar path[stroke="#274fdb"]')
+      .locator('.source-inspector .polar path[data-plane="H"]')
       .getAttribute("d"),
   ).not.toBe(
     await page
-      .locator('.source-inspector .polar path[stroke="#e02530"]')
+      .locator('.source-inspector .polar path[data-plane="V"]')
       .getAttribute("d"),
   );
 });

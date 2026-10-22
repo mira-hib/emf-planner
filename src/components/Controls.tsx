@@ -129,12 +129,16 @@ export function LimitSelector({ multiple = false }: { multiple?: boolean }) {
             }
             onChange={(e) =>
               multiple
-                ? commit((p) => ({
-                    ...p,
-                    limits: p.limits.map((v, j) =>
-                      i === j ? { ...v, active: e.target.checked } : v,
-                    ),
-                  }))
+                ? commit(
+                    (p) => ({
+                      ...p,
+                      limits: p.limits.map((v, j) =>
+                        i === j ? { ...v, active: e.target.checked } : v,
+                      ),
+                    }),
+                    "Limites affichées modifiées",
+                    false,
+                  )
                 : settings({ selected_limit: i })
             }
           />{" "}

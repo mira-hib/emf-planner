@@ -1,0 +1,93 @@
+.cad-original-layout {
+  gap: 8px;
+  padding: 4px;
+}
+.cad-original-layout .cad-controls {
+  width: 150px;
+}
+.cad-original-layout .cad-controls > fieldset {
+  min-height: 406px;
+  padding: 8px 7px;
+}
+.cad-original-layout .cad-controls > fieldset > label {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 9px;
+  margin: 5px 10px 5px 0;
+}
+.cad-original-layout .cad-controls select {
+  width: 68px;
+  height: 22px;
+  padding: 0 2px;
+}
+.cad-export-tools {
+  gap: 4px;
+  margin-bottom: 12px;
+}
+.cad-export-tools button {
+  padding: 2px 5px;
+  min-width: 32px;
+  height: 28px;
+}
+.cad-export-tools img {
+  width: 20px;
+  height: 20px;
+  vertical-align: middle;
+  margin-right: 3px;
+}
+.cad-original-layout .cad-layer-list {
+  padding: 5px 3px;
+  margin-top: 12px;
+  min-height: 286px;
+}
+.cad-original-layout .cad-layer-list label {
+  display: flex;
+  gap: 3px;
+  align-items: center;
+  margin: 2px 0;
+  min-height: 18px;
+  font-size: 11px;
+}
+.cad-original-layout .cad-layer-list input {
+  margin: 0 2px 0 0;
+}
+.cad-original-layout .cad-paper {
+  position: relative;
+  padding: 35px 8px 20px;
+  overflow: hidden;
+  background: #f0f0f0;
+}
+.cad-original-layout .cad-paper svg {
+  height: 100%;
+  width: 100%;
+  max-height: 100%;
+  background: #f0f0f0;
+  box-shadow: none;
+  touch-action: none;
+  cursor: grab;
+}
+.cad-original-layout .cad-paper svg:active {
+  cursor: grabbing;
+}
+.cad-navigation {
+  position: absolute;
+  top: 3px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 2px;
+  z-index: 1;
+}
+.cad-navigation button {
+  width: 25px;
+  height: 24px;
+  padding: 2px;
+}
+.cad-view-status {
+  position: absolute;
+  bottom: 3px;
+  right: 8px;
+  color: #555;
+  font-size: 10px;
+}

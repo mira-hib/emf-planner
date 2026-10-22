@@ -6,15 +6,23 @@ export function dashPattern(style?: string): string | undefined {
 }
 export function styledContours(
   project: PlannerProject,
-  results: { cut_id?: string; contours: Contour }[],
+  results: { cut_id?: string; limit_index?: number; contours: Contour }[],
 ): Contour[] {
   const single = project.limits.filter((l) => l.active).length === 1;
-  return results.map((r) => {
-    const cut = project.horizontal_cuts.find((c) => c.id === r.cut_id);
-    return {
-      ...r.contours,
-      line_style: cut?.line_style,
-      color: single && cut ? cut.color : r.contours.color,
-    };
-  });
+  return results
+    .filter(
+      (r) =>
+        (r.limit_index === undefined ||
+          project.limits[r.limit_index]?.active !== false) &&
+        project.horizontal_cuts.find((c) => c.id === r.cut_id)?.active !==
+          false,
+    )
+    .map((r) => {
+      const cut = project.horizontal_cuts.find((c) => c.id === r.cut_id);
+      return {
+        ...r.contours,
+        line_style: cut?.line_style,
+        color: single && cut ? cut.color : r.contours.color,
+      };
+    });
 }

@@ -1,31 +1,33 @@
-# Fonctionnalités — état actuel du clone
+# Fonctionnalités — état vérifié du clone
 
-Mise à jour : 20 octobre 2026, session Mac après implémentation complète.
+Mise à jour : 20 octobre 2026, après comparaison Windows de Castelfranco.
 
-| Domaine | Disponible | Encore grisé / partiel |
+Le précédent état « implémentation complète » était trop affirmatif : plusieurs
+commandes ouvraient une boîte ou annonçaient un succès sans réaliser la fonction.
+Les commandes inachevées restent visibles et grisées. Le catalogue central est
+`src/lib/capabilities.ts`.
+
+| Domaine | Disponible | Partiel ou restant |
 |---|---|---|
-| Interface | 16 rubriques, icônes d'origine, grille compacte, panneaux redimensionnables, annuler/rétablir | — |
-| Projets | Import .xemf/.emfp/JSON, sauvegarde .emfp, démonstration, copie locale | Sauvegarde .xemf d'origine (format propriétaire) |
-| Sources | Édition, copie, ordre, couleurs, activation, EIRP, facteurs, MSI, XLSX/XLS/XLT, bibliothèque/éditeur, enveloppes, génération symétrique | Catalogue fabricant complet |
-| Câbles | 36 modèles, interpolation logarithmique, bretelles, connecteurs, pertes annexes, calcul inverse de puissance | — |
-| Limites | Quatre jeux avec coefficients/exposants et activation + **16 préréglages nationaux** (ICNIRP, UE, USA, Suisse, UK, Belgique, Italie, Chine, Russie, Pologne, Inde, Lituanie, Slovénie, Grèce, Croatie, Bulgarie) | — |
-| Carte | SVG hors ligne, Leaflet, calques, zoom/déplacement/règle, centrage, fonds personnalisés, cache, proxy | — |
-| Bâtiments | Dessin, propriétés, copie/ordre, bases depuis terrain, écrans, sommets, translation, KML, **OSM import**, **équarrissage** | — |
-| Terrain | Points, courbes de niveau, fermeture/copie/sommets, interpolation, triangulation affichable, **DEM/SRTM import** | — |
-| Lignes | Routes, clôtures, textes, styles, copie, nœuds, scission, translation, **icônes**, **OSM import routes/clôtures** | — |
-| Points | Gestion et ordre des groupes, hauteurs/mesures, calculs, matrice des sources, alignement sur azimuts, plages de hauteurs | Sélection multiple avancée |
-| Coupes H | Hauteurs d'antennes, tri/couleurs/styles, épaisseur/opacité, intervalles, maxima V, deux grilles, quatre limites, coupe V par règle, **déplacement de la grille**, **rapport illustré** | — |
-| Coupes V | Azimuts d'antennes, intervalles, dimensions, deux grilles, quatre limites, calcul sélectionné, ajustement aux résultats, **coupes automatiques**, **cotes**, **rapport illustré** | — |
-| Tableaux | Champ/exposition selon distance et azimut, résultats points, **tableaux des coupes verticales (champ + exposition)**, **alias standard et personnalisés** | — |
-| Rapports | DOCX, XLSX, PDF, sources et/ou points, prévisualisation, **modèles Word avec 14 alias**, **alias personnalisés**, copier/coller/restaurer | — |
-| CAO | A4/A3/A2, échelle, calques, SVG/PDF/DXF avec contours, **export DWG (DXF)**, **import DWG (DXF)**, **mise en page avancée** | — |
-| 3D | Terrain colorimétrique, bâtiments avec toits et ombres, tours d'antenne avec feux, contours tubes, surface d'exposition Fresnel, **sky dome**, **compass**, **fog**, **ACES tonemapping** | Maillage approximatif réglable |
-| Calibration | Image et emprise géographique éditable, **calibration 2 lignes**, **calibration ligne+point**, **repères au centre**, **refresh tuiles** | — |
-| Paramètres | Propriétaires, formats décimal/DM/DMS, fonds personnalisés, réglages de calcul, **dossier antennes**, **langue**, **cache**, **proxy** | — |
+| Interface | 16 rubriques, icônes originales, grilles compactes, panneaux redimensionnables, annuler/rétablir | Comparaison visuelle complète de chaque écran |
+| Projets | Import .xemf/.emfp/JSON, sauvegarde .emfp, copie locale | Écriture du format .xemf d’origine |
+| Import .xemf | Sources, points, bâtiments, relief, lignes, coupes, limites ; zone rectangulaire, couleurs, réglages d’affichage et contours H/V enregistrés | Autres variantes de sérialisation et propriétés non encore mappées |
+| Antennes | MSI, bibliothèque/éditeur, enveloppes, génération symétrique, câbles ; panneau 30 dB H/V rempli, six icônes, rotation native des échantillons avec ElectUg | Catalogue fabricant complet, lecture d’un dossier d’antennes |
+| Calculs | Points, grilles H/V, quatre limites, terrain, bâtiments, volume 3D | Concordance globale non démontrée : 15 références point/hauteur sur un projet |
+| Limites | Quatre tableaux éditables ; préréglages fournis dans le dépôt | Les préréglages ne constituent pas une validation réglementaire actuelle |
+| Carte et dessin | Fonds Leaflet et plan local, zoom/déplacement/règle, calques, fonds personnalisés ; bâtiments, sommets, KML/OSM ; relief/triangulation ; lignes et groupes de points | Cache explicite et proxy gris ; fidélité des styles/annotations sur toutes les vues à poursuivre |
+| Relief | Points et courbes, interpolation, import local HGT | Téléchargement automatique DEM/SRTM non implémenté |
+| Coupes | Calculs H/V, intervalles, propriétés, tracés sauvegardés importés ; PDF du tableau des coupes | Rapports illustrés et Word des coupes ; les contours importés ne contiennent pas de champs numériques, un recalcul est nécessaire pour les tableaux |
+| Rapports | DOCX/XLSX/PDF des sources et points, aperçu ; PDF des tableaux de coupes | Modèles Word, remplacement des alias et insertion des graphiques gris |
+| CAO | A4 portrait/A3/A2, 30 échelles, dix calques persistés, zone réelle, grille cotée, bâtiments/relief/annotations, azimuts et points ; exports SVG/PDF/DXF papier | DWG natif grisé ; fond en ligne composé et images incorporées au DXF manquants |
+| 3D | Orthographique, terrain blanc, bâtiments gris, seuls mâts TXT explicites, surfaces H remplies, coupes V, routes drapées, six vues, cadrage, zoom, déplacement, calques, volume calculé | Cube visuellement approximatif, tuiles dépendantes du réseau, PDF 3D grisé |
+| Calibration | Image et emprise géographique éditable | Deux lignes, ligne+point, repères et pyramide de tuiles gris |
+| Paramètres | Propriétaires, coordonnées DD/DM/DMS, fonds personnalisés, calculs | Dossier antennes, langues, cache et proxy gris |
 
-Toutes les commandes secondaires de `FeatureTools.tsx` ont désormais une action
-associée. Aucun bouton ne reste grisé avec le tooltip « fonction pas encore
-implémentée ».
+Les résultats de Castelfranco sauvegardés par l’original sont des tracés, pas une
+nouvelle simulation. Ils sont conservés avec cette distinction et invalidés dès
+qu’une modification affecte les calculs. Les valeurs manquantes ne sont pas
+présentées comme nulles.
 
-La concordance mesurée porte sur 15 combinaisons point/hauteur d'un seul projet,
-pas sur toutes les fonctions de l'original.
+Voir `castelfranco-fidelity.md` pour les écarts observés et les preuves de cette
+session, et `reference/antenna-fidelity-audit.md` pour le détail des diagrammes.

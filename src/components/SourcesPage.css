@@ -1,0 +1,48 @@
+.source-inspector .antenna-panel {
+  width: 196px;
+  max-width: 100%;
+  height: 260px;
+  padding: 3px 2px 4px;
+}
+.source-inspector .antenna-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 1px;
+  height: 30px;
+  padding-left: 2px;
+}
+.source-inspector .antenna-toolbar > button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  min-height: 26px;
+  padding: 2px;
+  border-radius: 0;
+}
+.source-inspector .antenna-toolbar .original-icon {
+  width: 20px;
+  height: 20px;
+}
+.source-inspector .antenna-plot {
+  position: relative;
+  width: 190px;
+  max-width: 100%;
+  margin: 8px auto 0;
+}
+.source-inspector .antenna-rotate {
+  position: absolute;
+  right: 0;
+  width: 22px;
+  height: 22px;
+  min-height: 22px;
+  padding: 0;
+  border-radius: 0;
+}
+.source-inspector .antenna-rotate-up {
+  top: 0;
+}
+.source-inspector .antenna-rotate-down {
+  bottom: 0;
+}

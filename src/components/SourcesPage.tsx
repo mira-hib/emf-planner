@@ -1,4 +1,3 @@
-import { useState } from "react";
 import {
   ArrowDown,
   ArrowUp,
@@ -22,11 +21,13 @@ import {
 } from "../lib/files";
 import { parseMsi, writeMsi } from "../lib/antenna";
 import { eirp, patternAmplitude } from "../lib/engine";
+import { beamWidth } from "../lib/editing";
 import { uid } from "../lib/project";
 import DataGrid, { type Column } from "./DataGrid";
 import AntennaPolar from "./AntennaPolar";
 import { NumberField, Tool } from "./Controls";
 import FeatureTools from "./FeatureTools";
+import "./SourcesPage.css";
 const COLUMNS: Column<RadiatingSource>[] = [
   { key: "active", label: "✓", kind: "boolean", width: 28 },
   { key: "name", label: "Nom de la source", width: 110 },
@@ -145,9 +146,8 @@ export default function SourcesPage() {
     addSource,
     task,
     openCommand,
+    rotateSourcePattern,
   } = usePlanner();
-  const [vertical, setVertical] = useState(false),
-    [both, setBoth] = useState(true);
   function move(direction: number) {
     if (!source) return;
     const rows = [...project.sources],
@@ -183,6 +183,8 @@ export default function SourcesPage() {
                   gain_dbi: antenna.gain,
                   pattern_h: antenna.horizontal,
                   pattern_v: antenna.vertical,
+                  beam_width_h_deg: beamWidth(antenna.horizontal),
+                  beam_width_v_deg: beamWidth(antenna.vertical),
                 }
               : s,
           ),
@@ -350,53 +352,81 @@ export default function SourcesPage() {
         </div>
       </section>
       <aside className="source-inspector">
-        <fieldset>
+        <fieldset className="antenna-panel">
           <legend>Diagramme d’antenne</legend>
-          <div className="button-row">
-            <button
-              className={!vertical ? "pressed" : ""}
-              onClick={() => {
-                setVertical(false);
-                setBoth(false);
-              }}
-            >
-              H
-            </button>
-            <button
-              className={vertical ? "pressed" : ""}
-              onClick={() => {
-                setVertical(true);
-                setBoth(false);
-              }}
-            >
-              V
-            </button>
-            <button onClick={importMsi} disabled={!source}>
-              MSI ↓
-            </button>
-            <button
-              onClick={exportMsi}
-              disabled={!source}
-              title="Exporter le diagramme MSI"
-            >
-              ↑
-            </button>
+          <div
+            className="antenna-toolbar"
+            role="toolbar"
+            aria-label="Outils du diagramme d’antenne"
+          >
+            {[
+              {
+                label: "Importer le diagramme MSI",
+                resource: "cmdLoadDN",
+                run: importMsi,
+              },
+              {
+                label: "Choisir un diagramme d’antenne",
+                resource: "cmdLoadDN2",
+                run: () => openCommand("Bibliothèque d’antennes"),
+              },
+              {
+                label: "Créer une enveloppe de diagrammes",
+                resource: "cmdEnvelope",
+                run: () => openCommand("Enveloppe de diagrammes"),
+              },
+              {
+                label: "Créer un diagramme d’antenne symétrique",
+                resource: "cmdApert",
+                run: () => openCommand("Antenne symétrique ITU-R F.699"),
+              },
+              {
+                label: "Exporter le diagramme MSI",
+                resource: "cmdSaveMSI",
+                run: exportMsi,
+              },
+              {
+                label: "Modifier le diagramme d’antenne",
+                resource: "cmdEditorDN",
+                run: () => openCommand("Éditeur de diagramme"),
+              },
+            ].map(({ label, resource, run }) => (
+              <button
+                key={resource}
+                title={label}
+                aria-label={label}
+                disabled={!source}
+                onClick={run}
+              >
+                <img
+                  className="original-icon"
+                  src={`/original-icons/UC_PRTO.${resource}.png`}
+                  alt=""
+                  draggable={false}
+                />
+              </button>
+            ))}
           </div>
-          <div className="polar-legend">
-            <label>
-              <input
-                type="checkbox"
-                checked={both}
-                onChange={(e) => setBoth(e.target.checked)}
-              />
-              H + V
-            </label>
-            <span style={{ color: "#274fdb" }}>― H</span>
-            <span style={{ color: "#e02530" }}>― V</span>
-          </div>
-          <AntennaPolar source={source} vertical={vertical} both={both} />
-          <div className="inspector-note">
-            {source?.antenna_model || "Aucune source"}
+          <div className="antenna-plot">
+            <AntennaPolar source={source} both />
+            <button
+              className="antenna-rotate antenna-rotate-up"
+              title="Tourner le diagramme vertical vers le haut (+1°)"
+              aria-label="Tourner le diagramme vertical vers le haut (+1°)"
+              disabled={source?.pattern_v?.length !== 360}
+              onClick={() => rotateSourcePattern(1)}
+            >
+              +
+            </button>
+            <button
+              className="antenna-rotate antenna-rotate-down"
+              title="Tourner le diagramme vertical vers le bas (−1°)"
+              aria-label="Tourner le diagramme vertical vers le bas (−1°)"
+              disabled={source?.pattern_v?.length !== 360}
+              onClick={() => rotateSourcePattern(-1)}
+            >
+              −
+            </button>
           </div>
         </fieldset>
         <fieldset>

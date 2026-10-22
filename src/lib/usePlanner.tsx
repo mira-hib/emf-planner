@@ -15,7 +15,6 @@ import {
 } from "./project";
 import { chooseFile, readProject, saveProject } from "./files";
 import { terrainHeight, toGeo, toLocal } from "./geometry";
-import { patternAmplitude } from "./engine";
 import type {
   Building,
   Contour,
@@ -28,12 +27,14 @@ import type {
   Section,
 } from "../types";
 import type { DisplayOptions, DrawTool } from "../components/PlannerMap";
+import { PENDING_COMMANDS } from "./capabilities";
 export interface CutResult {
   id: string;
   cut_id?: string;
   limit_index?: number;
   grid: FieldGrid;
   contours: Contour;
+  contours_only?: boolean;
 }
 function initialProject() {
   try {
@@ -53,7 +54,7 @@ export function usePlannerState() {
     [selectedSource, setSelectedSource] = useState(""),
     [selectedPoint, setSelectedPoint] = useState(""),
     [selectedObject, setSelectedObject] = useState(""),
-    [selectedCut, setSelectedCut] = useState("");
+    [selectedCut, setSelectedCut] = useState(project.vertical_cuts[0]?.id ?? "");
   const [command, setCommand] = useState("");
   const [selectedGroup, setSelectedGroup] = useState("");
   const [viewRequest, setViewRequest] = useState<{
@@ -66,13 +67,25 @@ export function usePlannerState() {
     setViewRequest({ center, version: Date.now() });
   }
   function openCommand(name: string) {
+    if (PENDING_COMMANDS[name]) {
+      setStatus(PENDING_COMMANDS[name]);
+      return;
+    }
+    if (name === "Mise en page CAO avancée") {
+      setSection("cad");
+      return;
+    }
     setResultOpen(false);
     setCommand(name);
   }
   const [results, setResults] = useState<PointResult[]>([]),
     [volume, setVolume] = useState<ExposureVolume | null>(null),
-    [cutResults, setCutResults] = useState<CutResult[]>([]),
-    [verticalResults, setVerticalResults] = useState<CutResult[]>([]),
+    [cutResults, setCutResults] = useState<CutResult[]>(
+      project.saved_cut_results?.horizontal ?? [],
+    ),
+    [verticalResults, setVerticalResults] = useState<CutResult[]>(
+      project.saved_cut_results?.vertical ?? [],
+    ),
     [resultOpen, setResultOpen] = useState(false),
     [dirty, setDirty] = useState(false),
     [status, setStatus] = useState("Prêt"),
@@ -91,6 +104,7 @@ export function usePlannerState() {
       contours: true,
       labels: true,
       azimuths: true,
+      ...project.settings.display_options,
     }),
     [tool, setTool] = useState<DrawTool>("pan"),
     [draft, setDraft] = useState<[number, number][]>([]),
@@ -126,7 +140,10 @@ export function usePlannerState() {
       invalidate = true,
     ) => {
       const before = projectRef.current,
-        next = typeof action === "function" ? action(before) : action;
+        changed = typeof action === "function" ? action(before) : action,
+        next = invalidate
+          ? { ...changed, saved_cut_results: undefined }
+          : changed;
       past.current.push(before);
       if (past.current.length > 40) past.current.shift();
       future.current = [];
@@ -146,6 +163,8 @@ export function usePlannerState() {
     setProject(next);
     setDirty(true);
     resetCalculations();
+    setCutResults(next.saved_cut_results?.horizontal ?? []);
+    setVerticalResults(next.saved_cut_results?.vertical ?? []);
     setStatus(redo ? "Modification rétablie" : "Modification annulée");
   }, []);
   const fail = useCallback((e: unknown) => {
@@ -193,6 +212,9 @@ export function usePlannerState() {
     future.current = [];
     projectRef.current = p;
     setProject(p);
+    setCutResults(p.saved_cut_results?.horizontal ?? []);
+    setVerticalResults(p.saved_cut_results?.vertical ?? []);
+    setDisplay((d) => ({ ...d, ...p.settings.display_options }));
     setSelectedSource(p.sources[0]?.id ?? "");
     setSelectedPoint(p.control_points[0]?.id ?? "");
     setSelectedObject("");
@@ -277,9 +299,21 @@ export function usePlannerState() {
       "coordinate_format",
       "contour_width",
       "contour_opacity",
+      "display_options",
+      "building_labels",
+      "control_point_labels",
     ];
     commit(
-      (p) => ({ ...p, settings: { ...p.settings, ...patch } }),
+      (p) => ({
+        ...p,
+        settings: {
+          ...p.settings,
+          ...patch,
+          ...(patch.radius_m !== undefined
+            ? { calculation_area_m: undefined }
+            : {}),
+        },
+      }),
       "Modifications non enregistrées",
       Object.keys(patch).some((k) => !appearance.includes(k)),
     );
@@ -294,20 +328,6 @@ export function usePlannerState() {
       sources: p.sources.map((s) => {
         if (s.id !== id) return s;
         const next = { ...s, [key]: value };
-        if (key === "electrical_downtilt_deg" && s.pattern_v) {
-          const shift = Number(value) - s.electrical_downtilt_deg;
-          next.pattern_v = Array.from(
-            { length: 360 },
-            (_, i) =>
-              -20 *
-              Math.log10(
-                Math.max(
-                  1e-8,
-                  patternAmplitude(s.pattern_v, i - shift, s.beam_width_v_deg),
-                ),
-              ),
-          );
-        }
         if (key === "x_m" || key === "y_m") {
           const [lat, lng] = toGeo(next.x_m ?? 0, next.y_m ?? 0, p.origin);
           Object.assign(next, { lat, lng });
@@ -319,6 +339,38 @@ export function usePlannerState() {
         return next;
       }),
     }));
+  }
+  function rotateSourcePattern(delta: number) {
+    if (!source?.pattern_v?.length || !Number.isInteger(delta)) return;
+    commit((p) => ({
+      ...p,
+      sources: p.sources.map((s) =>
+        s.id !== source.id || !s.pattern_v
+          ? s
+          : {
+              ...s,
+              electrical_downtilt_deg: s.electrical_downtilt_deg + delta,
+              pattern_v: s.pattern_v.map(
+                (_, i, values) =>
+                  values[
+                    (((i + delta) % values.length) + values.length) %
+                      values.length
+                  ],
+              ),
+            },
+      ),
+    }));
+  }
+  function updateDisplay(
+    action: DisplayOptions | ((before: DisplayOptions) => DisplayOptions),
+  ) {
+    const next = typeof action === "function" ? action(display) : action;
+    setDisplay(next);
+    commit(
+      (p) => ({ ...p, settings: { ...p.settings, display_options: next } }),
+      "Affichage modifié",
+      false,
+    );
   }
   function addSource(x = 0, y = 0) {
     const s = newSource(project.origin, `Source ${project.sources.length + 1}`),
@@ -626,7 +678,7 @@ export function usePlannerState() {
     progress,
     elapsed,
     display,
-    setDisplay,
+    setDisplay: updateDisplay,
     tool,
     setTool,
     draft,
@@ -642,6 +694,7 @@ export function usePlannerState() {
     save,
     settings,
     updateSource,
+    rotateSourcePattern,
     addSource,
     addPoint,
     updatePoint,

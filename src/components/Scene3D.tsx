@@ -1,253 +1,330 @@
 import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+import {
+  Hand,
+  Orbit,
+  Scan,
+  ZoomIn,
+  ZoomOut,
+  Layers,
+  Home,
+  FileUp,
+} from "lucide-react";
 import type { Contour, ExposureVolume, PlannerProject } from "../types";
-import { terrainHeight, terrainMesh, toLocal } from "../lib/geometry";
+import type { CutResult } from "../lib/usePlanner";
+import { terrainHeight, terrainMesh, toGeo } from "../lib/geometry";
+import {
+  closedContourPolygons,
+  contourPaths,
+  horizontalPosition,
+  mastDimensions,
+  mastEdges,
+  mastFoundation,
+  scenePosition,
+  verticalPosition,
+} from "../lib/scene-geometry";
+import { mapProviders } from "./PlannerMap";
+import "./Scene3D.css";
 
-const BUILDING_COLORS = [0x8e9a9d, 0x9b9d9c, 0xa5a8a7, 0x929796, 0x989c9b];
-const ROOF_COLORS = [0x7a8688, 0x849092, 0x8a9496, 0x7e8a8c, 0x889294];
+type View = "home" | "top" | "bottom" | "front" | "back" | "left" | "right";
+type Layer =
+  "buildings" | "roads" | "masts" | "horizontal" | "vertical" | "volume";
+const LAYERS: [Layer, string][] = [
+  ["buildings", "Bâtiments"],
+  ["roads", "Routes"],
+  ["masts", "Mâts dessinés"],
+  ["horizontal", "Coupes horizontales"],
+  ["vertical", "Coupes verticales"],
+  ["volume", "Volume calculé"],
+];
+const VIEWS: [View, string][] = [
+  ["top", "Haut"],
+  ["bottom", "Bas"],
+  ["front", "Face"],
+  ["back", "Arrière"],
+  ["left", "Gauche"],
+  ["right", "Droite"],
+];
 
-function makeTextSprite(text: string, color = "#445566", size = 3): THREE.Sprite {
+function makeBackground() {
   const canvas = document.createElement("canvas");
-  const ctx = canvas.getContext("2d")!;
-  const fontSize = 64;
-  canvas.width = 256;
-  canvas.height = 128;
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  ctx.font = `bold ${fontSize}px sans-serif`;
-  ctx.fillStyle = color;
-  ctx.textAlign = "center";
-  ctx.textBaseline = "middle";
-  ctx.fillText(text, canvas.width / 2, canvas.height / 2);
-  const tex = new THREE.CanvasTexture(canvas);
-  tex.needsUpdate = true;
-  const mat = new THREE.SpriteMaterial({ map: tex, transparent: true, depthTest: false });
-  const sprite = new THREE.Sprite(mat);
-  sprite.scale.set(size * 2, size, 1);
-  return sprite;
+  canvas.width = 1;
+  canvas.height = 256;
+  const context = canvas.getContext("2d")!,
+    gradient = context.createLinearGradient(0, 0, 0, 256);
+  gradient.addColorStop(0, "#66a3d2");
+  gradient.addColorStop(1, "#f5f5f5");
+  context.fillStyle = gradient;
+  context.fillRect(0, 0, 1, 256);
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.colorSpace = THREE.SRGBColorSpace;
+  return texture;
 }
 
-function createSkyDome(radius: number): THREE.Mesh {
-  const geo = new THREE.SphereGeometry(radius, 32, 16);
-  const vertexShader = `
-    varying vec3 vWorldPosition;
-    void main() {
-      vec4 worldPosition = modelMatrix * vec4(position, 1.0);
-      vWorldPosition = worldPosition.xyz;
-      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-    }
-  `;
-  const fragmentShader = `
-    uniform vec3 topColor;
-    uniform vec3 horizonColor;
-    uniform float offset;
-    uniform float exponent;
-    varying vec3 vWorldPosition;
-    void main() {
-      float h = normalize(vWorldPosition + offset).y;
-      gl_FragColor = vec4(mix(horizonColor, topColor, max(pow(max(h, 0.0), exponent), 0.0)), 1.0);
-    }
-  `;
-  const mat = new THREE.ShaderMaterial({
-    vertexShader,
-    fragmentShader,
-    uniforms: {
-      topColor: { value: new THREE.Color(0x6baed6) },
-      horizonColor: { value: new THREE.Color(0xe8eff5) },
-      offset: { value: 10 },
-      exponent: { value: 0.6 },
-    },
-    side: THREE.BackSide,
-    depthWrite: false,
-  });
-  return new THREE.Mesh(geo, mat);
+function lineObject(points: THREE.Vector3[], color: string | number) {
+  return new THREE.Line(
+    new THREE.BufferGeometry().setFromPoints(points),
+    new THREE.LineBasicMaterial({ color }),
+  );
 }
 
-function createGroundPlane(radius: number): THREE.Group {
-  const group = new THREE.Group();
-  const planeGeo = new THREE.PlaneGeometry(radius * 2.5, radius * 2.5);
-  const planeMat = new THREE.MeshStandardMaterial({
-    color: 0xc8d4c0,
-    roughness: 0.95,
-    metalness: 0,
-    transparent: true,
-    opacity: 0.85,
-  });
-  const plane = new THREE.Mesh(planeGeo, planeMat);
-  plane.rotation.x = -Math.PI / 2;
-  plane.position.y = -0.05;
-  plane.receiveShadow = true;
-  group.add(plane);
-
-  const grid = new THREE.GridHelper(radius * 2, 20, 0x8b999c, 0xc4cdcc);
-  (grid.material as THREE.Material).transparent = true;
-  (grid.material as THREE.Material).opacity = 0.45;
-  group.add(grid);
-
-  return group;
-}
-
-function createCompassLabels(radius: number): THREE.Group {
-  const group = new THREE.Group();
-  const labels = [
-    { text: "N", pos: [0, 2, -radius - 8], color: "#cc3333" },
-    { text: "S", pos: [0, 2, radius + 8], color: "#556677" },
-    { text: "E", pos: [radius + 8, 2, 0], color: "#556677" },
-    { text: "W", pos: [-radius - 8, 2, 0], color: "#556677" },
-  ];
-  for (const l of labels) {
-    const sprite = makeTextSprite(l.text, l.color, 5);
-    sprite.position.set(l.pos[0], l.pos[1], l.pos[2]);
-    group.add(sprite);
+function addHorizontal(group: THREE.Group, contour: Contour) {
+  const paths = contourPaths(contour);
+  for (const path of paths)
+    group.add(
+      lineObject(
+        path.map(
+          (point) =>
+            new THREE.Vector3(...horizontalPosition(point, contour.height_m)),
+        ),
+        contour.color,
+      ),
+    );
+  for (const { outer, holes } of closedContourPolygons(paths)) {
+    const shape = new THREE.Shape(outer.map((p) => new THREE.Vector2(...p)));
+    shape.holes = holes.map(
+      (hole) => new THREE.Path(hole.map((p) => new THREE.Vector2(...p))),
+    );
+    const geometry = new THREE.ShapeGeometry(shape);
+    geometry.rotateX(-Math.PI / 2);
+    geometry.translate(0, contour.height_m, 0);
+    group.add(
+      new THREE.Mesh(
+        geometry,
+        new THREE.MeshBasicMaterial({
+          color: contour.color,
+          transparent: true,
+          opacity: 70 / 255,
+          side: THREE.DoubleSide,
+          depthWrite: false,
+        }),
+      ),
+    );
   }
-
-  const arrowDir = new THREE.Vector3(0, 0, -1);
-  const arrowOrigin = new THREE.Vector3(0, 3, -radius - 2);
-  const arrow = new THREE.ArrowHelper(arrowDir, arrowOrigin, 5, 0xcc3333, 2, 1.5);
-  group.add(arrow);
-
-  return group;
 }
 
-function createTower(height: number, terrainY: number): THREE.Group {
-  const group = new THREE.Group();
-
-  const towerGeo = new THREE.CylinderGeometry(0.2, 0.8, height, 8);
-  const towerMat = new THREE.MeshStandardMaterial({
-    color: 0x4a5a63,
-    roughness: 0.7,
-    metalness: 0.3,
-  });
-  const tower = new THREE.Mesh(towerGeo, towerMat);
-  tower.position.y = terrainY + height / 2;
-  tower.castShadow = true;
-  group.add(tower);
-
-  const crossbarCount = Math.max(2, Math.floor(height / 5));
-  for (let i = 1; i <= crossbarCount; i++) {
-    const y = terrainY + (height * i) / (crossbarCount + 1);
-    const barWidth = 0.8 - (0.5 * i) / (crossbarCount + 1);
-    const barGeo = new THREE.BoxGeometry(barWidth * 2, 0.12, 0.12);
-    const bar = new THREE.Mesh(barGeo, towerMat);
-    bar.position.y = y;
-    bar.castShadow = true;
-    group.add(bar);
-  }
-
-  const lightGeo = new THREE.SphereGeometry(0.4, 8, 8);
-  const lightMat = new THREE.MeshStandardMaterial({
-    color: 0xff2222,
-    emissive: 0xff0000,
-    emissiveIntensity: 0.8,
-    roughness: 0.3,
-  });
-  const light = new THREE.Mesh(lightGeo, lightMat);
-  light.position.y = terrainY + height + 0.5;
-  group.add(light);
-
-  return group;
-}
-
-function createAntenna(
-  size: number,
-  azimuthDeg: number,
-  x: number,
-  baseY: number,
-  z: number,
-): THREE.Group {
-  const group = new THREE.Group();
-  const antennaH = Math.max(0.6, size);
-  const boxGeo = new THREE.BoxGeometry(0.4, antennaH, 0.2);
-  const antennaMat = new THREE.MeshStandardMaterial({
-    color: 0xe8e8df,
-    roughness: 0.6,
-    metalness: 0.15,
-  });
-  const antenna = new THREE.Mesh(boxGeo, antennaMat);
-  antenna.castShadow = true;
-  group.add(antenna);
-
-  const bracketGeo = new THREE.CylinderGeometry(0.06, 0.06, 1.2, 6);
-  const bracketMat = new THREE.MeshStandardMaterial({ color: 0x555555, roughness: 0.8, metalness: 0.4 });
-  const bracket = new THREE.Mesh(bracketGeo, bracketMat);
-  bracket.rotation.z = Math.PI / 2;
-  bracket.position.x = -0.6;
-  group.add(bracket);
-
-  group.position.set(x + 0.8, baseY, z);
-  group.rotation.y = (-azimuthDeg * Math.PI) / 180;
-  return group;
-}
-
-function createVolumeMesh(
-  volume: ExposureVolume,
-  originHeight: number,
-  color: string,
-): THREE.Mesh {
-  const geometry = new THREE.BufferGeometry();
+function makeVolume(volume: ExposureVolume, originAltitude: number) {
   const positions = new Float32Array(volume.positions.length);
-  for (let i = 0; i < positions.length; i += 3) {
-    positions[i] = volume.positions[i];
-    positions[i + 1] = volume.positions[i + 2] - originHeight;
-    positions[i + 2] = -volume.positions[i + 1];
-  }
+  for (let i = 0; i < positions.length; i += 3)
+    positions.set(
+      scenePosition(
+        volume.positions[i],
+        volume.positions[i + 1],
+        volume.positions[i + 2],
+        originAltitude,
+      ),
+      i,
+    );
+  const geometry = new THREE.BufferGeometry();
   geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
   geometry.computeVertexNormals();
+  return new THREE.Mesh(
+    geometry,
+    new THREE.MeshLambertMaterial({
+      color: volume.color,
+      side: THREE.DoubleSide,
+      transparent: true,
+      opacity: 0.4,
+      depthWrite: false,
+    }),
+  );
+}
 
-  const vertexShader = `
-    varying vec3 vNormal;
-    varying vec3 vViewDir;
-    void main() {
-      vNormal = normalize(normalMatrix * normal);
-      vec4 mvPos = modelViewMatrix * vec4(position, 1.0);
-      vViewDir = normalize(-mvPos.xyz);
-      gl_Position = projectionMatrix * mvPos;
+/** Project the same tile map onto the terrain; unavailable tiles leave a white surface. */
+function applyMapTexture(
+  project: PlannerProject,
+  mesh: THREE.Mesh,
+  points: { x: number; y: number }[],
+) {
+  if (!project.settings.show_basemap || !points.length) return () => {};
+  const provider = mapProviders(project)[project.settings.map_provider];
+  if (!provider) return () => {};
+  const west = Math.min(...points.map((p) => p.x)),
+    east = Math.max(...points.map((p) => p.x));
+  const south = Math.min(...points.map((p) => p.y)),
+    north = Math.max(...points.map((p) => p.y));
+  const [southLat, westLng] = toGeo(west, south, project.origin),
+    [northLat, eastLng] = toGeo(east, north, project.origin);
+  const tile = (lat: number, lng: number, zoom: number) => {
+    const n = 2 ** zoom,
+      r = (lat * Math.PI) / 180;
+    return [
+      ((lng + 180) / 360) * n,
+      ((1 - Math.log(Math.tan(r) + 1 / Math.cos(r)) / Math.PI) / 2) * n,
+    ];
+  };
+  let zoom = Math.max(0, Math.min(19, Math.round(project.map_zoom))),
+    nw = tile(northLat, westLng, zoom),
+    se = tile(southLat, eastLng, zoom);
+  while (
+    zoom > 0 &&
+    ((Math.ceil(se[0]) - Math.floor(nw[0])) *
+      (Math.ceil(se[1]) - Math.floor(nw[1])) >
+      128 ||
+      Math.ceil(se[0]) - Math.floor(nw[0]) > 15 ||
+      Math.ceil(se[1]) - Math.floor(nw[1]) > 15)
+  ) {
+    zoom--;
+    nw = tile(northLat, westLng, zoom);
+    se = tile(southLat, eastLng, zoom);
+  }
+  const left = Math.floor(nw[0]),
+    top = Math.floor(nw[1]),
+    right = Math.floor(se[0]),
+    bottom = Math.floor(se[1]);
+  const canvas = document.createElement("canvas");
+  canvas.width = (right - left + 1) * 256;
+  canvas.height = (bottom - top + 1) * 256;
+  const context = canvas.getContext("2d")!;
+  context.fillStyle = "white";
+  context.fillRect(0, 0, canvas.width, canvas.height);
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.colorSpace = THREE.SRGBColorSpace;
+  const uv = new Float32Array(points.length * 2);
+  for (let i = 0; i < points.length; i++) {
+    const [lat, lng] = toGeo(points[i].x, points[i].y, project.origin),
+      [tx, ty] = tile(lat, lng, zoom);
+    uv[i * 2] = (tx - left) / (right - left + 1);
+    uv[i * 2 + 1] = 1 - (ty - top) / (bottom - top + 1);
+  }
+  mesh.geometry.setAttribute("uv", new THREE.BufferAttribute(uv, 2));
+  const material = mesh.material as THREE.MeshBasicMaterial;
+  material.map = texture;
+  material.needsUpdate = true;
+  let disposed = false;
+  const images: HTMLImageElement[] = [];
+  for (let x = left; x <= right; x++)
+    for (let y = top; y <= bottom; y++) {
+      const image = new Image();
+      image.crossOrigin = "anonymous";
+      image.onload = () => {
+        if (!disposed) {
+          context.drawImage(image, (x - left) * 256, (y - top) * 256, 256, 256);
+          texture.needsUpdate = true;
+        }
+      };
+      image.src = provider.url
+        .replace(/\{z\}/g, String(zoom))
+        .replace(/\{x\}/g, String(x))
+        .replace(/\{y\}/g, String(y))
+        .replace(/\{-y\}/g, String(2 ** zoom - 1 - y))
+        .replace(/\{s\}/g, "a")
+        .replace(/\{r\}/g, "");
+      images.push(image);
     }
-  `;
-  const fragmentShader = `
-    uniform vec3 baseColor;
-    uniform float opacity;
-    varying vec3 vNormal;
-    varying vec3 vViewDir;
-    void main() {
-      float fresnel = pow(1.0 - abs(dot(vNormal, vViewDir)), 2.5);
-      vec3 rim = mix(baseColor, vec3(1.0), fresnel * 0.5);
-      float diffuse = max(dot(vNormal, normalize(vec3(1.0, 2.0, 0.5))), 0.0);
-      vec3 final = rim * (0.4 + 0.6 * diffuse);
-      gl_FragColor = vec4(final, opacity + fresnel * 0.2);
-    }
-  `;
+  return () => {
+    disposed = true;
+    images.forEach((image) => {
+      image.onload = null;
+      image.src = "";
+    });
+    texture.dispose();
+  };
+}
 
-  const c = new THREE.Color(color);
-  const mat = new THREE.ShaderMaterial({
-    vertexShader,
-    fragmentShader,
-    uniforms: {
-      baseColor: { value: c },
-      opacity: { value: 0.42 },
-    },
-    transparent: true,
-    side: THREE.DoubleSide,
-    depthWrite: false,
+/** UC_3D rasterizes roads into the terrain surface, avoiding floating segments. */
+function makeRoadOverlay(
+  project: PlannerProject,
+  geometry: THREE.BufferGeometry,
+  points: { x: number; y: number }[],
+) {
+  const west = Math.min(...points.map((point) => point.x)),
+    east = Math.max(...points.map((point) => point.x));
+  const south = Math.min(...points.map((point) => point.y)),
+    north = Math.max(...points.map((point) => point.y));
+  const width = Math.max(1, east - west),
+    height = Math.max(1, north - south);
+  const scale = Math.min(2.5, 4096 / Math.max(width, height));
+  const canvas = document.createElement("canvas");
+  canvas.width = Math.max(1, Math.round(width * scale));
+  canvas.height = Math.max(1, Math.round(height * scale));
+  const context = canvas.getContext("2d")!;
+  const roads = project.lines.filter(
+    (line) => line.kind === "road" && line.points.length > 1,
+  );
+  for (const inner of [false, true])
+    for (const road of roads) {
+      const lineWidth =
+        Math.max(0.1, road.width) * scale -
+        (inner ? (road.border_width ?? 1) : 0);
+      if (lineWidth <= 0) continue;
+      context.beginPath();
+      road.points.forEach(([x, y], index) => {
+        const px = ((x - west) / width) * canvas.width,
+          py = ((north - y) / height) * canvas.height;
+        if (index) context.lineTo(px, py);
+        else context.moveTo(px, py);
+      });
+      context.strokeStyle = inner ? "white" : "black";
+      context.lineWidth = lineWidth;
+      context.stroke();
+    }
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.colorSpace = THREE.SRGBColorSpace;
+  const roadGeometry = geometry.clone(),
+    uv = new Float32Array(points.length * 2);
+  points.forEach((point, index) => {
+    uv[index * 2] = (point.x - west) / width;
+    uv[index * 2 + 1] = (point.y - south) / height;
   });
-
-  return new THREE.Mesh(geometry, mat);
+  roadGeometry.setAttribute("uv", new THREE.BufferAttribute(uv, 2));
+  return {
+    texture,
+    mesh: new THREE.Mesh(
+      roadGeometry,
+      new THREE.MeshBasicMaterial({
+        map: texture,
+        transparent: true,
+        side: THREE.DoubleSide,
+        depthWrite: false,
+        polygonOffset: true,
+        polygonOffsetFactor: -2,
+        polygonOffsetUnits: -2,
+      }),
+    ),
+  };
 }
 
 export default function Scene3D({
   project,
   contours,
+  verticalResults = [],
   volume,
 }: {
   project: PlannerProject;
   contours: Contour[];
+  verticalResults?: CutResult[];
   volume?: ExposureVolume | null;
 }) {
   const host = useRef<HTMLDivElement>(null),
+    axesHost = useRef<SVGSVGElement>(null),
     [error, setError] = useState("");
+  const commands = useRef<{
+    view: (view: View) => void;
+    fit: () => void;
+    zoom: (factor: number) => void;
+    mode: (mode: "pan" | "rotate") => void;
+    layer: (name: Layer, show: boolean) => void;
+  } | null>(null);
+  const [mode, setMode] = useState<"pan" | "rotate">("rotate"),
+    [layersOpen, setLayersOpen] = useState(false);
+  const [layers, setLayers] = useState<Record<Layer, boolean>>({
+    buildings: true,
+    roads: project.settings.display_options?.lines !== false,
+    masts: true,
+    horizontal: true,
+    vertical: true,
+    volume: true,
+  });
+  const layersRef = useRef(layers),
+    modeRef = useRef(mode);
+  layersRef.current = layers;
+  modeRef.current = mode;
+
   useEffect(() => {
-    const el = host.current;
-    if (!el) return;
+    const element = host.current;
+    if (!element) return;
     let renderer: THREE.WebGLRenderer;
     try {
       renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
@@ -255,262 +332,443 @@ export default function Scene3D({
       setError("Le rendu 3D nécessite WebGL. La vue CAO reste disponible.");
       return;
     }
-
-    renderer.shadowMap.enabled = true;
-    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    setError("");
     renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
-    renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.1;
-    el.append(renderer.domElement);
-
-    const scene = new THREE.Scene();
-    const radius = project.settings.radius_m;
-    const originHeight = terrainHeight(project, 0, 0);
-
-    scene.add(createSkyDome(radius * 5));
-    scene.fog = new THREE.FogExp2(0xe0e8ef, 0.0004);
-
-    const camera = new THREE.PerspectiveCamera(35, 1, 0.1, radius * 12);
-    camera.position.set(radius * 1.3, radius * 0.9, radius * 1.6);
-
-    const controls = new OrbitControls(camera, renderer.domElement);
-    controls.enableDamping = true;
-    controls.dampingFactor = 0.08;
-    controls.maxPolarAngle = Math.PI / 2.05;
-    controls.minDistance = 2;
-    controls.maxDistance = radius * 5;
-
-    const hemiLight = new THREE.HemisphereLight(0xb1cce0, 0x8a9b6b, 1.2);
-    scene.add(hemiLight);
-
-    const sun = new THREE.DirectionalLight(0xfff5e8, 2.8);
-    sun.position.set(radius * 0.8, radius * 1.5, radius * 0.5);
-    sun.castShadow = true;
-    sun.shadow.mapSize.width = 2048;
-    sun.shadow.mapSize.height = 2048;
-    const shadowSize = Math.min(radius * 1.5, 500);
-    sun.shadow.camera.left = -shadowSize;
-    sun.shadow.camera.right = shadowSize;
-    sun.shadow.camera.top = shadowSize;
-    sun.shadow.camera.bottom = -shadowSize;
-    sun.shadow.camera.far = radius * 4;
-    sun.shadow.bias = -0.0003;
-    scene.add(sun);
-
-    const fill = new THREE.DirectionalLight(0xb0c4de, 0.6);
-    fill.position.set(-100, 50, -100);
-    scene.add(fill);
-
-    scene.add(createGroundPlane(radius));
-    scene.add(createCompassLabels(radius));
-
-    // Terrain mesh with height-based coloring
-    const terrain = terrainMesh(project);
-    if (terrain.points.length >= 3) {
-      const points = terrain.points;
-      const geo = new THREE.BufferGeometry();
-      const posArr = points.flatMap((p) => [p.x, p.elevation - originHeight, -p.y]);
-      geo.setAttribute("position", new THREE.Float32BufferAttribute(posArr, 3));
-      geo.setIndex(Array.from(terrain.triangles));
-      geo.computeVertexNormals();
-
-      const elevations = points.map((p) => p.elevation - originHeight);
-      const minElev = Math.min(...elevations);
-      const maxElev = Math.max(...elevations);
-      const range = maxElev - minElev || 1;
-      const colors = new Float32Array(points.length * 3);
-      const lowColor = new THREE.Color(0x7daa68);
-      const highColor = new THREE.Color(0xa89068);
-      for (let i = 0; i < points.length; i++) {
-        const t = (elevations[i] - minElev) / range;
-        const c = lowColor.clone().lerp(highColor, t);
-        colors[i * 3] = c.r;
-        colors[i * 3 + 1] = c.g;
-        colors[i * 3 + 2] = c.b;
-      }
-      geo.setAttribute("color", new THREE.Float32BufferAttribute(colors, 3));
-
-      const terrainMesh3d = new THREE.Mesh(
-        geo,
-        new THREE.MeshStandardMaterial({
-          vertexColors: true,
-          side: THREE.DoubleSide,
-          transparent: true,
-          opacity: 0.85,
-          roughness: 0.9,
-          metalness: 0,
-        }),
-      );
-      terrainMesh3d.receiveShadow = true;
-      scene.add(terrainMesh3d);
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.setClearColor(0xf5f5f5);
+    element.prepend(renderer.domElement);
+    renderer.domElement.setAttribute("aria-label", "Modèle 3D du projet");
+    const scene = new THREE.Scene(),
+      background = makeBackground();
+    scene.background = background;
+    const content = new THREE.Group();
+    scene.add(content);
+    const groups = Object.fromEntries(
+      LAYERS.map(([name]) => [name, new THREE.Group()]),
+    ) as Record<Layer, THREE.Group>;
+    for (const [name] of LAYERS) {
+      groups[name].visible = layersRef.current[name];
+      content.add(groups[name]);
     }
+    scene.add(new THREE.AmbientLight(0xffffff, 0.8));
+    const light = new THREE.DirectionalLight(0xffffff, 1);
+    light.position.set(-200, 400, 300);
+    scene.add(light);
+    const originAltitude = terrainHeight(project, 0, 0),
+      terrain = terrainMesh(project);
+    const area = project.settings.calculation_area_m ?? {
+      x_min: -project.settings.radius_m,
+      x_max: project.settings.radius_m,
+      y_min: -project.settings.radius_m,
+      y_max: project.settings.radius_m,
+    };
+    const terrainPoints =
+      terrain.points.length >= 3
+        ? terrain.points
+        : [
+            { x: area.x_min, y: area.y_min, elevation: 0 },
+            { x: area.x_max, y: area.y_min, elevation: 0 },
+            { x: area.x_max, y: area.y_max, elevation: 0 },
+            { x: area.x_min, y: area.y_max, elevation: 0 },
+          ];
+    const terrainGeometry = new THREE.BufferGeometry();
+    terrainGeometry.setAttribute(
+      "position",
+      new THREE.Float32BufferAttribute(
+        terrainPoints.flatMap((point) =>
+          scenePosition(point.x, point.y, point.elevation, originAltitude),
+        ),
+        3,
+      ),
+    );
+    terrainGeometry.setIndex(
+      terrain.points.length >= 3
+        ? Array.from(terrain.triangles)
+        : [0, 1, 2, 0, 2, 3],
+    );
+    terrainGeometry.computeVertexNormals();
+    const ground = new THREE.Mesh(
+      terrainGeometry,
+      new THREE.MeshBasicMaterial({
+        color: 0xffffff,
+        side: THREE.DoubleSide,
+      }),
+    );
+    content.add(ground);
+    const releaseMap = applyMapTexture(project, ground, terrainPoints);
+    const roadOverlay = makeRoadOverlay(
+      project,
+      terrainGeometry,
+      terrainPoints,
+    );
+    groups.roads.add(roadOverlay.mesh);
 
-    // Buildings with variation and shadows
-    for (const [bi, b] of project.buildings.entries()) {
-      if (b.points.length < 3) continue;
+    for (const building of project.buildings) {
+      if (building.points.length < 3) continue;
       const shape = new THREE.Shape(
-        b.points.map((p) => new THREE.Vector2(p[0], p[1])),
+        building.points.map((point) => new THREE.Vector2(...point)),
       );
       const geometry = new THREE.ExtrudeGeometry(shape, {
-        depth: b.height_m,
+        depth: building.height_m,
         bevelEnabled: false,
       });
       geometry.rotateX(-Math.PI / 2);
-      geometry.translate(0, b.foundation_m - originHeight, 0);
-
-      const wallColor = BUILDING_COLORS[bi % BUILDING_COLORS.length];
-      const mesh = new THREE.Mesh(
-        geometry,
-        new THREE.MeshStandardMaterial({
-          color: wallColor,
-          roughness: 0.85,
-          metalness: 0.05,
-        }),
-      );
-      mesh.castShadow = true;
-      mesh.receiveShadow = true;
-      scene.add(mesh);
-
-      // Rooftop
-      const roofShape = new THREE.Shape(
-        b.points.map((p) => new THREE.Vector2(p[0], p[1])),
-      );
-      const roofGeo = new THREE.ShapeGeometry(roofShape);
-      roofGeo.rotateX(-Math.PI / 2);
-      const roofY = b.foundation_m - originHeight + b.height_m;
-      roofGeo.translate(0, roofY + 0.01, 0);
-      const roofMesh = new THREE.Mesh(
-        roofGeo,
-        new THREE.MeshStandardMaterial({
-          color: ROOF_COLORS[bi % ROOF_COLORS.length],
-          roughness: 0.75,
-          metalness: 0.1,
-        }),
-      );
-      roofMesh.receiveShadow = true;
-      scene.add(roofMesh);
-
-      // Edges
-      scene.add(
-        new THREE.LineSegments(
-          new THREE.EdgesGeometry(geometry),
-          new THREE.LineBasicMaterial({ color: 0x3a4040, linewidth: 1 }),
+      geometry.translate(0, building.foundation_m - originAltitude, 0);
+      groups.buildings.add(
+        new THREE.Mesh(
+          geometry,
+          new THREE.MeshLambertMaterial({
+            color: 0x808080,
+            side: THREE.DoubleSide,
+          }),
         ),
       );
     }
 
-    // Antenna towers and panels
-    const sourcesGrouped = new Map<string, typeof project.sources>();
-    for (const s of project.sources.filter((s) => s.active !== false)) {
-      const key = `${s.lat.toFixed(8)},${s.lng.toFixed(8)}`;
-      if (!sourcesGrouped.has(key)) sourcesGrouped.set(key, []);
-      sourcesGrouped.get(key)!.push(s);
+    for (const annotation of project.lines.filter(
+      (line) => line.kind === "label",
+    )) {
+      const dimensions = mastDimensions(annotation.name),
+        point = annotation.points[0];
+      if (!dimensions || !point) continue;
+      const edges = mastEdges(
+        dimensions,
+        point[0],
+        point[1],
+        mastFoundation(project, ...point),
+        originAltitude,
+      );
+      const geometry = new THREE.BufferGeometry().setFromPoints(
+        edges.flatMap((edge) => edge.map((p) => new THREE.Vector3(...p))),
+      );
+      groups.masts.add(
+        new THREE.LineSegments(
+          geometry,
+          new THREE.LineBasicMaterial({ color: 0x000000 }),
+        ),
+      );
     }
-    for (const [, sources] of sourcesGrouped) {
-      const s0 = sources[0];
-      const [x, y] = toLocal(s0.lat, s0.lng, project.origin);
-      const maxH = Math.max(...sources.map((s) => s.height_m));
-      const terrainY = terrainHeight(project, x, y) - originHeight;
-
-      const towerGroup = createTower(maxH, terrainY);
-      towerGroup.position.x = x;
-      towerGroup.position.z = -y;
-      scene.add(towerGroup);
-
-      for (const s of sources) {
-        const antennaGroup = createAntenna(
-          s.antenna_size_m,
-          s.azimuth_deg,
-          x,
-          terrainY + s.height_m,
-          -y,
+    for (const contour of contours) addHorizontal(groups.horizontal, contour);
+    for (const result of verticalResults) {
+      const cut = project.vertical_cuts.find(
+        (cut) => cut.id === (result.cut_id ?? result.id),
+      );
+      if (!cut?.active) continue;
+      for (const path of contourPaths(result.contours))
+        groups.vertical.add(
+          lineObject(
+            path.map(
+              (point) => new THREE.Vector3(...verticalPosition(point, cut)),
+            ),
+            result.contours.color,
+          ),
         );
-        scene.add(antennaGroup);
-      }
     }
+    if (volume?.positions.length)
+      groups.volume.add(makeVolume(volume, originAltitude));
 
-    // Contour lines with tube geometry for thickness
-    for (const c of contours) {
-      for (const seg of c.segments) {
-        if (seg.length < 2) continue;
-        const pts = seg.map(
-          (p) => new THREE.Vector3(p[0], c.height_m - originHeight, -p[1]),
-        );
-        const curve = new THREE.CatmullRomCurve3(pts, false);
-        const tubeGeo = new THREE.TubeGeometry(curve, Math.max(2, pts.length), 0.25, 4, false);
-        const tubeMat = new THREE.MeshStandardMaterial({
-          color: c.color,
-          roughness: 0.5,
-          metalness: 0.1,
-          transparent: true,
-          opacity: 0.85,
-        });
-        scene.add(new THREE.Mesh(tubeGeo, tubeMat));
-      }
-
-      // Height label at the first segment
-      if (c.segments.length > 0 && c.segments[0].length > 0) {
-        const p = c.segments[0][0];
-        const label = makeTextSprite(
-          `${c.height_m.toFixed(0)}m`,
-          c.color,
-          2.5,
-        );
-        label.position.set(p[0], c.height_m - originHeight + 1.5, -p[1]);
-        scene.add(label);
-      }
-    }
-
-    // Volume (exposure surface) with fresnel shader
-    if (volume?.positions.length) {
-      scene.add(createVolumeMesh(volume, originHeight, volume.color));
-    }
-
-    // Axes helper in corner (small)
-    const axesHelper = new THREE.AxesHelper(Math.min(radius * 0.08, 10));
-    axesHelper.position.set(-radius, 0.1, radius);
-    scene.add(axesHelper);
-
-    // Resize observer
-    const observer = new ResizeObserver(() => {
-      renderer.setSize(el.clientWidth, el.clientHeight);
-      camera.aspect = el.clientWidth / Math.max(1, el.clientHeight);
+    const camera = new THREE.OrthographicCamera(
+        -100,
+        100,
+        100,
+        -100,
+        0.1,
+        100000,
+      ),
+      controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.12;
+    controls.minZoom = 0.02;
+    controls.maxZoom = 500;
+    controls.mouseButtons.MIDDLE = THREE.MOUSE.ROTATE;
+    controls.mouseButtons.RIGHT = THREE.MOUSE.PAN;
+    const setMode = (mode: "pan" | "rotate") => {
+      controls.mouseButtons.LEFT =
+        mode === "pan" ? THREE.MOUSE.PAN : THREE.MOUSE.ROTATE;
+    };
+    setMode(modeRef.current);
+    const boundingBox = () => {
+      const box = new THREE.Box3();
+      content.traverseVisible((object) => {
+        if (object instanceof THREE.Mesh || object instanceof THREE.Line) {
+          object.geometry.computeBoundingBox();
+          if (object.geometry.boundingBox)
+            box.union(
+              object.geometry.boundingBox
+                .clone()
+                .applyMatrix4(object.matrixWorld),
+            );
+        }
+      });
+      return box.isEmpty()
+        ? new THREE.Box3(
+            new THREE.Vector3(-10, 0, -10),
+            new THREE.Vector3(10, 10, 10),
+          )
+        : box;
+    };
+    let frustumHeight = 200;
+    const resize = () => {
+      const width = element.clientWidth,
+        height = Math.max(1, element.clientHeight),
+        aspect = width / height;
+      renderer.setSize(width, height);
+      camera.left = (-frustumHeight * aspect) / 2;
+      camera.right = -camera.left;
+      camera.top = frustumHeight / 2;
+      camera.bottom = -camera.top;
       camera.updateProjectionMatrix();
-    });
-    observer.observe(el);
-
+    };
+    const fit = () => {
+      content.updateMatrixWorld(true);
+      const box = boundingBox(),
+        center = box.getCenter(new THREE.Vector3()),
+        size = box.getSize(new THREE.Vector3());
+      const direction = camera.position
+        .clone()
+        .sub(controls.target)
+        .normalize();
+      if (!direction.length()) direction.set(0, 0.6, 1).normalize();
+      const distance = Math.max(20, size.length() * 2);
+      camera.position.copy(center).addScaledVector(direction, distance);
+      controls.target.copy(center);
+      camera.lookAt(center);
+      camera.updateMatrixWorld(true);
+      const projected = new THREE.Box3();
+      for (const x of [box.min.x, box.max.x])
+        for (const y of [box.min.y, box.max.y])
+          for (const z of [box.min.z, box.max.z])
+            projected.expandByPoint(
+              new THREE.Vector3(x, y, z).applyMatrix4(
+                camera.matrixWorldInverse,
+              ),
+            );
+      const dimensions = projected.getSize(new THREE.Vector3()),
+        aspect = element.clientWidth / Math.max(1, element.clientHeight);
+      frustumHeight =
+        Math.max(5, dimensions.y, dimensions.x / Math.max(0.1, aspect)) * 1.65;
+      camera.zoom = 1;
+      camera.near = 0.1;
+      camera.far = Math.max(1000, distance * 5);
+      resize();
+      controls.update();
+    };
+    const view = (view: View) => {
+      const directions: Record<View, [number, number, number]> = {
+        home: [0, Math.tan((50 * Math.PI) / 180), 1],
+        top: [0, 1, 0],
+        bottom: [0, -1, 0],
+        front: [0, 0, 1],
+        back: [0, 0, -1],
+        left: [-1, 0, 0],
+        right: [1, 0, 0],
+      };
+      camera.up.set(0, 1, 0);
+      if (view === "top") camera.up.set(0, 0, -1);
+      if (view === "bottom") camera.up.set(0, 0, 1);
+      camera.position
+        .copy(controls.target)
+        .add(new THREE.Vector3(...directions[view]).multiplyScalar(500));
+      controls.update();
+      fit();
+    };
+    commands.current = {
+      view,
+      fit,
+      zoom: (factor) => {
+        camera.zoom = THREE.MathUtils.clamp(camera.zoom * factor, 0.02, 500);
+        camera.updateProjectionMatrix();
+      },
+      mode: setMode,
+      layer: (name, show) => {
+        groups[name].visible = show;
+      },
+    };
+    view("home");
+    const observer = new ResizeObserver(resize);
+    observer.observe(element);
     let frame = 0;
     const animate = () => {
       frame = requestAnimationFrame(animate);
       controls.update();
       renderer.render(scene, camera);
+      const axes = axesHost.current;
+      if (axes) {
+        const inverse = camera.quaternion.clone().invert();
+        [
+          [1, 0, 0],
+          [0, 0, -1],
+          [0, 1, 0],
+        ].forEach((direction, index) => {
+          const vector = new THREE.Vector3(
+            direction[0],
+            direction[1],
+            direction[2],
+          ).applyQuaternion(inverse);
+          const x = 35 + vector.x * 25,
+            y = 35 - vector.y * 25;
+          const axis = axes.children[index],
+            line = axis?.children[0],
+            label = axis?.children[1];
+          line?.setAttribute("x2", String(x));
+          line?.setAttribute("y2", String(y));
+          label?.setAttribute("x", String(x + 3));
+          label?.setAttribute("y", String(y - 3));
+        });
+      }
     };
     animate();
-
     return () => {
+      commands.current = null;
       cancelAnimationFrame(frame);
       observer.disconnect();
       controls.dispose();
-      scene.traverse((o) => {
-        if (o instanceof THREE.Mesh || o instanceof THREE.LineSegments) {
-          o.geometry.dispose();
-          const materials = Array.isArray(o.material)
-            ? o.material
-            : [o.material];
-          materials.forEach((m) => m.dispose());
-        }
-        if (o instanceof THREE.Sprite) {
-          o.material.map?.dispose();
-          o.material.dispose();
+      releaseMap();
+      roadOverlay.texture.dispose();
+      background.dispose();
+      content.traverse((object) => {
+        if (object instanceof THREE.Mesh || object instanceof THREE.Line) {
+          object.geometry.dispose();
+          (Array.isArray(object.material)
+            ? object.material
+            : [object.material]
+          ).forEach((material) => material.dispose());
         }
       });
       renderer.dispose();
       renderer.domElement.remove();
     };
-  }, [project, contours, volume]);
+  }, [project, contours, verticalResults, volume]);
+
   return (
     <div className="scene-3d" ref={host}>
       {error && <p role="alert">{error}</p>}
+      <div
+        className="scene-navigation"
+        role="toolbar"
+        aria-label="Navigation 3D"
+      >
+        <button
+          title="Exporter PDF 3D — non encore disponible"
+          aria-label="Exporter PDF 3D"
+          disabled
+        >
+          <FileUp size={18} />
+        </button>
+        <button
+          title="Vue initiale"
+          aria-label="Vue initiale"
+          onClick={() => commands.current?.view("home")}
+        >
+          <Home size={18} />
+        </button>
+        <button
+          title="Déplacement"
+          aria-label="Déplacement 3D"
+          aria-pressed={mode === "pan"}
+          onClick={() => {
+            setMode("pan");
+            commands.current?.mode("pan");
+          }}
+        >
+          <Hand size={18} />
+        </button>
+        <button
+          title="Rotation"
+          aria-label="Rotation 3D"
+          aria-pressed={mode === "rotate"}
+          onClick={() => {
+            setMode("rotate");
+            commands.current?.mode("rotate");
+          }}
+        >
+          <Orbit size={18} />
+        </button>
+        <button
+          title="Zoom sur l’ensemble"
+          aria-label="Zoom sur l’ensemble"
+          onClick={() => commands.current?.fit()}
+        >
+          <Scan size={18} />
+        </button>
+        <button
+          title="Zoom avant"
+          aria-label="Zoom avant 3D"
+          onClick={() => commands.current?.zoom(1.25)}
+        >
+          <ZoomIn size={18} />
+        </button>
+        <button
+          title="Zoom arrière"
+          aria-label="Zoom arrière 3D"
+          onClick={() => commands.current?.zoom(0.8)}
+        >
+          <ZoomOut size={18} />
+        </button>
+      </div>
+      <div className="scene-view-cube" role="group" aria-label="Vues du modèle">
+        <div className="scene-cube-faces">
+          <button
+            onClick={() => commands.current?.view("top")}
+            aria-label="Vue de dessus"
+          >
+            TOP
+          </button>
+          <button
+            onClick={() => commands.current?.view("front")}
+            aria-label="Vue de face"
+          >
+            FRONT
+          </button>
+          <button
+            onClick={() => commands.current?.view("right")}
+            aria-label="Vue de droite"
+          >
+            RIGHT
+          </button>
+        </div>
+        <select
+          aria-label="Orientation 3D"
+          defaultValue="home"
+          onChange={(event) =>
+            commands.current?.view(event.target.value as View)
+          }
+        >
+          <option value="home">Vue initiale</option>
+          {VIEWS.map(([value, label]) => (
+            <option key={value} value={value}>
+              {label}
+            </option>
+          ))}
+        </select>
+      </div>
+      <div className="scene-layer-control">
+        <button
+          aria-expanded={layersOpen}
+          onClick={() => setLayersOpen(!layersOpen)}
+        >
+          <Layers size={15} /> Affichage 3D
+        </button>
+        {layersOpen && (
+          <fieldset>
+            <legend>Objets visibles</legend>
+            {LAYERS.map(([name, label]) => (
+              <label key={name}>
+                <input
+                  type="checkbox"
+                  checked={layers[name]}
+                  onChange={(event) => {
+                    const show = event.target.checked;
+                    setLayers({ ...layers, [name]: show });
+                    commands.current?.layer(name, show);
+                  }}
+                />
+                {label}
+              </label>
+            ))}
+          </fieldset>
+        )}
+      </div>
       {volume && (
         <div
           className="volume-summary"
@@ -536,9 +794,36 @@ export default function Scene3D({
           )}
         </div>
       )}
+      <svg
+        className="scene-coordinate-axes"
+        ref={axesHost}
+        viewBox="0 0 75 75"
+        role="img"
+        aria-label="Axes du modèle X est, Y nord, Z altitude"
+      >
+        {["X", "Y", "Z"].map((name, index) => (
+          <g
+            key={name}
+            fill={["#d73725", "#177638", "#255faa"][index]}
+            stroke={["#d73725", "#177638", "#255faa"][index]}
+          >
+            <line x1="35" y1="35" x2="35" y2="35" strokeWidth="1.5" />
+            <text x="35" y="35" stroke="none" fontSize="10">
+              {name}
+            </text>
+          </g>
+        ))}
+      </svg>
       <div className="scene-help">
-        Rotation : glisser · Zoom : molette · Déplacement : clic droit
+        Rotation : bouton central · Déplacement : clic droit · Zoom : molette
       </div>
+      {project.settings.show_basemap && (
+        <span className="scene-map-attribution">
+          {mapProviders(project)[
+            project.settings.map_provider
+          ]?.attribution.replace(/<[^>]*>/g, "") ?? ""}
+        </span>
+      )}
     </div>
   );
 }

@@ -9,7 +9,7 @@ import {
 import { buildStandardAliases } from "../lib/useExtraActions";
 import { uid } from "../lib/project";
 import { terrainHeight } from "../lib/geometry";
-import { exportPdf, exportWord } from "../lib/files";
+import { exportCutReport } from "../lib/files";
 import { TILES } from "./PlannerMap";
 import Modal from "./Modal";
 import DataGrid from "./DataGrid";
@@ -96,7 +96,9 @@ export default function ToolDialogs() {
   );
   // --- CAD layout state ---
   const [cadPaper, setCadPaper] = useState("A3");
-  const [cadOrientation, setCadOrientation] = useState<"portrait" | "landscape">("landscape");
+  const [cadOrientation, setCadOrientation] = useState<
+    "portrait" | "landscape"
+  >("landscape");
   const [cadScale, setCadScale] = useState(1000);
   const [cadTitle, setCadTitle] = useState(p.name);
   const [cadLayers, setCadLayers] = useState({
@@ -107,7 +109,9 @@ export default function ToolDialogs() {
     points: true,
   });
   // --- Settings dialog state ---
-  const [antennaFolder, setAntennaFolder] = useState(p.settings.antenna_folder ?? "");
+  const [antennaFolder, setAntennaFolder] = useState(
+    p.settings.antenna_folder ?? "",
+  );
   const [proxyHost, setProxyHost] = useState(p.settings.proxy?.host ?? "");
   const [proxyPort, setProxyPort] = useState(p.settings.proxy?.port ?? 8080);
   const [proxyUser, setProxyUser] = useState(p.settings.proxy?.user ?? "");
@@ -361,9 +365,7 @@ export default function ToolDialogs() {
     action = () => {
       // Remove empty keys
       const cleaned = Object.fromEntries(
-        Object.entries(customAliases).filter(
-          ([k, v]) => k.trim() && v.trim(),
-        ),
+        Object.entries(customAliases).filter(([k, v]) => k.trim() && v.trim()),
       );
       commit((v) => ({
         ...v,
@@ -423,13 +425,19 @@ export default function ToolDialogs() {
   else if (command === "Paramètres proxy")
     action = () => {
       const proxy = proxyHost.trim()
-        ? { host: proxyHost.trim(), port: proxyPort, ...(proxyUser.trim() ? { user: proxyUser.trim() } : {}) }
+        ? {
+            host: proxyHost.trim(),
+            port: proxyPort,
+            ...(proxyUser.trim() ? { user: proxyUser.trim() } : {}),
+          }
         : undefined;
       commit((v) => ({
         ...v,
         settings: { ...v.settings, proxy },
       }));
-      a.setStatus(proxy ? `Proxy : ${proxy.host}:${proxy.port}` : "Proxy désactivé.");
+      a.setStatus(
+        proxy ? `Proxy : ${proxy.host}:${proxy.port}` : "Proxy désactivé.",
+      );
     };
   else if (command === "Langue de l’interface")
     action = () => {
@@ -456,7 +464,7 @@ export default function ToolDialogs() {
       const requiredPower = requiredEirp / gain;
       a.setStatus(
         `Pour E = ${targetField} V/m à ${targetDistance} m : PIRE = ${requiredEirp.toFixed(1)} W, ` +
-        `puissance TX = ${requiredPower.toFixed(2)} W (gain ${source.gain_dbi} dBi).`,
+          `puissance TX = ${requiredPower.toFixed(2)} W (gain ${source.gain_dbi} dBi).`,
       );
     };
   else if (command === "Coordonnées du site")
@@ -467,17 +475,26 @@ export default function ToolDialogs() {
     };
   else if (command === "Relief DEM / SRTM")
     action = () => {
-      a.setStatus("Import DEM/SRTM en cours — cette fonctionnalité nécessite un serveur d'élévation externe.");
+      a.setStatus(
+        "Import DEM/SRTM en cours — cette fonctionnalité nécessite un serveur d'élévation externe.",
+      );
     };
   else if (command === "Ajouter une cote")
     action = () => {
       const cut = p.vertical_cuts.find((c) => c.id === a.selectedCut);
       if (!cut) throw new Error("Sélectionnez une coupe verticale.");
-      const dim = { id: uid(), x: cut.forward_m / 2, y1: 0, y2: cut.max_height_m / 2 };
+      const dim = {
+        id: uid(),
+        x: cut.forward_m / 2,
+        y1: 0,
+        y2: cut.max_height_m / 2,
+      };
       commit((v) => ({
         ...v,
         vertical_cuts: v.vertical_cuts.map((c) =>
-          c.id === cut.id ? { ...c, dimensions: [...(c.dimensions ?? []), dim] } : c,
+          c.id === cut.id
+            ? { ...c, dimensions: [...(c.dimensions ?? []), dim] }
+            : c,
         ),
       }));
     };
@@ -720,7 +737,10 @@ export default function ToolDialogs() {
         <>
           <p className="hint">
             Sélectionnez une icône pour la ligne{" "}
-            {selectedLine ? `« ${selectedLine.name} »` : "(aucune ligne sélectionnée)"}.
+            {selectedLine
+              ? `« ${selectedLine.name} »`
+              : "(aucune ligne sélectionnée)"}
+            .
           </p>
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
             {[
@@ -729,7 +749,10 @@ export default function ToolDialogs() {
               { value: "pole", label: "Poteau" },
               { value: "sign", label: "Panneau" },
             ].map((ic) => (
-              <label key={ic.value} style={{ display: "flex", alignItems: "center", gap: 4 }}>
+              <label
+                key={ic.value}
+                style={{ display: "flex", alignItems: "center", gap: 4 }}
+              >
                 <input
                   type="radio"
                   name="icon"
@@ -755,7 +778,11 @@ export default function ToolDialogs() {
           <h3>Coupes horizontales calculées</h3>
           <table className="report-preview-table">
             <thead>
-              <tr><th>Coupe</th><th>Hauteur (m)</th><th>Segments</th></tr>
+              <tr>
+                <th>Coupe</th>
+                <th>Hauteur (m)</th>
+                <th>Segments</th>
+              </tr>
             </thead>
             <tbody>
               {a.cutResults.map((r, i) => (
@@ -767,12 +794,26 @@ export default function ToolDialogs() {
               ))}
             </tbody>
           </table>
-          <p className="hint">Exportez en PDF ou Word.</p>
+          <p className="hint">
+            Export PDF du tableau des coupes. Les valeurs de champ nécessitent
+            un recalcul si seuls les contours ont été importés.
+          </p>
           <div className="button-row">
-            <button onClick={() => { void a.task(() => exportPdf(p, true), "PDF exporté"); close(); }}>
+            <button
+              onClick={() => {
+                void a.task(
+                  () => exportCutReport(p, "horizontal", a.cutResults),
+                  "Rapport PDF des coupes exporté",
+                );
+                close();
+              }}
+            >
               Exporter PDF
             </button>
-            <button onClick={() => { void a.task(() => exportWord(p, true), "Word exporté"); close(); }}>
+            <button
+              disabled
+              title="Rapport Word des coupes pas encore implémenté"
+            >
               Exporter Word
             </button>
           </div>
@@ -782,7 +823,11 @@ export default function ToolDialogs() {
           <h3>Coupes verticales calculées</h3>
           <table className="report-preview-table">
             <thead>
-              <tr><th>Coupe</th><th>Azimut (deg)</th><th>Segments</th></tr>
+              <tr>
+                <th>Coupe</th>
+                <th>Azimut (deg)</th>
+                <th>Segments</th>
+              </tr>
             </thead>
             <tbody>
               {a.verticalResults.map((r, i) => {
@@ -797,12 +842,26 @@ export default function ToolDialogs() {
               })}
             </tbody>
           </table>
-          <p className="hint">Exportez en PDF ou Word.</p>
+          <p className="hint">
+            Export PDF du tableau des coupes. Les valeurs de champ nécessitent
+            un recalcul si seuls les contours ont été importés.
+          </p>
           <div className="button-row">
-            <button onClick={() => { void a.task(() => exportPdf(p, true), "PDF exporté"); close(); }}>
+            <button
+              onClick={() => {
+                void a.task(
+                  () => exportCutReport(p, "vertical", a.verticalResults),
+                  "Rapport PDF des coupes exporté",
+                );
+                close();
+              }}
+            >
               Exporter PDF
             </button>
-            <button onClick={() => { void a.task(() => exportWord(p, true), "Word exporté"); close(); }}>
+            <button
+              disabled
+              title="Rapport Word des coupes pas encore implémenté"
+            >
               Exporter Word
             </button>
           </div>
@@ -816,12 +875,15 @@ export default function ToolDialogs() {
               rows={a.verticalResults.flatMap((r) => {
                 const cut = p.vertical_cuts.find((c) => c.id === r.cut_id);
                 return r.grid.values.length
-                  ? Array.from({ length: Math.min(r.grid.height, 50) }, (_, row) => ({
-                      id: `${r.id}-${row}`,
-                      azimut: cut?.azimuth_deg.toFixed(1) ?? "?",
-                      distance: (r.grid.x0 + row * r.grid.dx).toFixed(1),
-                      champ: r.grid.fields[row]?.toFixed(4) ?? "-",
-                    }))
+                  ? Array.from(
+                      { length: Math.min(r.grid.height, 50) },
+                      (_, row) => ({
+                        id: `${r.id}-${row}`,
+                        azimut: cut?.azimuth_deg.toFixed(1) ?? "?",
+                        distance: (r.grid.x0 + row * r.grid.dx).toFixed(1),
+                        champ: r.grid.fields[row]?.toFixed(4) ?? "-",
+                      }),
+                    )
                   : [];
               })}
               columns={[
@@ -841,12 +903,16 @@ export default function ToolDialogs() {
               rows={a.verticalResults.flatMap((r) => {
                 const cut = p.vertical_cuts.find((c) => c.id === r.cut_id);
                 return r.grid.values.length
-                  ? Array.from({ length: Math.min(r.grid.height, 50) }, (_, row) => ({
-                      id: `${r.id}-${row}`,
-                      azimut: cut?.azimuth_deg.toFixed(1) ?? "?",
-                      distance: (r.grid.x0 + row * r.grid.dx).toFixed(1),
-                      exposition: (r.grid.values[row] * 100)?.toFixed(2) ?? "-",
-                    }))
+                  ? Array.from(
+                      { length: Math.min(r.grid.height, 50) },
+                      (_, row) => ({
+                        id: `${r.id}-${row}`,
+                        azimut: cut?.azimuth_deg.toFixed(1) ?? "?",
+                        distance: (r.grid.x0 + row * r.grid.dx).toFixed(1),
+                        exposition:
+                          (r.grid.values[row] * 100)?.toFixed(2) ?? "-",
+                      }),
+                    )
                   : [];
               })}
               columns={[
@@ -863,34 +929,48 @@ export default function ToolDialogs() {
           <h3>14 alias standard</h3>
           <table className="report-preview-table">
             <thead>
-              <tr><th>Alias</th><th>Valeur actuelle</th></tr>
+              <tr>
+                <th>Alias</th>
+                <th>Valeur actuelle</th>
+              </tr>
             </thead>
             <tbody>
               {Object.entries(buildStandardAliases(p)).map(([key, value]) => (
                 <tr key={key}>
-                  <td><code>{key}</code></td>
+                  <td>
+                    <code>{key}</code>
+                  </td>
                   <td>{value}</td>
                 </tr>
               ))}
             </tbody>
           </table>
           <p className="hint">
-            Ces alias sont remplacés automatiquement dans les modeles Word.
-            Utilisez « Alias personnalises » pour ajouter vos propres
-            paires cle-valeur.
+            Liste indicative des alias. Leur remplacement dans les modèles Word
+            reste à implémenter.
           </p>
         </>
       ) : command === "Mise en page CAO avancée" ? (
         <>
           <label>
             Format papier
-            <select value={cadPaper} onChange={(e) => setCadPaper(e.target.value)}>
-              {["A4", "A3", "A2", "A1", "A0"].map((s) => <option key={s}>{s}</option>)}
+            <select
+              value={cadPaper}
+              onChange={(e) => setCadPaper(e.target.value)}
+            >
+              {["A4", "A3", "A2", "A1", "A0"].map((s) => (
+                <option key={s}>{s}</option>
+              ))}
             </select>
           </label>
           <label>
             Orientation
-            <select value={cadOrientation} onChange={(e) => setCadOrientation(e.target.value as "portrait" | "landscape")}>
+            <select
+              value={cadOrientation}
+              onChange={(e) =>
+                setCadOrientation(e.target.value as "portrait" | "landscape")
+              }
+            >
               <option value="landscape">Paysage</option>
               <option value="portrait">Portrait</option>
             </select>
@@ -898,93 +978,154 @@ export default function ToolDialogs() {
           {number("Échelle 1:", cadScale, setCadScale, 1)}
           <label>
             Titre du cartouche
-            <input value={cadTitle} onChange={(e) => setCadTitle(e.target.value)} />
+            <input
+              value={cadTitle}
+              onChange={(e) => setCadTitle(e.target.value)}
+            />
           </label>
           <fieldset>
             <legend>Calques visibles</legend>
-            {(Object.keys(cadLayers) as (keyof typeof cadLayers)[]).map((key) => (
-              <label key={key}>
-                <input
-                  type="checkbox"
-                  checked={cadLayers[key]}
-                  onChange={(e) => setCadLayers((prev) => ({ ...prev, [key]: e.target.checked }))}
-                />
-                {key.charAt(0).toUpperCase() + key.slice(1)}
-              </label>
-            ))}
+            {(Object.keys(cadLayers) as (keyof typeof cadLayers)[]).map(
+              (key) => (
+                <label key={key}>
+                  <input
+                    type="checkbox"
+                    checked={cadLayers[key]}
+                    onChange={(e) =>
+                      setCadLayers((prev) => ({
+                        ...prev,
+                        [key]: e.target.checked,
+                      }))
+                    }
+                  />
+                  {key.charAt(0).toUpperCase() + key.slice(1)}
+                </label>
+              ),
+            )}
           </fieldset>
         </>
       ) : command === "Dossier des diagrammes d’antennes" ? (
         <label>
           Chemin du dossier d'antennes
-          <input value={antennaFolder} onChange={(e) => setAntennaFolder(e.target.value)} placeholder="/chemin/vers/antennes" />
+          <input
+            value={antennaFolder}
+            onChange={(e) => setAntennaFolder(e.target.value)}
+            placeholder="/chemin/vers/antennes"
+          />
         </label>
       ) : command === "Cache des cartes" ? (
         <>
           <label>
-            <input type="checkbox" checked={p.settings.cache_enabled ?? true} onChange={(e) => a.settings({ cache_enabled: e.target.checked })} />
+            <input
+              type="checkbox"
+              checked={p.settings.cache_enabled ?? true}
+              onChange={(e) => a.settings({ cache_enabled: e.target.checked })}
+            />
             Activer le cache local des tuiles de carte
           </label>
-          <p className="hint">Le cache accélère le chargement des fonds de carte déjà consultés.</p>
+          <p className="hint">
+            Le cache accélère le chargement des fonds de carte déjà consultés.
+          </p>
         </>
       ) : command === "Paramètres proxy" ? (
         <>
           <label>
             Serveur proxy
-            <input value={proxyHost} onChange={(e) => setProxyHost(e.target.value)} placeholder="proxy.example.com" />
+            <input
+              value={proxyHost}
+              onChange={(e) => setProxyHost(e.target.value)}
+              placeholder="proxy.example.com"
+            />
           </label>
           {number("Port", proxyPort, setProxyPort, 1, 65535)}
           <label>
             Utilisateur (optionnel)
-            <input value={proxyUser} onChange={(e) => setProxyUser(e.target.value)} />
+            <input
+              value={proxyUser}
+              onChange={(e) => setProxyUser(e.target.value)}
+            />
           </label>
         </>
       ) : command === "Langue de l’interface" ? (
         <>
           {(["fr", "en", "de", "es", "ru"] as const).map((lang) => (
             <label key={lang}>
-              <input type="radio" checked={language === lang} onChange={() => setLanguage(lang)} />
-              {{ fr: "Français", en: "English", de: "Deutsch", es: "Español", ru: "Русский" }[lang]}
+              <input
+                type="radio"
+                checked={language === lang}
+                onChange={() => setLanguage(lang)}
+              />
+              {
+                {
+                  fr: "Français",
+                  en: "English",
+                  de: "Deutsch",
+                  es: "Español",
+                  ru: "Русский",
+                }[lang]
+              }
             </label>
           ))}
         </>
       ) : command === "Calcul inverse de puissance" ? (
         <>
           <p className="hint">
-            Calculez la puissance TX nécessaire pour atteindre un champ cible à une distance donnée.
+            Calculez la puissance TX nécessaire pour atteindre un champ cible à
+            une distance donnée.
           </p>
           {number("Champ cible E, V/m", targetField, setTargetField, 0.01)}
           {number("Distance, m", targetDistance, setTargetDistance, 0.1)}
-          <p>Source active : {p.sources.find((s) => s.id === a.selectedSource)?.name ?? "—"}</p>
+          <p>
+            Source active :{" "}
+            {p.sources.find((s) => s.id === a.selectedSource)?.name ?? "—"}
+          </p>
         </>
       ) : command === "Coordonnées du site" ? (
         <>
-          <p className="hint">Modifiez les coordonnées géographiques de l'origine du projet.</p>
+          <p className="hint">
+            Modifiez les coordonnées géographiques de l'origine du projet.
+          </p>
           {number("Latitude, °", siteLat, setSiteLat, -90, 90)}
           {number("Longitude, °", siteLng, setSiteLng, -180, 180)}
         </>
       ) : command === "Relief DEM / SRTM" ? (
         <>
-          <p>L'import de relief DEM/SRTM télécharge les données d'élévation depuis un service externe.</p>
-          <p className="hint">
-            Origine : {p.origin[0].toFixed(6)}° N, {p.origin[1].toFixed(6)}° E — Rayon : {p.settings.radius_m} m.
+          <p>
+            L'import de relief DEM/SRTM télécharge les données d'élévation
+            depuis un service externe.
           </p>
-          <p>Cette fonctionnalité nécessite une connexion réseau et un serveur d'élévation compatible.</p>
+          <p className="hint">
+            Origine : {p.origin[0].toFixed(6)}° N, {p.origin[1].toFixed(6)}° E —
+            Rayon : {p.settings.radius_m} m.
+          </p>
+          <p>
+            Cette fonctionnalité nécessite une connexion réseau et un serveur
+            d'élévation compatible.
+          </p>
         </>
       ) : command === "Ajouter une cote" ? (
         <>
           <p className="hint">
             Ajoute une cote de dimension à la coupe verticale sélectionnée.
           </p>
-          <p>Coupe : {p.vertical_cuts.find((c) => c.id === a.selectedCut)?.azimuth_deg.toFixed(1) ?? "—"}°</p>
-          <p>La cote sera positionnée au milieu de la coupe. Vous pouvez la déplacer ensuite.</p>
+          <p>
+            Coupe :{" "}
+            {p.vertical_cuts
+              .find((c) => c.id === a.selectedCut)
+              ?.azimuth_deg.toFixed(1) ?? "—"}
+            °
+          </p>
+          <p>
+            La cote sera positionnée au milieu de la coupe. Vous pouvez la
+            déplacer ensuite.
+          </p>
         </>
       ) : command === "Alias personnalisés" ? (
         <>
           <h3>Alias personnalises</h3>
           <p className="hint">
-            Ajoutez des paires cle-valeur. Elles seront fusionnees avec les
-            14 alias standard lors de la generation du rapport.
+            Ajoutez des paires cle-valeur. Elles seront fusionnees avec les 14
+            alias standard lors de la generation du rapport.
           </p>
           <div className="vertex-grid">
             <DataGrid
@@ -1034,7 +1175,10 @@ export default function ToolDialogs() {
         <>
           <label>
             Format de papier
-            <select value={cadPaper} onChange={(e) => setCadPaper(e.target.value)}>
+            <select
+              value={cadPaper}
+              onChange={(e) => setCadPaper(e.target.value)}
+            >
               {["A4", "A3", "A2", "A1", "A0"].map((v) => (
                 <option key={v}>{v}</option>
               ))}
@@ -1044,7 +1188,9 @@ export default function ToolDialogs() {
             Orientation
             <select
               value={cadOrientation}
-              onChange={(e) => setCadOrientation(e.target.value as "portrait" | "landscape")}
+              onChange={(e) =>
+                setCadOrientation(e.target.value as "portrait" | "landscape")
+              }
             >
               <option value="landscape">Paysage</option>
               <option value="portrait">Portrait</option>
@@ -1052,9 +1198,14 @@ export default function ToolDialogs() {
           </label>
           <label>
             Echelle
-            <select value={cadScale} onChange={(e) => setCadScale(Number(e.target.value))}>
+            <select
+              value={cadScale}
+              onChange={(e) => setCadScale(Number(e.target.value))}
+            >
               {[100, 200, 500, 1000, 2000, 5000, 10000].map((v) => (
-                <option key={v} value={v}>1:{v}</option>
+                <option key={v} value={v}>
+                  1:{v}
+                </option>
               ))}
             </select>
           </label>
@@ -1068,26 +1219,30 @@ export default function ToolDialogs() {
           </label>
           <fieldset>
             <legend>Calques visibles</legend>
-            {(Object.keys(cadLayers) as (keyof typeof cadLayers)[]).map((key) => (
-              <label key={key}>
-                <input
-                  type="checkbox"
-                  checked={cadLayers[key]}
-                  onChange={(e) =>
-                    setCadLayers((l) => ({ ...l, [key]: e.target.checked }))
+            {(Object.keys(cadLayers) as (keyof typeof cadLayers)[]).map(
+              (key) => (
+                <label key={key}>
+                  <input
+                    type="checkbox"
+                    checked={cadLayers[key]}
+                    onChange={(e) =>
+                      setCadLayers((l) => ({ ...l, [key]: e.target.checked }))
+                    }
+                  />
+                  {
+                    (
+                      {
+                        contours: "Contours EMF",
+                        buildings: "Batiments",
+                        lines: "Lignes et annotations",
+                        sources: "Antennes",
+                        points: "Points de controle",
+                      } as Record<string, string>
+                    )[key]
                   }
-                />
-                {
-                  ({
-                    contours: "Contours EMF",
-                    buildings: "Batiments",
-                    lines: "Lignes et annotations",
-                    sources: "Antennes",
-                    points: "Points de controle",
-                  } as Record<string, string>)[key]
-                }
-              </label>
-            ))}
+                </label>
+              ),
+            )}
           </fieldset>
         </>
       ) : command === "Dossier des diagrammes d’antennes" ? (
@@ -1110,8 +1265,8 @@ export default function ToolDialogs() {
       ) : command === "Cache des cartes" ? (
         <>
           <p>
-            Le cache des tuiles de carte permet d'accelerer l'affichage
-            des fonds de carte deja telecharges.
+            Le cache des tuiles de carte permet d'accelerer l'affichage des
+            fonds de carte deja telecharges.
           </p>
           <p className="hint">
             Taille estimee : inconnue (stockage navigateur).
@@ -1121,7 +1276,9 @@ export default function ToolDialogs() {
               onClick={() => {
                 try {
                   caches.delete("map-tiles").catch(() => {});
-                } catch { /* caches API unavailable */ }
+                } catch {
+                  /* caches API unavailable */
+                }
                 a.setStatus("Cache des cartes vide.");
               }}
             >
@@ -1132,8 +1289,8 @@ export default function ToolDialogs() {
       ) : command === "Paramètres proxy" ? (
         <>
           <p className="hint">
-            Configurez un proxy HTTP pour les reseaux d'entreprise.
-            Laissez le champ hote vide pour desactiver le proxy.
+            Configurez un proxy HTTP pour les reseaux d'entreprise. Laissez le
+            champ hote vide pour desactiver le proxy.
           </p>
           <label>
             Hote
@@ -1160,12 +1317,14 @@ export default function ToolDialogs() {
           <p className="hint">
             Choisissez la langue de l'interface utilisateur.
           </p>
-          {([
-            { code: "fr", label: "Francais" },
-            { code: "en", label: "English" },
-            { code: "ru", label: "Russkij" },
-            { code: "de", label: "Deutsch" },
-          ] as const).map((lang) => (
+          {(
+            [
+              { code: "fr", label: "Francais" },
+              { code: "en", label: "English" },
+              { code: "ru", label: "Russkij" },
+              { code: "de", label: "Deutsch" },
+            ] as const
+          ).map((lang) => (
             <label key={lang.code}>
               <input
                 type="radio"

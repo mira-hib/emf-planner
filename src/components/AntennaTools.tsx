@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from "react";
 import { usePlanner } from "../lib/usePlanner";
 import type { StoredAntenna } from "../types";
 import { uid } from "../lib/project";
-import { patternAmplitude } from "../lib/engine";
 import {
   beamWidth,
   envelopePatterns,
@@ -10,7 +9,7 @@ import {
   symmetricPattern,
 } from "../lib/editing";
 import { chooseFile, saveText } from "../lib/files";
-import { parseMsi, writeMsi } from "../lib/antenna";
+import { parseMsi, sourceAntenna, writeMsi } from "../lib/antenna";
 import feeders from "../data/feeders.json";
 import DataGrid from "./DataGrid";
 import AntennaPolar from "./AntennaPolar";
@@ -32,32 +31,7 @@ export default function AntennaTools() {
   const initial = useMemo<StoredAntenna>(
     () => ({
       id: uid(),
-      name: source?.antenna_model || "Nouveau diagramme",
-      gain: source?.gain_dbi ?? 16,
-      horizontal: Array.from(
-        { length: 360 },
-        (_, i) =>
-          -20 *
-          Math.log10(
-            patternAmplitude(
-              source?.pattern_h,
-              i,
-              source?.beam_width_h_deg ?? 65,
-            ),
-          ),
-      ),
-      vertical: Array.from(
-        { length: 360 },
-        (_, i) =>
-          -20 *
-          Math.log10(
-            patternAmplitude(
-              source?.pattern_v,
-              i + (source?.electrical_downtilt_deg ?? 0),
-              source?.beam_width_v_deg ?? 10,
-            ),
-          ),
-      ),
+      ...sourceAntenna(source),
     }),
     [source],
   );
@@ -110,22 +84,9 @@ export default function AntennaTools() {
     .filter((s) => s.pattern_h && s.pattern_v)
     .map((s) => ({
       id: s.id,
+      ...sourceAntenna(s),
       name: `${s.antenna_model} — ${s.frequency_mhz} MHz`,
-      gain: s.gain_dbi,
       frequency: s.frequency_mhz,
-      horizontal: s.pattern_h!,
-      vertical: Array.from(
-        { length: 360 },
-        (_, i) =>
-          -20 *
-          Math.log10(
-            patternAmplitude(
-              s.pattern_v,
-              i + s.electrical_downtilt_deg,
-              s.beam_width_v_deg,
-            ),
-          ),
-      ),
     }));
   const library = [
     ...(project.antenna_library ?? []),
@@ -158,19 +119,8 @@ export default function AntennaTools() {
               ...s,
               antenna_model: pat.name,
               gain_dbi: pat.gain,
-              pattern_h: pat.horizontal,
-              pattern_v: Array.from(
-                { length: 360 },
-                (_, i) =>
-                  -20 *
-                  Math.log10(
-                    patternAmplitude(
-                      pat.vertical,
-                      i - s.electrical_downtilt_deg,
-                      s.beam_width_v_deg,
-                    ),
-                  ),
-              ),
+              pattern_h: [...pat.horizontal],
+              pattern_v: [...pat.vertical],
               beam_width_h_deg: beamWidth(pat.horizontal),
               beam_width_v_deg: beamWidth(pat.vertical),
             }

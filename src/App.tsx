@@ -46,6 +46,7 @@ import { ResultsDialog } from "./components/Results";
 import { mapProviders } from "./components/PlannerMap";
 import OriginalIcon from "./components/OriginalIcon";
 import "./App.css";
+import { styledContours } from "./lib/presentation";
 const Scene3D = lazy(() => import("./components/Scene3D"));
 const NAV: { id: Section; label: string; icon: typeof Activity }[] = [
   { id: "sources", label: "Sources rayonnantes", icon: RadioTower },
@@ -308,7 +309,12 @@ export default function App() {
                 >
                   <Scene3D
                     project={p}
-                    contours={a.cutResults.map((r) => r.contours)}
+                    contours={styledContours(p, a.cutResults)}
+                    verticalResults={a.verticalResults.filter(
+                      (r) =>
+                        r.limit_index === undefined ||
+                        p.limits[r.limit_index]?.active !== false,
+                    )}
                     volume={a.volume}
                   />
                 </Suspense>

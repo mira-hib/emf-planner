@@ -20,6 +20,7 @@ import {
   Waves,
 } from "lucide-react";
 import type { Section } from "../types";
+import { PENDING_COMMANDS } from "../lib/capabilities";
 import { usePlanner } from "../lib/usePlanner";
 import { COLORS, uid } from "../lib/project";
 import { terrainHeight } from "../lib/geometry";
@@ -150,7 +151,13 @@ export const EXTRA_TOOLS: Record<Section, string[]> = {
     "Liste des 14 alias standard",
     "Rapport Word depuis le modèle",
   ],
-  cad: ["Exporter DWG", "Importer DWG", "Mise en page CAO avancée"],
+  cad: [
+    "Exporter DWG",
+    "Importer DWG",
+    "Exporter DXF",
+    "Importer DXF",
+    "Mise en page CAO avancée",
+  ],
   "3d": ["Volumes de sécurité EMF 3D"],
   calibrate: [
     "Calibrer avec deux lignes",
@@ -176,13 +183,7 @@ export default function FeatureTools({ section }: { section: Section }) {
   const line = p.lines.find((l) => l.id === a.selectedObject);
   const extraActions = useExtraActions();
   const rotate = (delta: number) => {
-    if (!source?.pattern_v) return;
-    const values = source.pattern_v;
-    a.updateSource(
-      source.id,
-      "pattern_v",
-      values.map((_, i) => values[(i - delta + 360) % 360]),
-    );
+    a.rotateSourcePattern(delta);
   };
   const actions: Record<string, { run: () => void; enabled: boolean }> = {
     ...extraActions,
@@ -356,12 +357,14 @@ export default function FeatureTools({ section }: { section: Section }) {
     >
       <div className="feature-tools-buttons">
         {EXTRA_TOOLS[section].map((label) => {
-          const action = actions[label];
-          const reason = action
-            ? action.enabled
-              ? label
-              : `${label} — sélectionnez les données nécessaires.`
-            : `${label} — fonction pas encore implémentée.`;
+          const action = PENDING_COMMANDS[label] ? undefined : actions[label];
+          const reason = PENDING_COMMANDS[label]
+            ? `${label} — ${PENDING_COMMANDS[label]}`
+            : action
+              ? action.enabled
+                ? label
+                : `${label} — sélectionnez les données nécessaires.`
+              : `${label} — fonction pas encore implémentée.`;
           return (
             <span
               key={label}

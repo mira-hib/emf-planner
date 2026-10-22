@@ -1,3 +1,24 @@
+import type { RadiatingSource } from "../types";
+import { patternAmplitude } from "./engine";
+
+// DnV is already the plotted/measured pattern. ElectUg is descriptive metadata
+// in the original project, not a second rotation to apply to these samples.
+export function sourceAntenna(source?: RadiatingSource) {
+  const samples = (values: number[] | undefined, width: number) =>
+    values?.length === 360
+      ? [...values]
+      : Array.from(
+          { length: 360 },
+          (_, i) => -20 * Math.log10(patternAmplitude(undefined, i, width)),
+        );
+  return {
+    name: source?.antenna_model || "Nouveau diagramme",
+    gain: source?.gain_dbi ?? 16,
+    horizontal: samples(source?.pattern_h, source?.beam_width_h_deg ?? 65),
+    vertical: samples(source?.pattern_v, source?.beam_width_v_deg ?? 10),
+  };
+}
+
 export function parseMsi(text: string): {
   name: string;
   gain: number;
@@ -12,22 +33,42 @@ export function parseMsi(text: string): {
   const name =
     lines.find((l) => /^NAME\s/i.test(l))?.replace(/^NAME\s+/i, "") ??
     "Antenne importée";
-  const gain =
-    Number(lines.find((l) => /^GAIN\s/i.test(l))?.split(/\s+/)[1]) || 0;
+  const gainLine = lines.find((l) => /^GAIN\s/i.test(l));
+  const gainMatch = gainLine?.match(
+    /^GAIN\s+([+-]?(?:\d+(?:[.,]\d*)?|[.,]\d+)(?:e[+-]?\d+)?)\s*(?:\(?\s*(dBi|dBd)\s*\)?)?\s*$/i,
+  );
+  if (gainLine && !gainMatch) throw new Error("Gain MSI invalide.");
+  const gain = gainMatch
+    ? Number(gainMatch[1].replace(",", ".")) +
+      (gainMatch[2]?.toLowerCase() === "dbd" ? 2.15 : 0)
+    : 0;
+  if (!Number.isFinite(gain)) throw new Error("Gain MSI invalide.");
   function plane(key: string) {
-    const start = lines.findIndex((l) => l.toUpperCase().startsWith(key + " "));
+    const start = lines.findIndex((l) =>
+      new RegExp(`^${key}\\s+`, "i").test(l),
+    );
     if (start < 0) throw new Error(`Plan ${key} absent du fichier MSI.`);
     const n = Number(lines[start].split(/\s+/)[1]);
     if (!Number.isInteger(n) || n < 2 || n > 10000)
       throw new Error("Nombre de points MSI invalide.");
-    const points = lines
+    const rawPoints = lines
       .slice(start + 1, start + 1 + n)
-      .map((l) => l.split(/\s+/).map(Number));
+      .map((l) => l.split(/[\s,;:]+/).map(Number));
     if (
-      points.length !== n ||
-      points.some((p) => p.length < 2 || !p.every(Number.isFinite))
+      rawPoints.length !== n ||
+      rawPoints.some((p) => p.length !== 2 || !p.every(Number.isFinite))
     )
       throw new Error("Diagramme MSI tronqué ou invalide.");
+    const unique = new Map<number, number>();
+    for (const [angle, value] of rawPoints) {
+      const normalizedAngle = ((angle % 360) + 360) % 360;
+      const loss = Math.abs(value);
+      if (unique.has(normalizedAngle) && unique.get(normalizedAngle) !== loss)
+        throw new Error("Plusieurs atténuations pour le même angle MSI.");
+      unique.set(normalizedAngle, loss);
+    }
+    const points = [...unique.entries()];
+    if (points.length < 2) throw new Error("Diagramme MSI incomplet.");
     points.sort((a, b) => a[0] - b[0]);
     return Array.from({ length: 360 }, (_, angle) => {
       let low = points[points.length - 1],

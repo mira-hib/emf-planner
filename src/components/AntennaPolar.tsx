@@ -1,5 +1,10 @@
 import type { RadiatingSource } from "../types";
 import { deg, rad } from "../lib/geometry";
+import {
+  antennaPolarPath,
+  POLAR_RADIUS,
+  polarRadius,
+} from "../lib/antenna-polar";
 export default function AntennaPolar({
   source,
   vertical = false,
@@ -13,30 +18,36 @@ export default function AntennaPolar({
   const width = singleVertical
     ? source?.beam_width_v_deg
     : source?.beam_width_h_deg;
-  const makePath = (
-    values: number[] | undefined,
-    beamWidth: number | undefined,
-  ) =>
-    Array.from({ length: 361 }, (_, i) => {
-      const loss =
-        values?.[i % 360] ??
-        Math.min(40, 12 * (Math.min(i, 360 - i) / (beamWidth || 65)) ** 2);
-      const r = Math.max(0, 1 - loss / 40) * 83,
-        a = rad(i);
-      return `${i ? "L" : "M"}${100 + r * Math.cos(a)},${100 + r * Math.sin(a)}`;
-    }).join(" ");
   return (
     <svg
       className="polar"
       viewBox="0 0 200 200"
-      aria-label={`Diagramme ${vertical ? "vertical" : "horizontal"} de l’antenne`}
+      aria-label={`Diagramme ${both ? "horizontal et vertical" : vertical ? "vertical" : "horizontal"} de l’antenne`}
     >
-      <g fill="none" stroke="#bababa" strokeWidth=".5">
-        {[3, 10, 20, 30, 40]
-          .map((d) => 83 * (1 - d / 40))
-          .map((r) => (
-            <circle key={r} cx="100" cy="100" r={r} />
-          ))}
+      {source && (
+        <path
+          data-plane={singleVertical ? "V" : "H"}
+          d={antennaPolarPath(
+            singleVertical ? source.pattern_v : source.pattern_h,
+            width,
+          )}
+          fill={singleVertical ? "red" : "blue"}
+          fillOpacity={60 / 255}
+          stroke={singleVertical ? "red" : "blue"}
+          strokeWidth="2"
+        />
+      )}
+      {source && both && (
+        <path
+          data-plane="V"
+          d={antennaPolarPath(source?.pattern_v, source?.beam_width_v_deg)}
+          fill="red"
+          fillOpacity={60 / 255}
+          stroke="red"
+          strokeWidth="2"
+        />
+      )}
+      <g fill="none" stroke="black" strokeWidth=".8">
         {Array.from({ length: 72 }, (_, i) => {
           const a = rad(i * 5);
           return (
@@ -44,57 +55,51 @@ export default function AntennaPolar({
               key={i}
               x1="100"
               y1="100"
-              x2={100 + 83 * Math.cos(a)}
-              y2={100 + 83 * Math.sin(a)}
+              x2={100 + POLAR_RADIUS * Math.cos(a)}
+              y2={100 + POLAR_RADIUS * Math.sin(a)}
+              strokeOpacity={i % 6 === 0 ? 0.78 : i % 2 === 0 ? 0.39 : 0.2}
             />
           );
         })}
+        {[0, 10, 20].map((loss) => (
+          <circle
+            key={loss}
+            data-loss-db={loss}
+            cx="100"
+            cy="100"
+            r={polarRadius(loss)}
+            strokeOpacity=".6"
+          />
+        ))}
+        <circle
+          data-loss-db="3"
+          cx="100"
+          cy="100"
+          r={polarRadius(3)}
+          stroke="#888"
+          strokeDasharray="3 2"
+        />
       </g>
       {[0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330].map((a) => (
         <text
           key={a}
           x={100 + 93 * Math.cos(rad(a))}
           y={103 + 93 * Math.sin(rad(a))}
-          fontSize="7"
-          fill="#a32d31"
+          fontSize="8"
+          fill="red"
           textAnchor="middle"
         >
           {a}°
         </text>
       ))}
-      {source && (
-        <path
-          d={makePath(
-            singleVertical ? source.pattern_v : source.pattern_h,
-            width,
-          )}
-          fill="none"
-          stroke={singleVertical ? "#e02530" : "#274fdb"}
-          strokeWidth="1.1"
-        />
-      )}
-      {source && both && (
-        <path
-          d={makePath(source?.pattern_v, source?.beam_width_v_deg)}
-          fill="none"
-          stroke="#e02530"
-          strokeWidth="1.1"
-        />
-      )}
       {[3, 10, 20, 30].map((d) => (
-        <text
-          key={d}
-          x="102"
-          y={100 - 83 * (1 - d / 40)}
-          fontSize="6.5"
-          fill="#9c6262"
-        >
-          {d} dB
+        <text key={d} x="102" y={100 - polarRadius(d)} fontSize="8" fill="red">
+          −{d} dB
         </text>
       ))}
       <title>
         {source
-          ? `${source.name} — ${vertical ? "V" : "H"}, ${width}°, azimut ${deg(rad(source.azimuth_deg)).toFixed(0)}°`
+          ? `${source.name} — ${both ? "H + V" : vertical ? "V" : "H"}, ${width}°, azimut ${deg(rad(source.azimuth_deg)).toFixed(0)}° ; échelle : 0 dB au bord, −30 dB au centre`
           : "Aucune antenne sélectionnée"}
       </title>
     </svg>

@@ -1,7 +1,9 @@
 import { readNrbf } from "./nrbf";
 import { newPoint, newProject, newSource, uid } from "./project";
 import { deg, toLocal } from "./geometry";
-import type { PlannerProject } from "../types";
+import { terrainHeight } from "./geometry";
+import { dotnetColor } from "./dotnet-color";
+import type { PlannerProject, SavedCutResult } from "../types";
 type Obj = Record<string, unknown>;
 export function importXemf(buffer: ArrayBuffer, name: string): PlannerProject {
   const { root, deref } = readNrbf(buffer);
@@ -24,6 +26,17 @@ export function importXemf(buffer: ArrayBuffer, name: string): PlannerProject {
   p.origin = [n(origin, "Lat"), n(origin, "Lon")];
   p.map_center = p.origin;
   p.map_zoom = n(settings, "ZOOM", 19);
+  const area = arr(settings.HorAreaCoordM).map(obj);
+  const calculationArea =
+    area.length === 2
+      ? {
+          x_min: Math.min(n(area[0], "Xm"), n(area[1], "Xm")),
+          x_max: Math.max(n(area[0], "Xm"), n(area[1], "Xm")),
+          y_min: Math.min(n(area[0], "Ym"), n(area[1], "Ym")),
+          y_max: Math.max(n(area[0], "Ym"), n(area[1], "Ym")),
+        }
+      : undefined;
+  const provider = s(settings, "NameTileServer");
   p.settings = {
     ...p.settings,
     reflection: n(settings, "KoefOslabl", 1),
@@ -34,8 +47,47 @@ export function importXemf(buffer: ArrayBuffer, name: string): PlannerProject {
       ] ?? "ignore",
     building_attenuation_db: n(settings, "BuildAttenSubband1", 20),
     selected_limit: n(settings, "ControlPointLimitIndex"),
-    radius_m: 150,
+    radius_m: calculationArea
+      ? Math.max(...Object.values(calculationArea).map(Math.abs))
+      : 150,
     terrain_interpolation: "original",
+    calculation_area_m: calculationArea,
+    show_basemap: bool(settings, "ShowMap"),
+    map_provider: /OpenStreetMap/i.test(provider)
+      ? "OpenStreetMap"
+      : /satellite|imagery/i.test(provider)
+        ? "Satellite Esri"
+        : "Carto clair",
+    contour_width: n(settings, "LineWidthZO", 2),
+    display_options: {
+      grid: bool(settings, "ShowCircles", false),
+      buildings: bool(settings, "ShowAllBuildings"),
+      terrain: bool(settings, "ShowRelief", false),
+      lines:
+        bool(settings, "ShowRoads") ||
+        bool(settings, "ShowFences") ||
+        bool(settings, "ShowText"),
+      sources: bool(settings, "ShowAntennas"),
+      points: bool(settings, "ShowControlPoints"),
+      contours: bool(settings, "ShowConturZO"),
+      labels: bool(settings, "ShowAntennaLabels"),
+      azimuths: bool(settings, "ShowAntennaAzimuth"),
+    },
+    building_labels: {
+      name: bool(settings, "ShowBuildingText"),
+      height: bool(settings, "ShowBuildingHeight"),
+      foundation: bool(settings, "ShowBuildingFoundation", false),
+    },
+    line_visibility: {
+      roads: bool(settings, "ShowRoads"),
+      fences: bool(settings, "ShowFences"),
+      labels: bool(settings, "ShowText"),
+    },
+    control_point_labels: {
+      prefix: s(settings, "ControlPointPrefix"),
+      groups: bool(settings, "ShowControlPointGroups"),
+      heights: bool(settings, "ShowControlPointHeight"),
+    },
   };
   const geo = (wm: unknown): [number, number] => {
     const c = obj(wm);
@@ -131,6 +183,7 @@ export function importXemf(buffer: ArrayBuffer, name: string): PlannerProject {
       attenuation_db: p.settings.building_attenuation_db,
       points: arr(b.CoordWM).map(local),
       active: bool(b, "UseAttenuation"),
+      visible: bool(b, "Show"),
     };
   });
   p.terrain_points = arr(root.ElPT).map((r) => {
@@ -146,6 +199,16 @@ export function importXemf(buffer: ArrayBuffer, name: string): PlannerProject {
       wm_y: n(wm, "Ywm"),
     };
   });
+  p.terrain_contours = arr(root.ElLN).map((r, i) => {
+    const t = obj(r);
+    return {
+      id: uid(),
+      name: `Relief ${i + 1}`,
+      elevation: n(t, "H"),
+      closed: bool(t, "CloseLine", false),
+      points: arr(t.CoordWM).map(local),
+    };
+  });
   p.lines = [
     ...arr(root.ROAD).map((r, i) => {
       const l = obj(r);
@@ -156,6 +219,7 @@ export function importXemf(buffer: ArrayBuffer, name: string): PlannerProject {
         points: arr(l.CoordWM).map(local),
         color: "#707070",
         width: n(l, "WidthM", 1),
+        border_width: n(l, "WidthBorder", 1),
       };
     }),
     ...arr(root.FENCE).map((r, i) => {
@@ -167,6 +231,7 @@ export function importXemf(buffer: ArrayBuffer, name: string): PlannerProject {
         points: arr(l.CoordWM).map(local),
         color: "#333333",
         width: n(l, "Width", 1),
+        fence_type: n(l, "Type"),
       };
     }),
     ...arr(root.TXT).map((r) => {
@@ -178,6 +243,10 @@ export function importXemf(buffer: ArrayBuffer, name: string): PlannerProject {
         points: [local(l.CoordWM)],
         color: "#333333",
         width: 1,
+        font_name: s(l, "FontName"),
+        font_size: n(l, "Size", 10),
+        angle_deg: n(l, "Angle"),
+        show_point: bool(l, "Point", false),
       };
     }),
   ];
@@ -187,7 +256,9 @@ export function importXemf(buffer: ArrayBuffer, name: string): PlannerProject {
       id: uid(),
       active: bool(c, "Activ"),
       height_m: n(c, "Height"),
-      color: "#d32246",
+      color: dotnetColor(obj(c.Color), "#d32246"),
+      line_style:
+        ["solid", "dash", "dot", "dashdot"][n(c, "LineType")] ?? "solid",
     };
   });
   p.vertical_cuts = arr(root.VP).map((r) => {
@@ -210,6 +281,8 @@ export function importXemf(buffer: ArrayBuffer, name: string): PlannerProject {
   p.limits = p.limits.map((l, i) => ({
     ...l,
     name: String(descriptions[i] ?? l.name),
+    color: dotnetColor(obj(arr(settings.LimitColor)[i]), l.color),
+    active: arr(settings.HorizCutLimits)[i] === true,
     use_alpha24: arr(settings.LimitAlpha24)[i] === true,
     use_ftdc: arr(settings.LimitFtdc)[i] === true,
     use_fpr: arr(settings.LimitFpr)[i] === true,
@@ -258,5 +331,107 @@ export function importXemf(buffer: ArrayBuffer, name: string): PlannerProject {
     const [x_m, y_m] = rounded(c.lat, c.lng);
     return { ...c, x_m, y_m };
   });
+  const horizontal: SavedCutResult[] = [],
+    vertical: SavedCutResult[] = [];
+  const emptyGrid = (height: number) => ({
+    width: 2,
+    height: 2,
+    x0: calculationArea?.x_min ?? -150,
+    y0: calculationArea?.y_min ?? -150,
+    dx: calculationArea ? calculationArea.x_max - calculationArea.x_min : 300,
+    dy: calculationArea ? calculationArea.y_max - calculationArea.y_min : 300,
+    values: [],
+    fields: [],
+    height_m: height,
+  });
+  const segments = (v: unknown, convert: (v: unknown) => [number, number]) =>
+    arr(v).flatMap((poly) => {
+      const path = arr(poly).map(convert);
+      return path.slice(1).map((point, i) => [path[i], point]);
+    });
+  if (bool(settings, "FlagLastRezManyLimits", false)) {
+    arr(root.HP_PLNwm).forEach((v, i) => {
+      const cut = p.horizontal_cuts[0];
+      const paths = segments(v, local);
+      if (!cut || !paths.length) return;
+      horizontal.push({
+        id: uid(),
+        cut_id: cut.id,
+        limit_index: i,
+        contours_only: true,
+        grid: emptyGrid(cut.height_m),
+        contours: {
+          level: 1,
+          color: p.limits[i]?.color ?? cut.color,
+          height_m: cut.height_m,
+          segments: paths,
+        },
+      });
+    });
+  } else
+    arr(root.HP).forEach((v, i) => {
+      const cut = p.horizontal_cuts[i],
+        paths = segments(obj(v).PLNwm, local);
+      if (!paths.length || !cut) return;
+      horizontal.push({
+        id: uid(),
+        cut_id: cut.id,
+        contours_only: true,
+        grid: emptyGrid(cut.height_m),
+        contours: {
+          level: 1,
+          color: cut.color,
+          height_m: cut.height_m,
+          segments: paths,
+        },
+      });
+    });
+  const originAltitude = terrainHeight(p, 0, 0);
+  arr(root.VP).forEach((v, ci) => {
+    const raw = obj(v),
+      cut = p.vertical_cuts[ci],
+      size = n(raw, "Size");
+    if (!cut || size <= 0) return;
+    const l1 = n(raw, "LastL1", cut.forward_m),
+      l2 = n(raw, "LastL2", cut.backward_m),
+      h1 = n(raw, "LastH1", cut.max_height_m),
+      h2 = n(raw, "LastH2", 0);
+    arr(raw.PLNs).forEach((v, li) => {
+      const paths = segments(v, (v) => {
+        const point = obj(v);
+        return [
+          -l2 + (n(point, "X") / size) * (l1 + l2),
+          n(raw, "Elev0") -
+            originAltitude -
+            h2 +
+            (n(point, "Y") / size) * (h1 + h2),
+        ];
+      });
+      if (!paths.length) return;
+      vertical.push({
+        id: uid(),
+        cut_id: cut.id,
+        limit_index: li,
+        contours_only: true,
+        grid: {
+          ...emptyGrid(0),
+          width: size + 1,
+          height: size + 1,
+          x0: -l2,
+          y0: n(raw, "Elev0") - originAltitude - h2,
+          dx: (l1 + l2) / size,
+          dy: (h1 + h2) / size,
+        },
+        contours: {
+          level: 1,
+          color: p.limits[li]?.color ?? "#ff0000",
+          height_m: 0,
+          segments: paths,
+        },
+      });
+    });
+  });
+  if (horizontal.length || vertical.length)
+    p.saved_cut_results = { horizontal, vertical };
   return p;
 }

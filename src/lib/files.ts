@@ -2,6 +2,8 @@ import { isTauri } from "@tauri-apps/api/core";
 import { normalizeProject, newSource, uid } from "./project";
 import { importXemf } from "./import-xemf";
 import { calculatePoints } from "./engine";
+import { buildCadDrawing, cadDrawingDxf, type CadOptions } from "./cad";
+import { cutNumericSummary } from "./cut-report";
 import type {
   Contour,
   PlannerProject,
@@ -353,7 +355,10 @@ export async function exportPdf(
 export function projectDxf(
   project: PlannerProject,
   contours: Contour[] = [],
+  options?: { paper?: Partial<CadOptions> },
 ): string {
+  if (options?.paper)
+    return cadDrawingDxf(buildCadDrawing(project, contours, options.paper));
   const pairs: (string | number)[] = [];
   const add = (...p: (string | number)[]) => pairs.push(...p);
   add(
@@ -454,6 +459,12 @@ export function importDxf(
   project: PlannerProject,
   text: string,
 ): PlannerProject {
+  if (/^AC10\d\d/.test(text) || text.includes("AutoCAD Binary DXF"))
+    throw new Error(
+      "Ce fichier est un DWG ou un DXF binaire. Convertissez-le en DXF texte avant l’import.",
+    );
+  if (!/\bSECTION\s/.test(text) || !/\bENTITIES\s/.test(text))
+    throw new Error("Fichier DXF texte invalide : section ENTITIES absente.");
   const lines = text.split(/\r?\n/),
     entities: { type: string; pairs: [number, string][] }[] = [];
   let current: (typeof entities)[number] | undefined;
@@ -523,52 +534,86 @@ export function importDxf(
 export async function exportCutReport(
   project: PlannerProject,
   kind: "horizontal" | "vertical",
-  cutResults: { id: string; cut_id?: string; grid: import("../types").FieldGrid; contours: Contour }[],
+  cutResults: {
+    id: string;
+    cut_id?: string;
+    grid: import("../types").FieldGrid;
+    contours: Contour;
+  }[],
 ) {
   const { jsPDF } = await import("jspdf");
-  await import("jspdf-autotable");
-  const doc = new jsPDF({ orientation: "landscape" }) as InstanceType<typeof jsPDF> & { autoTable: Function };
+  const { autoTable } = await import("jspdf-autotable");
+  const doc = new jsPDF({ orientation: "landscape" });
   doc.setFontSize(14);
-  doc.text(`Rapport des coupes ${kind === "horizontal" ? "horizontales" : "verticales"} — ${project.name}`, 14, 15);
+  doc.text(
+    `Rapport des coupes ${kind === "horizontal" ? "horizontales" : "verticales"} — ${project.name}`,
+    14,
+    15,
+  );
   doc.setFontSize(10);
-  doc.text(`Limites : ${project.limits[project.settings.selected_limit]?.name ?? "—"}`, 14, 22);
+  doc.text(
+    `Limites : ${project.limits[project.settings.selected_limit]?.name ?? "—"}`,
+    14,
+    22,
+  );
+  doc.setFontSize(8);
+  doc.text(
+    "Cellules vides : valeurs numériques indisponibles (contours importés ou coupe non calculée).",
+    14,
+    28,
+  );
 
   if (kind === "horizontal") {
     const cuts = project.horizontal_cuts.filter((c) => c.active);
-    const headers = ["Hauteur, m", "Contour", "E max, V/m", "Ratio max", "Points"];
+    const headers = [
+      "Hauteur, m",
+      "Contour",
+      "E max, V/m",
+      "Ratio max",
+      "Points",
+    ];
     const rows = cuts.map((cut) => {
       const results = cutResults.filter(
         (r) => r.grid.height_m === cut.height_m,
       );
-      const maxField = Math.max(0, ...results.map((r) => Math.max(...r.grid.fields)));
-      const maxRatio = Math.max(0, ...results.map((r) => Math.max(...r.grid.values)));
+      const { maxField, maxRatio, samples } = cutNumericSummary(
+        results.map((r) => r.grid),
+      );
       const segs = results.reduce((n, r) => n + r.contours.segments.length, 0);
       return [
         cut.height_m.toFixed(1),
         segs > 0 ? "Oui" : "Non",
-        maxField.toFixed(4),
-        maxRatio.toFixed(6),
-        String(results.reduce((n, r) => n + r.grid.width * r.grid.height, 0)),
+        maxField?.toFixed(4) ?? "",
+        maxRatio?.toFixed(6) ?? "",
+        samples === null ? "" : String(samples),
       ];
     });
-    doc.autoTable({ head: [headers], body: rows, startY: 28 });
+    autoTable(doc, { head: [headers], body: rows, startY: 33 });
   } else {
     const cuts = project.vertical_cuts.filter((c) => c.active);
-    const headers = ["Azimut, °", "Avant, m", "Arrière, m", "Hmax, m", "E max, V/m", "Ratio max"];
+    const headers = [
+      "Azimut, °",
+      "Avant, m",
+      "Arrière, m",
+      "Hmax, m",
+      "E max, V/m",
+      "Ratio max",
+    ];
     const rows = cuts.map((cut) => {
       const results = cutResults.filter((r) => r.cut_id === cut.id);
-      const maxField = Math.max(0, ...results.map((r) => Math.max(...r.grid.fields)));
-      const maxRatio = Math.max(0, ...results.map((r) => Math.max(...r.grid.values)));
+      const { maxField, maxRatio } = cutNumericSummary(
+        results.map((r) => r.grid),
+      );
       return [
         cut.azimuth_deg.toFixed(1),
         cut.forward_m.toFixed(0),
         cut.backward_m.toFixed(0),
         cut.max_height_m.toFixed(0),
-        maxField.toFixed(4),
-        maxRatio.toFixed(6),
+        maxField?.toFixed(4) ?? "",
+        maxRatio?.toFixed(6) ?? "",
       ];
     });
-    doc.autoTable({ head: [headers], body: rows, startY: 28 });
+    autoTable(doc, { head: [headers], body: rows, startY: 33 });
   }
   const bytes = doc.output("arraybuffer");
   await saveBytes(
@@ -621,107 +666,12 @@ export function resolveAliases(
   return template.replace(/\{(\w+)\}/g, (m, key) => values[key] ?? m);
 }
 
-/** Process a .docx template by replacing alias placeholders and inserting tables/charts. */
+/** Native Word-template processing is deliberately unavailable until implemented. */
 export async function processWordTemplate(
-  project: PlannerProject,
+  _project: PlannerProject,
   _templateBytes: Uint8Array,
 ): Promise<boolean> {
-  const {
-    Document,
-    Packer,
-    Paragraph,
-    Table,
-    TableRow,
-    TableCell,
-    TextRun,
-    WidthType,
-  } = await import("docx");
-
-  const limit = project.limits[project.settings.selected_limit];
-  const pts = calculatePoints(project);
-  const aliases: Record<string, string> = {
-    PROJECT_NAME: project.name,
-    PROJECT_DESCRIPTION: project.description,
-    DATE: new Date().toLocaleDateString("fr-FR"),
-    AUTHOR: (project.owner_names ?? [])[0] ?? "",
-    SOURCES_COUNT: String(project.sources.length),
-    LIMIT_NAME: limit?.name ?? "",
-    RADIUS_M: String(project.settings.radius_m),
-    GRID_STEP: String(project.settings.grid_step_m),
-    ORIGIN_LAT: project.origin[0].toFixed(6),
-    ORIGIN_LNG: project.origin[1].toFixed(6),
-    BUILDINGS_COUNT: String(project.buildings.length),
-    POINTS_COUNT: String(project.control_points.length),
-    TERRAIN_COUNT: String(project.terrain_points.length),
-    CUTS_COUNT: String(project.vertical_cuts.length),
-    ...(project.settings.report_aliases ?? {}),
-  };
-
-  const data = [
-    resultHeaders,
-    ...resultRows(pts).map((r) =>
-      r.map((v) => (typeof v === "number" ? v.toFixed(6) : v)),
-    ),
-  ];
-  const makeTable = (rows: (string | number)[][]) =>
-    new Table({
-      width: { size: 100, type: WidthType.PERCENTAGE },
-      rows: rows.map(
-        (row, i) =>
-          new TableRow({
-            children: row.map(
-              (v) =>
-                new TableCell({
-                  children: [
-                    new Paragraph({
-                      children: [
-                        new TextRun({
-                          text: String(v),
-                          bold: i === 0,
-                          size: 16,
-                        }),
-                      ],
-                    }),
-                  ],
-                }),
-            ),
-          }),
-      ),
-    });
-  const doc = new Document({
-    sections: [
-      {
-        properties: { page: { size: { orientation: "landscape" } } },
-        children: [
-          new Paragraph({
-            children: [
-              new TextRun({ text: aliases.PROJECT_NAME, bold: true, size: 30 }),
-            ],
-          }),
-          new Paragraph(aliases.PROJECT_DESCRIPTION),
-          new Paragraph(`Date : ${aliases.DATE}`),
-          new Paragraph(`Auteur : ${aliases.AUTHOR}`),
-          new Paragraph(`Jeu de limites : ${aliases.LIMIT_NAME}`),
-          new Paragraph({ text: "Sources rayonnantes", heading: "Heading2" }),
-          makeTable([
-            ["Source", "MHz", "Puissance TX, W", "Gain, dBi", "Hauteur, m"],
-            ...project.sources.map((s) => [
-              s.name,
-              s.frequency_mhz,
-              s.power_w,
-              s.gain_dbi,
-              s.height_m,
-            ]),
-          ]),
-          new Paragraph({ text: "Calculs aux points", heading: "Heading2" }),
-          makeTable(data),
-        ],
-      },
-    ],
-  });
-  return saveBytes(
-    `${project.name}_rapport.docx`,
-    new Uint8Array(await Packer.toArrayBuffer(doc)),
-    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  throw new Error(
+    "Le traitement des modèles Word n’est pas encore implémenté.",
   );
 }

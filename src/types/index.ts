@@ -84,6 +84,15 @@ export interface ProjectData {
   volume_options?: VolumeOptions;
   report_aliases?: Record<string, string>;
   word_template?: string;
+  cad_options?: {
+    scale: number;
+    paper: "A4" | "A3" | "A2";
+    layers?: Record<string, boolean>;
+  };
+  saved_cut_results?: {
+    horizontal: SavedCutResult[];
+    vertical: SavedCutResult[];
+  };
 }
 
 export interface SourceContribution {
@@ -155,6 +164,7 @@ export interface Building {
   attenuation_db: number;
   points: [number, number][];
   active: boolean;
+  visible?: boolean;
 }
 export interface TerrainPoint {
   id: string;
@@ -172,6 +182,12 @@ export interface DrawingLine {
   color: string;
   width: number;
   icon?: string;
+  border_width?: number;
+  fence_type?: number;
+  font_name?: string;
+  font_size?: number;
+  angle_deg?: number;
+  show_point?: boolean;
 }
 export interface HorizontalCut {
   id: string;
@@ -235,6 +251,26 @@ export interface CalculationSettings {
   include_charts_in_word?: boolean;
   report_aliases?: Record<string, string>;
   word_template_name?: string;
+  calculation_area_m?: {
+    x_min: number;
+    x_max: number;
+    y_min: number;
+    y_max: number;
+  };
+  display_options?: Partial<{
+    grid: boolean;
+    buildings: boolean;
+    terrain: boolean;
+    lines: boolean;
+    sources: boolean;
+    points: boolean;
+    contours: boolean;
+    labels: boolean;
+    azimuths: boolean;
+  }>;
+  building_labels?: { name: boolean; height: boolean; foundation: boolean };
+  line_visibility?: { roads: boolean; fences: boolean; labels: boolean };
+  control_point_labels?: { prefix: string; groups: boolean; heights: boolean };
 }
 export interface StoredAntenna {
   id: string;
@@ -334,6 +370,16 @@ export interface Contour {
   segments: [number, number][][];
   height_m: number;
   line_style?: string;
+}
+
+// Serialized contours contain geometry, not the underlying sampled field values.
+export interface SavedCutResult {
+  id: string;
+  cut_id?: string;
+  limit_index?: number;
+  grid: FieldGrid;
+  contours: Contour;
+  contours_only: true;
 }
 
 export interface FeederType {

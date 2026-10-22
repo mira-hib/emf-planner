@@ -14,7 +14,7 @@ export default function FieldPlot({
 }) {
   const canvas = useRef<HTMLCanvasElement>(null);
   useEffect(() => {
-    if (!grid || !canvas.current) return;
+    if (!grid || !grid.values.length || !canvas.current) return;
     const context = canvas.current.getContext("2d");
     if (!context) return;
     const image = context.createImageData(grid.width, grid.height);
@@ -84,12 +84,18 @@ export default function FieldPlot({
             <span className="plot-top">
               {(grid.y0 + grid.dy * (grid.height - 1)).toFixed(0)}
             </span>
-            <span className="plot-bottom">0</span>
+            <span className="plot-bottom">{grid.y0.toFixed(0)}</span>
             <span className="plot-left">{grid.x0.toFixed(0)}</span>
             <span className="plot-right">
               {(grid.x0 + grid.dx * (grid.width - 1)).toFixed(0)}
             </span>
           </div>
+          {!grid.values.length && (
+            <p className="hint">
+              Contours enregistrés dans le projet d’origine. Recalculez la coupe
+              pour obtenir les valeurs de champ.
+            </p>
+          )}
           <div className="plot-legend">
             {(
               legend ?? [

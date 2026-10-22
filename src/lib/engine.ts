@@ -236,30 +236,44 @@ export function horizontalGrid(
   step: number,
 ): FieldGrid {
   const radius = project.settings.radius_m;
-  const count = Math.ceil((2 * radius) / Math.max(0.2, step)) + 1;
-  if (count > 501)
+  const area = project.settings.calculation_area_m ?? {
+    x_min: -radius,
+    x_max: radius,
+    y_min: -radius,
+    y_max: radius,
+  };
+  const countX = Math.max(
+    2,
+    Math.ceil((area.x_max - area.x_min) / Math.max(0.2, step)) + 1,
+  );
+  const countY = Math.max(
+    2,
+    Math.ceil((area.y_max - area.y_min) / Math.max(0.2, step)) + 1,
+  );
+  if (countX > 501 || countY > 501)
     throw new Error(
       "Grille trop grande. Augmentez le pas ou réduisez la zone (501 × 501 maximum).",
     );
-  const dx = (2 * radius) / (count - 1),
+  const dx = (area.x_max - area.x_min) / (countX - 1),
+    dy = (area.y_max - area.y_min) / (countY - 1),
     values: number[] = [],
     fields: number[] = [];
   const originElevation = terrainHeight(project, 0, 0);
-  for (let j = 0; j < count; j++)
-    for (let i = 0; i < count; i++) {
-      const x = -radius + i * dx,
-        y = -radius + j * dx,
+  for (let j = 0; j < countY; j++)
+    for (let i = 0; i < countX; i++) {
+      const x = area.x_min + i * dx,
+        y = area.y_min + j * dy,
         r = exposureAt(project, x, y, height + originElevation);
       values.push(r.exposure_ratio);
       fields.push(r.total_field);
     }
   return {
-    width: count,
-    height: count,
-    x0: -radius,
-    y0: -radius,
+    width: countX,
+    height: countY,
+    x0: area.x_min,
+    y0: area.y_min,
     dx,
-    dy: dx,
+    dy,
     values,
     fields,
     height_m: height,

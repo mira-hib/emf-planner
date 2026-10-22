@@ -148,7 +148,12 @@ export default function VerticalPage() {
           )?.grid
         }
         overlays={a.verticalResults
-          .filter((r) => (r.cut_id ?? r.id) === a.selectedCut)
+          .filter(
+            (r) =>
+              (r.cut_id ?? r.id) === a.selectedCut &&
+              (r.limit_index === undefined ||
+                project.limits[r.limit_index]?.active !== false),
+          )
           .map((r) => r.contours)}
         legend={project.limits
           .filter((l) => l.active)

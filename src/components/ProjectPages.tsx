@@ -187,18 +187,21 @@ export function TablesPage() {
         const cut = project.vertical_cuts.find((c) => c.id === r.cut_id);
         const g = r.grid;
         if (!g.fields.length) return [];
-        return Array.from({ length: Math.min(g.width * g.height, 500) }, (_, idx) => {
-          const col = idx % g.width;
-          const row = Math.floor(idx / g.width);
-          return {
-            id: `${r.id}-${idx}`,
-            azimut: cut?.azimuth_deg.toFixed(1) ?? "?",
-            distance_m: (g.x0 + col * g.dx).toFixed(1),
-            height_m: (g.y0 + row * g.dy).toFixed(1),
-            field: g.fields[idx]?.toFixed(4) ?? "-",
-            exposure: ((g.values[idx] ?? 0) * 100).toFixed(2),
-          };
-        });
+        return Array.from(
+          { length: Math.min(g.width * g.height, 500) },
+          (_, idx) => {
+            const col = idx % g.width;
+            const row = Math.floor(idx / g.width);
+            return {
+              id: `${r.id}-${idx}`,
+              azimut: cut?.azimuth_deg.toFixed(1) ?? "?",
+              distance_m: (g.x0 + col * g.dx).toFixed(1),
+              height_m: (g.y0 + row * g.dy).toFixed(1),
+              field: g.fields[idx]?.toFixed(4) ?? "-",
+              exposure: ((g.values[idx] ?? 0) * 100).toFixed(2),
+            };
+          },
+        );
       }),
     [verticalResults, project.vertical_cuts],
   );
@@ -220,7 +223,7 @@ export function TablesPage() {
             aria-selected={tab === "vfield"}
             className={tab === "vfield" ? "active" : ""}
             onClick={() => setTab("vfield")}
-            disabled={!verticalResults.length}
+            disabled={!verticalResults.some((r) => r.grid.fields.length)}
           >
             Champ coupes V
           </button>
@@ -229,15 +232,23 @@ export function TablesPage() {
             aria-selected={tab === "vexposure"}
             className={tab === "vexposure" ? "active" : ""}
             onClick={() => setTab("vexposure")}
-            disabled={!verticalResults.length}
+            disabled={!verticalResults.some((r) => r.grid.values.length)}
           >
             Exposition coupes V
           </button>
         </div>
         {tab === "points" && (
           <>
-            <NumberField label="Hauteur, m" value={height} onChange={setHeight} />
-            <NumberField label="Azimut, deg" value={angle} onChange={setAngle} />
+            <NumberField
+              label="Hauteur, m"
+              value={height}
+              onChange={setHeight}
+            />
+            <NumberField
+              label="Azimut, deg"
+              value={angle}
+              onChange={setAngle}
+            />
             <NumberField
               label="Distance max., m"
               value={distance}
@@ -468,7 +479,8 @@ export function SettingsPage() {
             value={project.settings.buildings_mode}
             onChange={(e) =>
               settings({
-                buildings_mode: e.target.value as "ignore" | "screen" | "attenuate",
+                buildings_mode: e.target.value as
+                  "ignore" | "screen" | "attenuate",
               })
             }
           >
@@ -491,7 +503,8 @@ export function SettingsPage() {
             value={project.settings.terrain_interpolation ?? "delaunay"}
             onChange={(e) =>
               settings({
-                terrain_interpolation: e.target.value as "original" | "delaunay",
+                terrain_interpolation: e.target.value as
+                  "original" | "delaunay",
               })
             }
           >
@@ -552,7 +565,9 @@ export function SettingsPage() {
       </fieldset>
       <fieldset>
         <legend>Propriétaires</legend>
-        <p className="hint">Liste des propriétaires de sites, utilisée dans les sources.</p>
+        <p className="hint">
+          Liste des propriétaires de sites, utilisée dans les sources.
+        </p>
         {(project.owner_names ?? []).map((name, i) => (
           <label key={i}>
             <input

@@ -74,7 +74,9 @@ export function useExtraActions(): Record<
                 : l,
             ),
           }));
-          a.setStatus(`Préréglage « ${name} » appliqué au jeu ${p.settings.selected_limit + 1}.`);
+          a.setStatus(
+            `Préréglage « ${name} » appliqué au jeu ${p.settings.selected_limit + 1}.`,
+          );
         },
         enabled: true,
       },
@@ -319,8 +321,13 @@ export function useExtraActions(): Record<
     "Coupes automatiques supplémentaires": {
       run: () => {
         const activeSources = p.sources.filter((s) => s.active !== false);
-        if (!activeSources.length) { a.setStatus("Aucune source active."); return; }
-        const existing = new Set(p.vertical_cuts.map((c) => Math.round(c.azimuth_deg)));
+        if (!activeSources.length) {
+          a.setStatus("Aucune source active.");
+          return;
+        }
+        const existing = new Set(
+          p.vertical_cuts.map((c) => Math.round(c.azimuth_deg)),
+        );
         const newCuts = activeSources
           .filter((s) => !existing.has(Math.round(s.azimuth_deg)))
           .map((s) => ({
@@ -333,12 +340,17 @@ export function useExtraActions(): Record<
             forward_m: 200,
             max_height_m: 100,
           }));
-        if (!newCuts.length) { a.setStatus("Toutes les coupes par azimut sont déjà présentes."); return; }
+        if (!newCuts.length) {
+          a.setStatus("Toutes les coupes par azimut sont déjà présentes.");
+          return;
+        }
         commit((v) => ({
           ...v,
           vertical_cuts: [...v.vertical_cuts, ...newCuts],
         }));
-        a.setStatus(`${newCuts.length} coupes ajoutées (azimuts des sources actives).`);
+        a.setStatus(
+          `${newCuts.length} coupes ajoutées (azimuts des sources actives).`,
+        );
       },
       enabled: p.sources.some((s) => s.active !== false),
     },
@@ -347,18 +359,23 @@ export function useExtraActions(): Record<
         const step = 45;
         commit((v) => ({
           ...v,
-          vertical_cuts: Array.from({ length: Math.floor(360 / step) }, (_, i) => ({
-            id: uid(),
-            active: true,
-            azimuth_deg: i * step,
-            x: 0,
-            y: 0,
-            backward_m: 100,
-            forward_m: 100,
-            max_height_m: 100,
-          })),
+          vertical_cuts: Array.from(
+            { length: Math.floor(360 / step) },
+            (_, i) => ({
+              id: uid(),
+              active: true,
+              azimuth_deg: i * step,
+              x: 0,
+              y: 0,
+              backward_m: 100,
+              forward_m: 100,
+              max_height_m: 100,
+            }),
+          ),
         }));
-        a.setStatus(`${Math.floor(360 / step)} coupes créées (pas de ${step}°).`);
+        a.setStatus(
+          `${Math.floor(360 / step)} coupes créées (pas de ${step}°).`,
+        );
       },
       enabled: true,
     },
@@ -372,7 +389,8 @@ export function useExtraActions(): Record<
         const dy0 = pts[1][1] - pts[0][1];
         const len0 = Math.hypot(dx0, dy0);
         if (len0 < 0.001) return;
-        const ux = dx0 / len0, uy = dy0 / len0;
+        const ux = dx0 / len0,
+          uy = dy0 / len0;
         // Average edge length as grid step
         const avgLen =
           pts.reduce((sum, _, i) => {
@@ -459,7 +477,10 @@ export function useExtraActions(): Record<
             a.setStatus("Aucun bâtiment trouvé dans cette zone.");
             return null;
           }
-          commit((v) => ({ ...v, buildings: [...v.buildings, ...newBuildings] }));
+          commit((v) => ({
+            ...v,
+            buildings: [...v.buildings, ...newBuildings],
+          }));
           return `${newBuildings.length} bâtiments OSM importés`;
         }, "Bâtiments OpenStreetMap importés"),
       enabled: true,
@@ -497,7 +518,8 @@ export function useExtraActions(): Record<
             const isFence = tags.barrier === "fence";
             newLines.push({
               id: uid(),
-              name: tags.name || (isFence ? `Clôture ${el.id}` : `Route ${el.id}`),
+              name:
+                tags.name || (isFence ? `Clôture ${el.id}` : `Route ${el.id}`),
               kind: isFence ? "barrier" : "road",
               points: pts.map(([lt, ln]) => toLocal(lt, ln, origin)),
               color: isFence ? "#8B4513" : "#666666",
@@ -581,7 +603,9 @@ export function useExtraActions(): Record<
           ...v,
           buildings: v.buildings.map((b) => ({
             ...b,
-            points: b.points.map(([x, y]) => [x + 5, y + 5] as [number, number]),
+            points: b.points.map(
+              ([x, y]) => [x + 5, y + 5] as [number, number],
+            ),
           })),
         })),
       enabled: p.buildings.length > 0,
@@ -592,7 +616,9 @@ export function useExtraActions(): Record<
           ...v,
           lines: v.lines.map((l) => ({
             ...l,
-            points: l.points.map(([x, y]) => [x + 5, y + 5] as [number, number]),
+            points: l.points.map(
+              ([x, y]) => [x + 5, y + 5] as [number, number],
+            ),
           })),
         })),
       enabled: p.lines.length > 0,
@@ -605,7 +631,13 @@ export function useExtraActions(): Record<
           sources: v.sources.map((s) =>
             s.id === source.id
               ? s
-              : { ...s, lat: source.lat, lng: source.lng, x_m: source.x_m, y_m: source.y_m },
+              : {
+                  ...s,
+                  lat: source.lat,
+                  lng: source.lng,
+                  x_m: source.x_m,
+                  y_m: source.y_m,
+                },
           ),
         }));
       },
@@ -628,23 +660,15 @@ export function useExtraActions(): Record<
       enabled: p.sources.length > 0,
     },
     "Liste des propriétaires": {
-      run: () => a.setSection("settings"),
+      run: () => a.openCommand("Liste des propriétaires"),
       enabled: true,
     },
     "Coordonnées en degrés / minutes / secondes": {
-      run: () => {
-        const fmt = p.settings.coordinate_format ?? "decimal";
-        const next = fmt === "decimal" ? "dms" : fmt === "dms" ? "dm" : "decimal";
-        commit((v) => ({
-          ...v,
-          settings: { ...v.settings, coordinate_format: next },
-        }));
-        a.setStatus(`Coordonnées : ${next === "decimal" ? "DD" : next === "dms" ? "DMS" : "DM"}`);
-      },
+      run: () => a.openCommand("Coordonnées en degrés / minutes / secondes"),
       enabled: true,
     },
     "Fonds de carte personnalisés": {
-      run: () => a.setSection("settings"),
+      run: () => a.openCommand("Fonds de carte personnalisés"),
       enabled: true,
     },
     // --- Report dialogs ---
@@ -659,18 +683,21 @@ export function useExtraActions(): Record<
     // --- Tables ---
     "Tableaux de champ des coupes verticales": {
       run: () => a.openCommand("Tableaux de champ des coupes verticales"),
-      enabled: !!a.verticalResults.length,
+      enabled: a.verticalResults.some((r) => r.grid.fields.length > 0),
     },
     "Tableaux d’exposition des coupes verticales": {
       run: () => a.openCommand("Tableaux d’exposition des coupes verticales"),
-      enabled: !!a.verticalResults.length,
+      enabled: a.verticalResults.some((r) => r.grid.values.length > 0),
     },
     // --- Word charts ---
     "Graphiques dans le rapport Word": {
       run: () => {
         commit((v) => ({
           ...v,
-          settings: { ...v.settings, include_charts_in_word: !v.settings.include_charts_in_word },
+          settings: {
+            ...v.settings,
+            include_charts_in_word: !v.settings.include_charts_in_word,
+          },
         }));
         a.setStatus(
           p.settings.include_charts_in_word
@@ -752,7 +779,7 @@ export function useExtraActions(): Record<
       enabled: true,
     },
     // --- CAD features ---
-    "Exporter DWG": {
+    "Exporter DXF": {
       run: () =>
         void a.task(
           () =>
@@ -764,10 +791,10 @@ export function useExtraActions(): Record<
         ),
       enabled: true,
     },
-    "Importer DWG": {
+    "Importer DXF": {
       run: () =>
         void a.task(async () => {
-          const file = await chooseFile(["dxf", "dwg"]);
+          const file = await chooseFile(["dxf"]);
           if (!file) return null;
           const text = new TextDecoder().decode(file.bytes);
           commit(importDxf(p, text));
@@ -775,18 +802,26 @@ export function useExtraActions(): Record<
         }, "Fichier DXF importé"),
       enabled: true,
     },
+    "Mise en page CAO avancée": {
+      run: () => a.setSection("cad"),
+      enabled: true,
+    },
     // --- Calibration features ---
     "Calibrer avec deux lignes": {
       run: () => {
         a.setTool("calibrate-2lines");
-        a.setStatus("Tracez deux lignes de référence, puis entrez leurs distances réelles.");
+        a.setStatus(
+          "Tracez deux lignes de référence, puis entrez leurs distances réelles.",
+        );
       },
       enabled: true,
     },
     "Calibrer avec une ligne et un point": {
       run: () => {
         a.setTool("calibrate-line-point");
-        a.setStatus("Tracez une ligne de référence et placez un point de coordonnées connues.");
+        a.setStatus(
+          "Tracez une ligne de référence et placez un point de coordonnées connues.",
+        );
       },
       enabled: true,
     },
@@ -826,11 +861,9 @@ export function useExtraActions(): Record<
               "Impossible de lire les coordonnées depuis le nom de fichier.",
             );
           const swLat =
-            parseInt(match[2], 10) *
-            (match[1].toUpperCase() === "N" ? 1 : -1);
+            parseInt(match[2], 10) * (match[1].toUpperCase() === "N" ? 1 : -1);
           const swLng =
-            parseInt(match[4], 10) *
-            (match[3].toUpperCase() === "E" ? 1 : -1);
+            parseInt(match[4], 10) * (match[3].toUpperCase() === "E" ? 1 : -1);
           const arcSec = gridSize === 1201 ? 3 : 1;
           const stepDeg = arcSec / 3600;
           const origin = p.origin;
