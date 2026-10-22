@@ -109,6 +109,7 @@ export function importXemf(buffer: ArrayBuffer, name: string): PlannerProject {
       ...source,
       active: bool(t, "Active"),
       frequency_mhz: n(t, "F", 900),
+      frequency_end_mhz: n(t, "F2") || undefined,
       power_w: n(t, "P"),
       gain_dbi: n(t, "G"),
       lat,
@@ -140,7 +141,27 @@ export function importXemf(buffer: ArrayBuffer, name: string): PlannerProject {
             arr(t.Fpr)[j] ?? 1,
           ] as number[],
       ),
-      color: i >= 6 ? "#a5eda2" : "#ffffff",
+      color: dotnetColor(obj(t.Color), "#ffffff"),
+      feeder:
+        s(t, "Cable") || s(t, "Jumper")
+          ? {
+              cable: s(t, "Cable"),
+              length_m: n(t, "LengthCable"),
+              jumper: s(t, "Jumper"),
+              jumper_lengths: s(t, "LengthJumper", "0"),
+              automatic_connectors: true,
+              include_connectors: bool(t, "ChkLossSocket", false),
+              connectors: bool(t, "ChkLossSocket", false)
+                ? 2 +
+                  s(t, "LengthJumper", "0")
+                    .split("+")
+                    .filter((v) => Number(v.replace(",", ".")) > 0).length *
+                    2
+                : 0,
+              connector_loss: n(t, "LossSocketOne"),
+              other_loss: n(t, "ExtraLoss"),
+            }
+          : undefined,
     };
   });
   p.control_points = arr(root.CPG).flatMap((r, gi) => {

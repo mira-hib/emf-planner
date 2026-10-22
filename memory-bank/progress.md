@@ -125,3 +125,17 @@ Le moteur utilisé par la nouvelle interface est `src/lib/engine.ts` ; les
 anciens modules Rust restent présents mais ne pilotent plus ces écrans.
 Voir **`clone-interface.md`** et **`features.md`** pour l’état actuel et les
 fonctions restant grisées.
+
+## 2026-10-22 — Reproduction rubrique par rubrique, premier lot Sources
+
+L’utilisateur demande de traiter les éléments du menu un à un, en commençant par les fonctions essentielles. L’ordre des 16 rubriques et les écarts précis à poursuivre sont conservés dans **`menu-reproduction.md`**. La rubrique Sources n’est pas déclarée complète.
+
+- Sélection et édition de plusieurs lignes, copies indépendantes, déplacements haut/bas/début/fin, tampon persistant et suppression confirmée.
+- Bandes F/F2, service libre, bornes numériques natives principales, état Existing/New, couleurs et câbles importés conservés.
+- Calculateur EIRP indépendant avec quatre unités et trois opérations ; facteurs conditionnels bornés à 0,1–1.
+- Commandes de calcul des ouvertures ; enveloppe native, connecteurs exclus lorsque décochés, fréquence médiane des bandes et décodage MSI Windows-1251/UTF-8.
+- XLT binaire historique grisé ; XLSX/XLTX disponible selon le schéma du clone.
+- Correction d’un défaut de largeur du panneau après agrandissement/réduction rapide de la fenêtre.
+- Vérifications : **63 tests unitaires**, **21 parcours Edge**, TypeScript/Vite réussis. Les 15 références originales restent stables. Capture relue dans `reference/sources-interface/`.
+
+Les archives et exécutables historiques restent conservés. Ne pas fermer l’application native déjà ouverte sans sauvegarder son projet ; la nouvelle compilation utilise une cible de sortie distincte.

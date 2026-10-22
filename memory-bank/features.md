@@ -1,6 +1,6 @@
 # Fonctionnalités — état vérifié du clone
 
-Mise à jour : 20 octobre 2026, après comparaison Windows de Castelfranco.
+Mise à jour : 22 octobre 2026, après le premier lot de reproduction des Sources. Voir `menu-reproduction.md` pour l’ordre de reprise et les écarts encore présents dans cette rubrique.
 
 Le précédent état « implémentation complète » était trop affirmatif : plusieurs
 commandes ouvraient une boîte ou annonçaient un succès sans réaliser la fonction.
@@ -10,6 +10,7 @@ Les commandes inachevées restent visibles et grisées. Le catalogue central est
 | Domaine | Disponible | Partiel ou restant |
 |---|---|---|
 | Interface | 16 rubriques, icônes originales, grilles compactes, panneaux redimensionnables, annuler/rétablir | Comparaison visuelle complète de chaque écran |
+| Sources | Sélection et édition groupées, duplication/classement/copie persistante, bandes F/F2, calculateur EIRP indépendant multi-unités, facteurs conditionnels, ouvertures à 3 dB | Sélection native de cellules/colonnes, valeurs initiales, propriétaire/couleur, convertisseur synchronisé, quatre sorties Word et modèle Excel natifs |
 | Projets | Import .xemf/.emfp/JSON, sauvegarde .emfp, copie locale | Écriture du format .xemf d’origine |
 | Import .xemf | Sources, points, bâtiments, relief, lignes, coupes, limites ; zone rectangulaire, couleurs, réglages d’affichage et contours H/V enregistrés | Autres variantes de sérialisation et propriétés non encore mappées |
 | Antennes | MSI, bibliothèque/éditeur, enveloppes, génération symétrique, câbles ; panneau 30 dB H/V rempli, six icônes, rotation native des échantillons avec ElectUg | Catalogue fabricant complet, lecture d’un dossier d’antennes |

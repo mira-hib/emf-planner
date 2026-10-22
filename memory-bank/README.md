@@ -8,6 +8,7 @@ Base de connaissances pour le projet de reverse engineering et reproduction d'EM
 |---------|-------------|
 | `architecture.md` | Architecture du logiciel original (PE, .NET, ODA, Enigma) |
 | `features.md` | Fonctions disponibles, partielles et grisées du clone actuel |
+| `menu-reproduction.md` | **Ordre des 16 rubriques ; lot essentiel Sources intégré et écarts précis à poursuivre** |
 | `castelfranco-fidelity.md` | Comparaison directe Windows de l’antenne, CAO et 3D ; corrections et limites vérifiées |
 | `interface-refinement.md` | Affinage visuel, nouveaux outils, surface EMF 3D et validation |
 | `clone-interface.md` | **Reprise du clone Windows : 16 rubriques, commandes secondaires, moteur, vérifications et lancement** |

@@ -108,3 +108,9 @@ outils gris : DEM/SRTM, génération avancée des coupes, rapports illustrés,
 modèles Word, DWG et calibration par références.
 Les écrans fonctionnels peuvent ensuite être comparés plus finement à
 l’original pour améliorer la fidélité visuelle.
+
+## Mise à jour du 22 octobre — menu par menu
+
+La priorité utilisateur est maintenant la reproduction complète de chaque rubrique. Lire d’abord [menu-reproduction.md](menu-reproduction.md), puis [l’audit Sources](../reference/sources-native-audit-2026-10-22.md). Un premier lot essentiel de Sources est intégré ; la sélection de cellules/colonnes, le visualiseur complet et les sorties Word/Excel natives restent à terminer avant de déclarer cette rubrique achevée.
+
+Validation actuelle : 63 tests unitaires, 21 parcours Edge et compilation TypeScript/Vite réussis. Utiliser `npm ci`, `npm test`, puis `npm run tauri dev` sur Mac. Ne pas confondre le tampon de sources JSON interne avec le format sérialisé natif `buffer.tmp`. Les nouveaux champs optionnels `frequency_end_mhz` et `feeder.include_connectors` doivent être conservés dans les sauvegardes et les copies.

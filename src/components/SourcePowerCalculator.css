@@ -1,0 +1,62 @@
+.source-power-calculator {
+  min-width: 0;
+  padding: 5px 4px 7px;
+}
+.source-power-calculator .source-power-grid {
+  display: grid;
+  grid-template-columns: 72px minmax(32px, 1fr) 37px 21px;
+  grid-template-rows: repeat(6, 22px);
+  column-gap: 2px;
+  row-gap: 3px;
+  align-items: center;
+}
+.source-power-calculator .source-power-field {
+  display: contents;
+  font-size: 11px;
+}
+.source-power-calculator .source-power-field > span {
+  grid-column: 1;
+  text-align: right;
+  padding-right: 4px;
+}
+.source-power-calculator .source-power-field > input {
+  grid-column: 2;
+  min-width: 0;
+  width: 100%;
+  height: 20px;
+  padding: 1px 2px;
+  text-align: center;
+  font-size: 11px;
+}
+.source-power-calculator .source-power-field > input[readonly] {
+  background: #f0f0f0;
+}
+.source-power-calculator select {
+  width: 37px;
+  min-width: 0;
+  height: 20px;
+  padding: 0;
+  font-size: 10px;
+}
+.source-power-calculator .source-power-unit {
+  grid-column: 3;
+  font-size: 11px;
+}
+.source-power-calculator .source-power-action {
+  grid-column: 4;
+  width: 21px;
+  height: 20px;
+  padding: 0;
+  font-size: 11px;
+  line-height: 18px;
+}
+.source-power-calculator .source-power-forward {
+  height: 45px;
+  align-self: stretch;
+}
+.source-power-calculator .source-power-error {
+  margin: 4px 0 0;
+  color: #a92323;
+  font-size: 10px;
+  line-height: 1.2;
+}

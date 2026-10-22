@@ -87,6 +87,7 @@ const SOURCE_COLUMNS: [keyof RadiatingSource, string][] = [
   ["sector_id", "Secteur"],
   ["service_type", "Service"],
   ["frequency_mhz", "Fréquence MHz"],
+  ["frequency_end_mhz", "Fréquence fin MHz"],
   ["power_w", "Puissance W"],
   ["num_tx", "Nombre TX"],
   ["total_attenuation_db", "Atténuation dB"],
@@ -201,7 +202,7 @@ export async function importExcel(
         throw new Error(
           `Cellule complexe ou formule non prise en charge, ligne ${index}.`,
         );
-      if (typeof source[key] === "number") {
+      if (typeof source[key] === "number" || key === "frequency_end_mhz") {
         const number = Number(String(v).replace(",", "."));
         if (!Number.isFinite(number))
           throw new Error(`Nombre invalide, ligne ${index}.`);

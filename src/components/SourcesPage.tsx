@@ -1,7 +1,11 @@
+import { useState } from "react";
 import {
   ArrowDown,
   ArrowUp,
-  Cable,
+  ArrowUpToLine,
+  ArrowDownToLine,
+  ClipboardCopy,
+  ClipboardPaste,
   CheckSquare,
   Copy,
   FileSpreadsheet,
@@ -19,13 +23,25 @@ import {
   importExcel,
   saveText,
 } from "../lib/files";
-import { parseMsi, writeMsi } from "../lib/antenna";
-import { eirp, patternAmplitude } from "../lib/engine";
-import { beamWidth } from "../lib/editing";
-import { uid } from "../lib/project";
+import { decodeMsi, parseMsi, writeMsi } from "../lib/antenna";
+import { patternAmplitude } from "../lib/engine";
+import {
+  nativeBeamWidth,
+  sourceFrequency,
+  sourceFrequencyLabel,
+} from "../lib/source-fields";
+import {
+  copySourceRows,
+  duplicateSourceRows,
+  moveSourceRows,
+  pasteSourceRows,
+  colorSourceRows,
+  toggleAllSourceRows,
+} from "../lib/source-rows";
+import SourcePowerCalculator from "./SourcePowerCalculator";
 import DataGrid, { type Column } from "./DataGrid";
 import AntennaPolar from "./AntennaPolar";
-import { NumberField, Tool } from "./Controls";
+import { Tool } from "./Controls";
 import FeatureTools from "./FeatureTools";
 import "./SourcesPage.css";
 const COLUMNS: Column<RadiatingSource>[] = [
@@ -35,15 +51,12 @@ const COLUMNS: Column<RadiatingSource>[] = [
   {
     key: "service_type",
     label: "Service",
-    kind: "select",
-    options: ["GSM", "UMTS", "LTE", "5G", "FM", "TV", "PtP", "Autre"],
     width: 70,
   },
   {
     key: "frequency_mhz",
     label: "Fréquence, MHz",
-    kind: "number",
-    min: 0.001,
+    editValue: sourceFrequencyLabel,
     width: 76,
   },
   {
@@ -51,6 +64,7 @@ const COLUMNS: Column<RadiatingSource>[] = [
     label: "Puissance TX, W",
     kind: "number",
     min: 0,
+    max: 100000,
     width: 78,
   },
   {
@@ -58,7 +72,7 @@ const COLUMNS: Column<RadiatingSource>[] = [
     label: "Nombre de TX",
     kind: "number",
     min: 1,
-    max: 10000,
+    maxExclusive: 100,
     width: 62,
   },
   {
@@ -66,6 +80,7 @@ const COLUMNS: Column<RadiatingSource>[] = [
     label: "Atténuation, dB",
     kind: "number",
     min: 0,
+    max: 100,
     width: 72,
   },
   {
@@ -82,16 +97,31 @@ const COLUMNS: Column<RadiatingSource>[] = [
     label: "Azimut, °",
     kind: "number",
     min: 0,
-    max: 360,
+    maxExclusive: 360,
     width: 65,
   },
-  { key: "gain_dbi", label: "Gain, dBi", kind: "number", width: 62 },
-  { key: "height_m", label: "Hauteur, m", kind: "number", min: 0, width: 68 },
+  {
+    key: "gain_dbi",
+    label: "Gain, dBi",
+    kind: "number",
+    minExclusive: -100,
+    maxExclusive: 100,
+    width: 62,
+  },
+  {
+    key: "height_m",
+    label: "Hauteur, m",
+    kind: "number",
+    min: 0,
+    maxExclusive: 1000,
+    width: 68,
+  },
   {
     key: "antenna_size_m",
     label: "Taille, m",
     kind: "number",
-    min: 0,
+    minExclusive: 0,
+    maxExclusive: 30,
     width: 58,
   },
   {
@@ -133,10 +163,19 @@ const COLUMNS: Column<RadiatingSource>[] = [
     options: ["Tower", "Roof", "Facade"],
     width: 76,
   },
-  { key: "is_existing", label: "Existant", kind: "boolean", width: 55 },
+  {
+    key: "is_existing",
+    label: "Existant",
+    kind: "select",
+    options: ["New", "Existing"],
+    editValue: (source) => (source.is_existing ? "Existing" : "New"),
+    parse: (value) => value === "Existing",
+    width: 55,
+  },
   { key: "owner", label: "Propriétaire", width: 90 },
 ];
 export default function SourcesPage() {
+  const a = usePlanner();
   const {
     project,
     source,
@@ -147,19 +186,84 @@ export default function SourcesPage() {
     task,
     openCommand,
     rotateSourcePattern,
-  } = usePlanner();
-  function move(direction: number) {
-    if (!source) return;
-    const rows = [...project.sources],
-      i = rows.findIndex((s) => s.id === source.id),
-      next = i + direction;
-    if (next < 0 || next >= rows.length) return;
-    [rows[i], rows[next]] = [rows[next], rows[i]];
+    selectedSourceIds,
+    setSourceSelection,
+  } = a;
+  const selected = selectedSourceIds.filter((id) =>
+    project.sources.some((s) => s.id === id),
+  );
+  const [buffer, setBuffer] = useState(() => {
+    try {
+      return localStorage.getItem("emf-planner-source-buffer-v1") ?? "";
+    } catch {
+      return "";
+    }
+  });
+  function applyRows(result: ReturnType<typeof moveSourceRows>) {
+    if (!result.changed) return;
+    commit((p) => ({ ...p, sources: result.sources }));
+    setSourceSelection(result.selectedIds, result.activeId);
+  }
+  function move(direction: "up" | "down" | "top" | "bottom") {
+    applyRows(moveSourceRows(project.sources, selected, direction));
+  }
+  function removeSelected() {
+    if (
+      !selected.length ||
+      !window.confirm(
+        `Supprimer ${selected.length} source(s) sélectionnée(s) ?`,
+      )
+    )
+      return;
+    const rows = project.sources.filter((s) => !selected.includes(s.id));
     commit((p) => ({ ...p, sources: rows }));
+    setSelectedSource(rows[0]?.id ?? "");
+  }
+  function copySelected() {
+    const value = copySourceRows(project.sources, selected);
+    if (!value) return;
+    try {
+      localStorage.setItem("emf-planner-source-buffer-v1", value);
+      setBuffer(value);
+      a.setStatus(`${selected.length} source(s) copiée(s)`);
+    } catch (error) {
+      a.fail(error);
+    }
+  }
+  function pasteSelected() {
+    try {
+      applyRows(pasteSourceRows(project.sources, source?.id ?? "", buffer));
+    } catch (error) {
+      a.fail(error);
+    }
+  }
+  function updateRows(
+    ids: string[],
+    key: keyof RadiatingSource,
+    value: unknown,
+  ) {
+    try {
+      const patch =
+        key === "frequency_mhz"
+          ? sourceFrequency(value)
+          : { [key]: key === "num_tx" ? Math.floor(Number(value)) : value };
+      commit(
+        (p) => ({
+          ...p,
+          sources: p.sources.map((s) =>
+            ids.includes(s.id) ? { ...s, ...patch } : s,
+          ),
+        }),
+        "Sources modifiées",
+        key !== "color",
+      );
+    } catch (error) {
+      a.fail(error);
+    }
   }
   function importXlsx() {
     void task(async () => {
-      const file = await chooseFile(["xlsx", "xls", "xlt"]);
+      const file = await chooseFile(["xlsx", "xltx"]);
       if (file) {
         const sources = await importExcel(project, file.bytes);
         commit((p) => ({ ...p, sources: [...p.sources, ...sources] }));
@@ -172,7 +276,7 @@ export default function SourcesPage() {
       if (!source) throw new Error("Sélectionnez une source.");
       const file = await chooseFile(["msi", "txt"]);
       if (file) {
-        const antenna = parseMsi(new TextDecoder().decode(file.bytes));
+        const antenna = parseMsi(decodeMsi(file.bytes));
         commit((p) => ({
           ...p,
           sources: p.sources.map((s) =>
@@ -183,8 +287,8 @@ export default function SourcesPage() {
                   gain_dbi: antenna.gain,
                   pattern_h: antenna.horizontal,
                   pattern_v: antenna.vertical,
-                  beam_width_h_deg: beamWidth(antenna.horizontal),
-                  beam_width_v_deg: beamWidth(antenna.vertical),
+                  beam_width_h_deg: nativeBeamWidth(antenna.horizontal),
+                  beam_width_v_deg: nativeBeamWidth(antenna.vertical),
                 }
               : s,
           ),
@@ -231,52 +335,86 @@ export default function SourcesPage() {
           </Tool>
           <Tool
             label="Supprimer la source sélectionnée"
-            disabled={!source}
-            onClick={() =>
-              commit((p) => ({
-                ...p,
-                sources: p.sources.filter((s) => s.id !== source?.id),
-              }))
-            }
+            disabled={!selected.length}
+            onClick={removeSelected}
           >
             <Trash2 />
           </Tool>
           <Tool
             label="Dupliquer la source"
-            disabled={!source}
-            onClick={() => {
-              if (source) {
-                const c = {
-                  ...source,
-                  id: uid(),
-                  name: `${source.name} (copie)`,
-                };
-                commit((p) => ({ ...p, sources: [...p.sources, c] }));
-                setSelectedSource(c.id);
-              }
-            }}
+            disabled={!selected.length}
+            onClick={() =>
+              applyRows(duplicateSourceRows(project.sources, selected))
+            }
           >
             <Copy />
           </Tool>
-          <Tool label="Monter la source" onClick={() => move(-1)}>
+          <Tool
+            label="Monter la source"
+            disabled={
+              !selected.length || selected.includes(project.sources[0]?.id)
+            }
+            onClick={() => move("up")}
+          >
             <ArrowUp />
           </Tool>
-          <Tool label="Descendre la source" onClick={() => move(1)}>
+          <Tool
+            label="Descendre la source"
+            disabled={
+              !selected.length ||
+              selected.includes(
+                project.sources[project.sources.length - 1]?.id ?? "",
+              )
+            }
+            onClick={() => move("down")}
+          >
             <ArrowDown />
+          </Tool>
+          <Tool
+            label="Placer les sources au début"
+            disabled={
+              !selected.length || selected.includes(project.sources[0]?.id)
+            }
+            onClick={() => move("top")}
+          >
+            <ArrowUpToLine />
+          </Tool>
+          <Tool
+            label="Placer les sources à la fin"
+            disabled={
+              !selected.length ||
+              selected.includes(
+                project.sources[project.sources.length - 1]?.id ?? "",
+              )
+            }
+            onClick={() => move("bottom")}
+          >
+            <ArrowDownToLine />
           </Tool>
           <Tool
             label="Activer ou désactiver toutes les sources"
             onClick={() =>
               commit((p) => ({
                 ...p,
-                sources: p.sources.map((s) => ({
-                  ...s,
-                  active: !p.sources.every((s) => s.active !== false),
-                })),
+                sources: toggleAllSourceRows(p.sources),
               }))
             }
           >
             <CheckSquare />
+          </Tool>
+          <Tool
+            label="Copier les sources sélectionnées"
+            disabled={!selected.length}
+            onClick={copySelected}
+          >
+            <ClipboardCopy />
+          </Tool>
+          <Tool
+            label="Coller les sources"
+            disabled={!buffer}
+            onClick={pasteSelected}
+          >
+            <ClipboardPaste />
           </Tool>
           <span className="toolbar-separator" />
           <Tool label="Importer les sources Excel" onClick={importXlsx}>
@@ -301,20 +439,32 @@ export default function SourcesPage() {
           <div className="color-tools">
             {[
               "#ffffff",
-              "#f8b3b3",
-              "#b5edf0",
-              "#f4eb9a",
-              "#a5eda2",
-              "#d3c1f3",
-              "#fbc496",
+              "#f08080",
+              "#e0ffff",
+              "#fafad2",
+              "#90ee90",
+              "#ffb6c1",
+              "#ffa07a",
+              "#20b2aa",
+              "#87cefa",
+              "#ffffe0",
+              "#b0c4de",
+              "#ffff00",
             ].map((color) => (
               <button
                 key={color}
                 aria-label={`Couleur ${color}`}
                 style={{ background: color }}
-                disabled={!source}
+                disabled={!selected.length}
                 onClick={() =>
-                  source && updateSource(source.id, "color", color)
+                  commit(
+                    (p) => ({
+                      ...p,
+                      sources: colorSourceRows(p.sources, selected, color),
+                    }),
+                    "Couleurs des sources modifiées",
+                    false,
+                  )
                 }
               />
             ))}
@@ -341,13 +491,18 @@ export default function SourcesPage() {
               : {}),
           }))}
           selected={source?.id}
-          onSelect={setSelectedSource}
-          onUpdate={updateSource}
+          selectedIds={selected}
+          onSelectionChange={setSourceSelection}
+          onUpdate={(id, key, value) => updateRows([id], key, value)}
+          onUpdateMany={updateRows}
+          onDeleteSelection={removeSelected}
+          onCopySelection={copySelected}
+          onPasteSelection={pasteSelected}
           onAdd={() => addSource()}
         />
         <div className="source-workspace-note">
           {project.sources.length
-            ? "Saisissez les paramètres dans les cellules. Tab : cellule suivante · Entrée : valider."
+            ? `${selected.length} sélectionnée(s) · Ctrl/clic et Maj/clic sur les numéros : sélection multiple · Tab : cellule suivante · Entrée : valider.`
             : "Ajoutez une source avec ＋ ou ouvrez un projet .xemf / .emfp."}
         </div>
       </section>
@@ -429,68 +584,7 @@ export default function SourcesPage() {
             </button>
           </div>
         </fieldset>
-        <fieldset>
-          <legend>Calculateur EIRP</legend>
-          {source ? (
-            <>
-              <NumberField
-                label="Puissance TX, W"
-                value={source.power_w}
-                min={0}
-                onChange={(v) => updateSource(source.id, "power_w", v)}
-              />
-              <NumberField
-                label="Nombre de TX"
-                value={source.num_tx}
-                min={1}
-                step="1"
-                onChange={(v) => updateSource(source.id, "num_tx", v)}
-              />
-              <NumberField
-                label="Atténuation, dB"
-                value={source.total_attenuation_db}
-                min={0}
-                onChange={(v) =>
-                  updateSource(source.id, "total_attenuation_db", v)
-                }
-              />
-              <NumberField
-                label="Gain, dBi"
-                value={source.gain_dbi}
-                onChange={(v) => updateSource(source.id, "gain_dbi", v)}
-              />
-              <div className="calculated-value">
-                <span>Puissance antenne</span>
-                <output>
-                  {(
-                    source.power_w *
-                    source.num_tx *
-                    10 ** (-source.total_attenuation_db / 10)
-                  ).toFixed(4)}{" "}
-                  W
-                </output>
-              </div>
-              <div className="calculated-value">
-                <span>EIRP</span>
-                <output>{eirp(source).toFixed(3)} W</output>
-              </div>
-              <button
-                className="text-button"
-                onClick={() => openCommand("Bibliothèque de câbles")}
-              >
-                <Cable size={12} /> Câble / connecteurs
-              </button>
-              <button
-                className="text-button"
-                onClick={() => openCommand("Calcul inverse de puissance")}
-              >
-                Calcul inverse de puissance…
-              </button>
-            </>
-          ) : (
-            <p className="muted">Sélectionnez une source.</p>
-          )}
-        </fieldset>
+        <SourcePowerCalculator source={source} />
         <fieldset>
           <legend>Facteurs d’atténuation</legend>
           <table className="factor-table">
@@ -512,23 +606,27 @@ export default function SourcesPage() {
                         aria-label={`Facteur ${["alpha24", "Ftdc", "Fpr"][k]} limites ${i + 1}`}
                         type="number"
                         step="0.01"
-                        min="0"
+                        min="0.1"
                         max="1"
-                        disabled={!source}
+                        disabled={
+                          !source || ![l.use_alpha24, l.use_ftdc, l.use_fpr][k]
+                        }
                         value={
-                          source?.limit_factors?.[i]?.[k] ??
-                          (source
-                            ? [
-                                source.alpha24,
-                                source.duty_cycle,
-                                source.power_reduction,
-                              ][k]
-                            : 1)
+                          ![l.use_alpha24, l.use_ftdc, l.use_fpr][k]
+                            ? ""
+                            : (source?.limit_factors?.[i]?.[k] ??
+                              (source
+                                ? [
+                                    source.alpha24,
+                                    source.duty_cycle,
+                                    source.power_reduction,
+                                  ][k]
+                                : 1))
                         }
                         onChange={(e) => {
                           if (!source) return;
                           const v = Number(e.target.value);
-                          if (v < 0 || v > 1) return;
+                          if (!Number.isFinite(v) || v < 0.1 || v > 1) return;
                           const factors = (
                             source.limit_factors ??
                             Array.from({ length: 4 }, () => [

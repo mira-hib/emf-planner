@@ -12,8 +12,12 @@ export interface Column<T> {
   options?: string[];
   min?: number;
   max?: number;
+  minExclusive?: number;
+  maxExclusive?: number;
   readOnly?: boolean;
   format?: (row: T) => string;
+  editValue?: (row: T) => unknown;
+  parse?: (value: unknown) => unknown;
 }
 function Cell({
   value,
@@ -66,7 +70,9 @@ function Cell({
         !text.trim() ||
         !Number.isFinite(v) ||
         (column.min !== undefined && v < column.min) ||
-        (column.max !== undefined && v > column.max)
+        (column.max !== undefined && v > column.max) ||
+        (column.minExclusive !== undefined && v <= column.minExclusive) ||
+        (column.maxExclusive !== undefined && v >= column.maxExclusive)
       ) {
         setInvalid(true);
         return;
@@ -130,6 +136,12 @@ export default function DataGrid<T extends { id: string }>({
   onAdd,
   label = "Tableau",
   coordinateFormat,
+  selectedIds,
+  onSelectionChange,
+  onUpdateMany,
+  onDeleteSelection,
+  onCopySelection,
+  onPasteSelection,
 }: {
   rows: T[];
   columns: Column<T>[];
@@ -139,9 +151,89 @@ export default function DataGrid<T extends { id: string }>({
   onAdd?: () => void;
   label?: string;
   coordinateFormat?: CoordinateFormat;
+  selectedIds?: string[];
+  onSelectionChange?: (ids: string[], activeId: string) => void;
+  onUpdateMany?: (ids: string[], key: keyof T, value: unknown) => void;
+  onDeleteSelection?: () => void;
+  onCopySelection?: () => void;
+  onPasteSelection?: () => void;
 }) {
+  const anchor = useRef<string | null>(null);
+  function selectRow(id: string, event: React.MouseEvent) {
+    if (!onSelectionChange) {
+      onSelect?.(id);
+      return;
+    }
+    const current = selectedIds ?? [];
+    let next: string[];
+    if (event.shiftKey && anchor.current) {
+      const a = rows.findIndex((row) => row.id === anchor.current),
+        b = rows.findIndex((row) => row.id === id);
+      next = rows
+        .slice(Math.min(a < 0 ? b : a, b), Math.max(a, b) + 1)
+        .map((row) => row.id);
+      if (event.ctrlKey || event.metaKey)
+        next = [...new Set([...current, ...next])];
+    } else if (event.ctrlKey || event.metaKey) {
+      next = current.includes(id)
+        ? current.filter((value) => value !== id)
+        : [...current, id];
+      anchor.current = id;
+    } else {
+      next = current.includes(id) ? current : [id];
+      anchor.current = id;
+    }
+    onSelectionChange(next, id);
+  }
   return (
-    <div className="data-grid" role="region" aria-label={label} tabIndex={0}>
+    <div
+      className="data-grid"
+      role="region"
+      aria-label={label}
+      tabIndex={0}
+      onKeyDown={(event) => {
+        if (
+          !onSelectionChange ||
+          event.target instanceof HTMLInputElement ||
+          event.target instanceof HTMLSelectElement
+        )
+          return;
+        if (
+          (event.ctrlKey || event.metaKey) &&
+          event.key.toLowerCase() === "a"
+        ) {
+          event.preventDefault();
+          onSelectionChange(
+            rows.map((row) => row.id),
+            selected ?? rows[0]?.id ?? "",
+          );
+        }
+        if (
+          event.key === "Delete" &&
+          selectedIds?.length &&
+          onDeleteSelection
+        ) {
+          event.preventDefault();
+          onDeleteSelection();
+        }
+        if (
+          (event.ctrlKey || event.metaKey) &&
+          event.key.toLowerCase() === "c" &&
+          onCopySelection
+        ) {
+          event.preventDefault();
+          onCopySelection();
+        }
+        if (
+          (event.ctrlKey || event.metaKey) &&
+          event.key.toLowerCase() === "v" &&
+          onPasteSelection
+        ) {
+          event.preventDefault();
+          onPasteSelection();
+        }
+      }}
+    >
       <table>
         <colgroup>
           <col style={{ width: 30 }} />
@@ -161,8 +253,15 @@ export default function DataGrid<T extends { id: string }>({
           {rows.map((r, i) => (
             <tr
               key={r.id}
-              className={selected === r.id ? "selected" : ""}
-              onClick={() => onSelect?.(r.id)}
+              className={
+                (selectedIds ? selectedIds.includes(r.id) : selected === r.id)
+                  ? "selected"
+                  : ""
+              }
+              aria-selected={
+                selectedIds ? selectedIds.includes(r.id) : selected === r.id
+              }
+              onClick={(event) => selectRow(r.id, event)}
               style={{
                 background: (r as { color?: string }).color?.match(
                   /^#[0-9a-f]{6}$/i,
@@ -171,7 +270,25 @@ export default function DataGrid<T extends { id: string }>({
                   : undefined,
               }}
             >
-              <th scope="row">{String(i + 1).padStart(3, "0")}</th>
+              <th
+                scope="row"
+                tabIndex={onSelectionChange ? 0 : undefined}
+                aria-label={
+                  onSelectionChange
+                    ? `Sélectionner la source ${i + 1}`
+                    : undefined
+                }
+                onClick={(event) => {
+                  if (!onSelectionChange) return;
+                  event.stopPropagation();
+                  if (!event.ctrlKey && !event.metaKey && !event.shiftKey) {
+                    anchor.current = r.id;
+                    onSelectionChange([r.id], r.id);
+                  } else selectRow(r.id, event);
+                }}
+              >
+                {String(i + 1).padStart(3, "0")}
+              </th>
               {columns.map((c) => (
                 <td key={String(c.key)}>
                   {c.readOnly || !onUpdate ? (
@@ -181,12 +298,17 @@ export default function DataGrid<T extends { id: string }>({
                   ) : (
                     <Cell
                       coordinateFormat={coordinateFormat}
-                      value={r[c.key]}
+                      value={c.editValue ? c.editValue(r) : r[c.key]}
                       column={
                         c as unknown as Column<{ [key: string]: unknown }>
                       }
                       onCommit={(value) => {
-                        if (value !== r[c.key]) onUpdate(r.id, c.key, value);
+                        const parsed = c.parse ? c.parse(value) : value;
+                        if (parsed !== r[c.key]) {
+                          if (onUpdateMany && selectedIds?.includes(r.id))
+                            onUpdateMany(selectedIds, c.key, parsed);
+                          else onUpdate(r.id, c.key, parsed);
+                        }
                       }}
                     />
                   )}

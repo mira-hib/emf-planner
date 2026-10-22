@@ -1,6 +1,15 @@
 import type { RadiatingSource } from "../types";
 import { patternAmplitude } from "./engine";
 
+/** Original MSI files use Windows-1251; retain modern UTF-8 files as well. */
+export function decodeMsi(bytes: Uint8Array): string {
+  try {
+    return new TextDecoder("utf-8", { fatal: true }).decode(bytes);
+  } catch {
+    return new TextDecoder("windows-1251").decode(bytes);
+  }
+}
+
 // DnV is already the plotted/measured pattern. ElectUg is descriptive metadata
 // in the original project, not a second rotation to apply to these samples.
 export function sourceAntenna(source?: RadiatingSource) {

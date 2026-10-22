@@ -206,6 +206,49 @@ export function envelopePatterns(
     vertical: combine("vertical"),
   };
 }
+/** Native frmEnvelope: normalize each plane, optionally use gains, keep TX.G. */
+export function envelopeForSource(
+  patterns: StoredAntenna[],
+  name: string,
+  sourceGain: number,
+  useGain = false,
+): StoredAntenna {
+  if (!patterns.length) throw new Error("Sélectionnez au moins un diagramme.");
+  if (!Number.isFinite(sourceGain)) throw new Error("Gain de source invalide.");
+  for (const pattern of patterns) {
+    if (!Number.isFinite(pattern.gain))
+      throw new Error("Gain de diagramme invalide.");
+    for (const plane of [pattern.horizontal, pattern.vertical])
+      if (
+        plane.length !== 360 ||
+        plane.some((value) => !Number.isFinite(value) || value < 0)
+      )
+        throw new Error(
+          "Chaque plan doit contenir 360 atténuations positives ou nulles.",
+        );
+  }
+  const combine = (plane: "horizontal" | "vertical") => {
+    const normalized = patterns.map((pattern) => {
+      const minimum = Math.min(...pattern[plane]);
+      return pattern[plane].map(
+        (loss) => (useGain ? pattern.gain : 0) - loss + minimum,
+      );
+    });
+    // The native buffer starts at -60 dB before taking the directional maximum.
+    const envelope = Array.from({ length: 360 }, (_, angle) =>
+      Math.max(-60, ...normalized.map((values) => values[angle])),
+    );
+    const peak = Math.max(...envelope);
+    return envelope.map((value) => peak - value);
+  };
+  return {
+    id: uid(),
+    name,
+    gain: sourceGain,
+    horizontal: combine("horizontal"),
+    vertical: combine("vertical"),
+  };
+}
 export function beamWidth(values: number[]): number {
   const peak = values.indexOf(Math.min(...values)),
     threshold = values[peak] + 3;
@@ -251,11 +294,14 @@ export function feederLoss(
   connectorLoss: number,
   otherLoss: number,
   automatic = true,
+  includeConnectors = true,
 ) {
   if (
-    [length, connectors, connectorLoss, otherLoss].some(
-      (v) => !Number.isFinite(v) || v < 0,
-    )
+    [
+      length,
+      otherLoss,
+      ...(includeConnectors ? [connectors, connectorLoss] : []),
+    ].some((v) => !Number.isFinite(v) || v < 0)
   )
     throw new Error(
       "Les longueurs et les pertes doivent être positives ou nulles.",
@@ -273,15 +319,22 @@ export function feederLoss(
     jumperLoss = round(
       (jumperPer100 * lengths.reduce((s, n) => s + n, 0)) / 100,
     );
-  const count = automatic
-    ? 2 + (lengths.length === 1 && lengths[0] === 0 ? 0 : lengths.length * 2)
-    : connectors;
+  const count = !includeConnectors
+    ? 0
+    : automatic
+      ? 2 + (lengths.length === 1 && lengths[0] === 0 ? 0 : lengths.length * 2)
+      : connectors;
   return {
     cablePer100,
     jumperPer100,
     cableLoss,
     jumperLoss,
     connectors: count,
-    total: round(cableLoss + jumperLoss + count * connectorLoss + otherLoss),
+    total: round(
+      cableLoss +
+        jumperLoss +
+        (includeConnectors ? count * connectorLoss : 0) +
+        otherLoss,
+    ),
   };
 }

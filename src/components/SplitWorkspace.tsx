@@ -27,13 +27,19 @@ export default function SplitWorkspace({
   useEffect(() => {
     const element = host.current;
     if (!element) return;
-    const observer = new ResizeObserver(() =>
+    const constrain = () =>
       setWidth((current) =>
         Math.min(current, Math.max(260, element.clientWidth - 240)),
-      ),
-    );
+      );
+    const observer = new ResizeObserver(constrain);
     observer.observe(element);
-    return () => observer.disconnect();
+    // A rapid grow/shrink can return to the last observed size before the next
+    // ResizeObserver delivery, while End has already expanded the stored width.
+    window.addEventListener("resize", constrain);
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("resize", constrain);
+    };
   }, []);
   const change = (value: number) => {
     const next = Math.max(

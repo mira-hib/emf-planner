@@ -5,6 +5,7 @@ export interface RadiatingSource {
     jumper: string;
     jumper_lengths: string;
     automatic_connectors: boolean;
+    include_connectors?: boolean;
     connectors: number;
     connector_loss: number;
     other_loss: number;
@@ -20,6 +21,7 @@ export interface RadiatingSource {
   id: string;
   name: string;
   frequency_mhz: number;
+  frequency_end_mhz?: number;
   power_w: number;
   gain_dbi: number;
   lat: number;

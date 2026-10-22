@@ -25,8 +25,8 @@ import { usePlanner } from "../lib/usePlanner";
 import { COLORS, uid } from "../lib/project";
 import { terrainHeight } from "../lib/geometry";
 import { useExtraActions } from "../lib/useExtraActions";
-import { chooseFile, importExcel } from "../lib/files";
 import OriginalIcon from "./OriginalIcon";
+import { fillSourceBeamWidths, hasSourcePatterns } from "../lib/source-fields";
 
 // Secondary commands identified in the recovered UC_*.cs forms.
 // Commands without an action stay visible and disabled until implemented.
@@ -40,6 +40,8 @@ export const EXTRA_TOOLS: Record<Section, string[]> = {
     "Diagramme V : +1°",
     "Bibliothèque de câbles",
     "Calcul inverse de puissance",
+    "Calculer les ouvertures de toutes les sources",
+    "Calculer les ouvertures de la source sélectionnée",
     "Importer Excel .xlt",
   ],
   limits: [
@@ -187,17 +189,28 @@ export default function FeatureTools({ section }: { section: Section }) {
   };
   const actions: Record<string, { run: () => void; enabled: boolean }> = {
     ...extraActions,
-    "Importer Excel .xlt": {
+    "Calculer les ouvertures de toutes les sources": {
+      enabled: p.sources.some(hasSourcePatterns),
       run: () =>
-        void a.task(async () => {
-          const file = await chooseFile(["xlsx", "xls", "xlt"]);
-          if (file) {
-            const sources = await importExcel(p, file.bytes);
-            commit((v) => ({ ...v, sources: [...v.sources, ...sources] }));
-          }
-          return file;
-        }, "Sources importées depuis Excel"),
-      enabled: true,
+        commit(
+          (v) => ({ ...v, sources: v.sources.map(fillSourceBeamWidths) }),
+          "Ouvertures H/V recalculées",
+          false,
+        ),
+    },
+    "Calculer les ouvertures de la source sélectionnée": {
+      enabled: hasSourcePatterns(source),
+      run: () =>
+        commit(
+          (v) => ({
+            ...v,
+            sources: v.sources.map((s) =>
+              s.id === source?.id ? fillSourceBeamWidths(s) : s,
+            ),
+          }),
+          "Ouvertures H/V de la source recalculées",
+          false,
+        ),
     },
     "Diagramme V : −1°": {
       run: () => rotate(-1),

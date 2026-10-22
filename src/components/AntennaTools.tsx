@@ -4,12 +4,12 @@ import type { StoredAntenna } from "../types";
 import { uid } from "../lib/project";
 import {
   beamWidth,
-  envelopePatterns,
+  envelopeForSource,
   feederLoss,
   symmetricPattern,
 } from "../lib/editing";
 import { chooseFile, saveText } from "../lib/files";
-import { parseMsi, sourceAntenna, writeMsi } from "../lib/antenna";
+import { decodeMsi, parseMsi, sourceAntenna, writeMsi } from "../lib/antenna";
 import feeders from "../data/feeders.json";
 import DataGrid from "./DataGrid";
 import AntennaPolar from "./AntennaPolar";
@@ -39,6 +39,9 @@ export default function AntennaTools() {
     [selected, setSelected] = useState(""),
     [plane, setPlane] = useState<"horizontal" | "vertical">("horizontal");
   const [checked, setChecked] = useState<string[]>([]),
+    [useEnvelopeGains, setUseEnvelopeGains] = useState(false),
+    [envelopeGains, setEnvelopeGains] = useState<Record<string, number>>({}),
+    [envelopeName, setEnvelopeName] = useState(""),
     [frequency, setFrequency] = useState(source?.frequency_mhz ?? 7000),
     [gain, setGain] = useState(source?.gain_dbi ?? 31),
     [diameter, setDiameter] = useState(source?.antenna_size_m ?? 1.2);
@@ -56,6 +59,9 @@ export default function AntennaTools() {
     ),
     [automatic, setAutomatic] = useState(
       source?.feeder?.automatic_connectors ?? true,
+    ),
+    [includeConnectors, setIncludeConnectors] = useState(
+      source?.feeder?.include_connectors ?? true,
     ),
     [connectors, setConnectors] = useState(source?.feeder?.connectors ?? 2),
     [connectorLoss, setConnectorLoss] = useState(
@@ -81,11 +87,10 @@ export default function AntennaTools() {
       .catch((e) => setError(String(e)));
   }, []);
   const projectPatterns = project.sources
-    .filter((s) => s.pattern_h && s.pattern_v)
+    .filter((s) => s.pattern_h?.length === 360 && s.pattern_v?.length === 360)
     .map((s) => ({
       id: s.id,
       ...sourceAntenna(s),
-      name: `${s.antenna_model} — ${s.frequency_mhz} MHz`,
       frequency: s.frequency_mhz,
     }));
   const library = [
@@ -140,10 +145,18 @@ export default function AntennaTools() {
   let loss = 0,
     lossDetails: ReturnType<typeof feederLoss> | undefined,
     lossError = "";
+  const upperFrequency = source?.frequency_end_mhz;
+  const feederFrequency = source
+    ? typeof upperFrequency === "number" &&
+      Number.isFinite(upperFrequency) &&
+      upperFrequency > 0
+      ? Math.round(((source.frequency_mhz + upperFrequency) / 2) * 10) / 10
+      : source.frequency_mhz
+    : frequency;
   try {
     lossDetails = feederLoss(
       feeders[cable].points,
-      source?.frequency_mhz ?? frequency,
+      feederFrequency,
       length,
       feeders[jumper].points,
       jumperLengths,
@@ -151,6 +164,7 @@ export default function AntennaTools() {
       connectorLoss,
       otherLoss,
       automatic,
+      includeConnectors,
     );
     loss = lossDetails.total;
   } catch (e) {
@@ -223,7 +237,7 @@ export default function AntennaTools() {
               Fréquence de la source, MHz
               <input
                 aria-label="Fréquence de la source, MHz"
-                value={source?.frequency_mhz ?? frequency}
+                value={feederFrequency}
                 readOnly
               />
             </label>
@@ -254,22 +268,31 @@ export default function AntennaTools() {
             <label className="check">
               <input
                 type="checkbox"
-                checked={automatic}
-                onChange={(e) => setAutomatic(e.target.checked)}
+                checked={includeConnectors}
+                onChange={(e) => setIncludeConnectors(e.target.checked)}
               />
-              Nombre automatique de connecteurs
+              Prendre en compte les pertes des connecteurs
             </label>
-            {automatic ? (
-              <p>Connecteurs : {lossDetails?.connectors ?? "—"}</p>
-            ) : (
-              number("Nombre de connecteurs", connectors, setConnectors, 0)
-            )}
+            <p>Connecteurs pris en compte : {lossDetails?.connectors ?? "—"}</p>
             {number(
               "Perte par connecteur, dB",
               connectorLoss,
               setConnectorLoss,
               0,
             )}
+            <details>
+              <summary>Options avancées des connecteurs</summary>
+              <label className="check">
+                <input
+                  type="checkbox"
+                  checked={automatic}
+                  onChange={(e) => setAutomatic(e.target.checked)}
+                />
+                Nombre automatique de connecteurs
+              </label>
+              {!automatic &&
+                number("Nombre de connecteurs", connectors, setConnectors, 0)}
+            </details>
             {number("Autres pertes, dB", otherLoss, setOtherLoss, 0)}
             <p className="hint">
               Plage documentée : {feeders[cable].points[0].frequency}–
@@ -299,9 +322,11 @@ export default function AntennaTools() {
               disabled={
                 !!lossError ||
                 !source ||
-                [length, connectors, connectorLoss, otherLoss].some(
-                  (v) => !Number.isFinite(v) || v < 0,
-                )
+                [
+                  length,
+                  otherLoss,
+                  ...(includeConnectors ? [connectors, connectorLoss] : []),
+                ].some((v) => !Number.isFinite(v) || v < 0)
               }
               onClick={() => {
                 commit((p) => ({
@@ -317,7 +342,11 @@ export default function AntennaTools() {
                             jumper: feeders[jumper].name,
                             jumper_lengths: jumperLengths,
                             automatic_connectors: automatic,
-                            connectors: lossDetails!.connectors,
+                            include_connectors: includeConnectors,
+                            connectors:
+                              automatic && includeConnectors
+                                ? lossDetails!.connectors
+                                : connectors,
                             connector_loss: connectorLoss,
                             other_loss: otherLoss,
                           },
@@ -446,7 +475,7 @@ export default function AntennaTools() {
                 void a.task(async () => {
                   const f = await chooseFile(["msi", "txt"]);
                   if (!f) return null;
-                  const p = parseMsi(new TextDecoder().decode(f.bytes));
+                  const p = parseMsi(decodeMsi(f.bytes));
                   const added = { ...p, id: uid() };
                   commit((v) => ({
                     ...v,
@@ -473,41 +502,91 @@ export default function AntennaTools() {
           <label>
             Nom
             <input
-              value={pattern.name}
-              onChange={(e) => setPattern({ ...pattern, name: e.target.value })}
+              value={envelopeName}
+              placeholder="Enveloppe du premier diagramme sélectionné"
+              onChange={(e) => setEnvelopeName(e.target.value)}
             />
           </label>
-          <div className="pattern-checks">
-            {library.map((p, i) => (
-              <label key={`${p.id}-${i}`}>
-                <input
-                  type="checkbox"
-                  checked={checked.includes(p.id)}
-                  onChange={(e) =>
-                    setChecked((c) =>
-                      e.target.checked
-                        ? [...c, p.id]
-                        : c.filter((v) => v !== p.id),
-                    )
-                  }
-                />
-                {p.name} · {p.gain} dBi
-              </label>
-            ))}
-          </div>
+          <label className="check">
+            <input
+              type="checkbox"
+              checked={useEnvelopeGains}
+              onChange={(e) => setUseEnvelopeGains(e.target.checked)}
+            />
+            Prendre en compte les gains des diagrammes
+          </label>
+          <button
+            onClick={() =>
+              setChecked(
+                checked.includes(library[0]?.id)
+                  ? []
+                  : library.map((p) => p.id),
+              )
+            }
+            disabled={!library.length}
+          >
+            Tout sélectionner / désélectionner
+          </button>
+          <DataGrid
+            label="Diagrammes de l’enveloppe"
+            rows={library.map((p) => ({
+              id: p.id,
+              name: p.name + (p.frequency ? ` · ${p.frequency} MHz` : ""),
+              active: checked.includes(p.id),
+              gain: envelopeGains[p.id] ?? p.gain,
+            }))}
+            columns={[
+              { key: "active", label: "Inclure", kind: "boolean", width: 45 },
+              { key: "name", label: "Diagramme", readOnly: true, width: 270 },
+              ...(useEnvelopeGains
+                ? [
+                    {
+                      key: "gain" as const,
+                      label: "Gain du diagramme, dBi",
+                      kind: "number" as const,
+                      width: 95,
+                    },
+                  ]
+                : []),
+            ]}
+            onUpdate={(id, key, value) => {
+              if (key === "active")
+                setChecked((current) =>
+                  value
+                    ? [...new Set([...current, id])]
+                    : current.filter((v) => v !== id),
+                );
+              if (key === "gain")
+                setEnvelopeGains((current) => ({
+                  ...current,
+                  [id]: Number(value),
+                }));
+            }}
+          />
           <p className="hint">
-            L’enveloppe conserve le gain absolu maximal de chaque direction.
+            {useEnvelopeGains
+              ? "Les gains saisis pondèrent chaque diagramme avant le calcul de l’enveloppe."
+              : "Les diagrammes sont combinés sans pondération par leurs gains."}{" "}
+            Le gain de la source reste {source?.gain_dbi} dBi.
           </p>
           <footer>
             <button onClick={close}>Annuler</button>
             <button
-              disabled={!checked.length}
+              disabled={!checked.length || !source}
               onClick={() =>
                 run(() =>
                   apply(
-                    envelopePatterns(
-                      library.filter((p) => checked.includes(p.id)),
-                      pattern.name || "Enveloppe",
+                    envelopeForSource(
+                      library
+                        .filter((p) => checked.includes(p.id))
+                        .map((p) => ({
+                          ...p,
+                          gain: envelopeGains[p.id] ?? p.gain,
+                        })),
+                      envelopeName.trim() ||
+                        `Enveloppe ${(library.find((p) => checked.includes(p.id))?.name ?? "").slice(0, 16)}`,
+                      source!.gain_dbi,
+                      useEnvelopeGains,
                     ),
                   ),
                 )

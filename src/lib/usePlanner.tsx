@@ -51,11 +51,24 @@ export function usePlannerState() {
     past = useRef<PlannerProject[]>([]),
     future = useRef<PlannerProject[]>([]);
   const [section, setSection] = useState<Section>("sources"),
-    [selectedSource, setSelectedSource] = useState(""),
+    [selectedSource, setActiveSource] = useState(project.sources[0]?.id ?? ""),
+    [selectedSourceIds, setSelectedSourceIds] = useState<string[]>(
+      project.sources[0] ? [project.sources[0].id] : [],
+    ),
     [selectedPoint, setSelectedPoint] = useState(""),
     [selectedObject, setSelectedObject] = useState(""),
-    [selectedCut, setSelectedCut] = useState(project.vertical_cuts[0]?.id ?? "");
+    [selectedCut, setSelectedCut] = useState(
+      project.vertical_cuts[0]?.id ?? "",
+    );
   const [command, setCommand] = useState("");
+  function setSelectedSource(id: string) {
+    setActiveSource(id);
+    setSelectedSourceIds(id ? [id] : []);
+  }
+  function setSourceSelection(ids: string[], activeId?: string) {
+    setSelectedSourceIds(ids);
+    if (activeId) setActiveSource(activeId);
+  }
   const [selectedGroup, setSelectedGroup] = useState("");
   const [viewRequest, setViewRequest] = useState<{
     center: [number, number];
@@ -657,6 +670,8 @@ export function usePlannerState() {
     point,
     selectedSource,
     setSelectedSource,
+    selectedSourceIds,
+    setSourceSelection,
     selectedPoint,
     setSelectedPoint,
     selectedObject,

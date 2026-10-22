@@ -9,9 +9,18 @@ if ($Development) {
     Push-Location -LiteralPath $plannerRoot
     try { npm.cmd run tauri dev } finally { Pop-Location }
 } else {
-    $plannerExe = Join-Path $plannerRoot 'src-tauri\target\release\emf-planner.exe'
-    if (-not (Test-Path -LiteralPath $plannerExe)) {
+    $plannerCandidates = @(
+        'src-tauri\target\release\emf-planner.exe'
+        'src-tauri\target\x86_64-pc-windows-msvc\release\emf-planner.exe'
+    ) | ForEach-Object {
+        $plannerCandidate = Join-Path $plannerRoot $_
+        if (Test-Path -LiteralPath $plannerCandidate -PathType Leaf) {
+            Get-Item -LiteralPath $plannerCandidate
+        }
+    }
+    $plannerExecutable = $plannerCandidates | Sort-Object LastWriteTimeUtc -Descending | Select-Object -First 1
+    if (-not $plannerExecutable) {
         throw 'Exécutable absent. Compiler avec npm run tauri build -- --no-bundle.'
     }
-    Start-Process -FilePath $plannerExe -WorkingDirectory $plannerRoot -WindowStyle Hidden
+    Start-Process -FilePath $plannerExecutable.FullName -WorkingDirectory $plannerRoot -WindowStyle Hidden
 }

@@ -46,3 +46,19 @@
 .source-inspector .antenna-rotate-down {
   bottom: 0;
 }
+.source-inspector .factor-table input:disabled {
+  background: #e3e3e3;
+  color: #777;
+}
+.source-table-area .color-tools {
+  gap: 1px;
+  padding-left: 3px;
+}
+.source-table-area .color-tools button {
+  width: 17px;
+  height: 25px;
+  min-height: 25px;
+}
+.source-table-area .source-workspace-note {
+  padding: 6px;
+}

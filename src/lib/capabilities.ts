@@ -1,5 +1,7 @@
 // Keep unfinished commands visible without claiming that a placeholder performed work.
 export const PENDING_COMMANDS: Record<string, string> = {
+  "Importer Excel .xlt":
+    "Le format binaire historique XLS/XLT reste à implémenter. Utilisez « Importer les sources Excel » pour un fichier XLSX/XLTX.",
   "Exporter DWG": "Export DWG natif non implémenté. Utilisez l’export DXF.",
   "Importer DWG":
     "Lecture DWG native non implémentée. Importez un fichier DXF ASCII.",

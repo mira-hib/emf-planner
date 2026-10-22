@@ -44,8 +44,9 @@ test("cable library and inverse power calculator update source parameters", asyn
     .click();
   const loss = Number(
     await page
-      .locator(".source-inspector")
+      .getByRole("region", { name: "Sources rayonnantes", exact: true })
       .getByLabel("Atténuation, dB", { exact: true })
+      .first()
       .inputValue(),
   );
   expect(loss).toBeCloseTo(19.003, 3);
@@ -58,8 +59,9 @@ test("cable library and inverse power calculator update source parameters", asyn
     .click();
   const power = Number(
     await page
-      .locator(".source-inspector")
+      .getByRole("region", { name: "Sources rayonnantes", exact: true })
       .getByLabel("Puissance TX, W", { exact: true })
+      .first()
       .inputValue(),
   );
   expect(power).toBeCloseTo(10 ** (loss / 10), 2);
@@ -96,7 +98,10 @@ test("antenna generation, library and sample editor apply actual diagram data", 
     .getByRole("button", { name: "Créer et appliquer", exact: true })
     .click();
   await expect(
-    page.locator(".source-inspector").getByLabel("Gain, dBi", { exact: true }),
+    page
+      .getByRole("region", { name: "Sources rayonnantes", exact: true })
+      .getByLabel("Gain, dBi", { exact: true })
+      .first(),
   ).toHaveValue("31");
   await page
     .getByRole("button", { name: "Bibliothèque d’antennes", exact: true })

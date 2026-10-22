@@ -1,0 +1,27 @@
+{
+  "date_utc": "2026-10-22",
+  "scope": "Radiating Sources: essential workflow reproduction, with remaining gaps documented",
+  "base_commit": "5179447449657d6f157bf9f77f43a0eaa7fb0227",
+  "partial_module": true,
+  "native_build": {
+    "command": "npm run tauri build -- --no-bundle --target x86_64-pc-windows-msvc",
+    "path": "src-tauri/target/x86_64-pc-windows-msvc/release/emf-planner.exe",
+    "bytes": 6705664,
+    "sha256": "29C23D52EA966327DC733136F661FC2A93E466930564F2126D46F22E7163DC54",
+    "launched": false,
+    "previous_running_executable_preserved": true
+  },
+  "web_entry": "dist/assets/index-BevZ5AVK.js",
+  "validation": {
+    "unit_tests_passed": 63,
+    "edge_ui_tests_passed": 21,
+    "original_point_height_references": 15,
+    "typescript_vite_build_passed": true,
+    "windows_release_build_passed": true,
+    "launcher_powershell_syntax_passed": true,
+    "mac_runtime_verified": false,
+    "fresh_original_runtime_observation": false
+  },
+  "screenshot": "reference/sources-interface/sources-castelfranco.png",
+  "remaining_work": "memory-bank/menu-reproduction.md"
+}
