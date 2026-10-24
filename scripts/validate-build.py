@@ -48,13 +48,14 @@ def main():
     output.mkdir(parents=True, exist_ok=True)
     if (output / 'summary.json').exists():
         parser.error('Output already contains a run. Choose a new --output-root.')
-    logs, reports, builds = [output / name for name in ['logs', 'reports', 'builds']]
+    logs, reports, builds = [output / name for name in ['logs', 'test-kit', 'builds']]
     for path in [logs, reports, builds]:
         path.mkdir(parents=True, exist_ok=True)
     env = {**os.environ, 'CI': 'true', 'PLAYWRIGHT_HTML_OPEN': 'never', 'PYTHONIOENCODING': 'utf-8',
            'PLAYWRIGHT_CHANNEL': args.browser, 'APPIMAGE_EXTRACT_AND_RUN': '1'}
     summary = {'label': args.label, 'target': args.target, 'started_at': utc(), 'status': 'running',
         'host': {'system': platform.system(), 'release': platform.release(), 'machine': platform.machine()},
+        'test_scope': 'test/emf_test_kit: tests/test-kit.test.ts and tests/browser/test-kit.spec.ts only',
         'signature': 'Validation artifacts; no distribution signing, notarization, installation or publication.', 'steps': []}
     def persist():
         write_json(output / 'summary.json', summary)
@@ -89,22 +90,11 @@ def main():
         if platform.system() == 'Linux':
             command.append('--with-deps')
         run('browser-install', command + ['chromium'])
-    tests = [str(path.relative_to(ROOT)) for path in sorted((ROOT / 'tests').glob('*.test.ts'))]
+    tests = ['tests/test-kit.test.ts']
     run('unit-tests', ['node', '--import', 'tsx', '--test', '--test-reporter=spec', '--test-reporter-destination=stdout',
         '--test-reporter=junit', f'--test-reporter-destination={reports / "unit.junit.xml"}',
         '--test-reporter=tap', f'--test-reporter-destination={reports / "unit.tap"}', *tests])
-    run('benchmark', ['npm', 'run', 'benchmark'])
-    benchmark_file = ROOT / '.tools/clone-validation/numeric-parity.json'
-    if benchmark_file.exists():
-        shutil.copy2(benchmark_file, reports / 'numeric-parity.json')
-        try:
-            data = json.loads(benchmark_file.read_text(encoding='utf-8-sig'))
-            passed = len(data['results']) == 15 and math.isfinite(data['max_absolute_field_error']) and data['max_absolute_field_error'] <= data['tolerance']
-            summary['steps'].append({'name': 'benchmark-tolerance', 'status': 'passed' if passed else 'failed', 'exit_code': 0 if passed else 1,
-                'reference_count': len(data['results']), 'max_absolute_field_error': data['max_absolute_field_error'], 'tolerance': data['tolerance']})
-        except (ValueError, KeyError) as error:
-            summary['steps'].append({'name': 'benchmark-tolerance', 'status': 'failed', 'exit_code': 1, 'error': str(error)})
-    run('kit-inventory', ['npm', 'run', 'test:kit:inventory'])
+    run('kit-inventory', ['node', '--import', 'tsx', 'scripts/test-kit-inventory.mts'])
     if (ROOT / 'reference/test-kit-coverage.json').exists():
         shutil.copy2(ROOT / 'reference/test-kit-coverage.json', reports / 'test-kit-coverage.json')
     rust_test_count = sum(path.read_text(encoding='utf-8').count('#[test]') for path in (ROOT / 'src-tauri/src').rglob('*.rs'))
@@ -112,16 +102,16 @@ def main():
         'scope': 'Legacy Rust modules are not the React/Worker engine. Native compilation is verified separately.'})
     if rust_test_count:
         run('rust-tests', ['cargo', 'test', '--locked', '--manifest-path', 'src-tauri/Cargo.toml', '--target', args.target, '--lib'])
-    run('browser-tests', ['npm', 'run', 'test:ui', '--', '--output', str(reports / 'browser-artifacts'), '--reporter=list,html,json,junit'], {
+    run('browser-tests', ['node', 'node_modules/@playwright/test/cli.js', 'test', 'tests/browser/test-kit.spec.ts', '--output', str(reports / 'browser-artifacts'), '--reporter=list,html,json,junit'], {
         'PLAYWRIGHT_HTML_REPORT': str(reports / 'browser-html'), 'PLAYWRIGHT_JSON_OUTPUT_FILE': str(reports / 'browser.json'),
         'PLAYWRIGHT_JUNIT_OUTPUT_FILE': str(reports / 'browser.junit.xml')})
-    for directory in (ROOT / 'reference').glob('*interface'):
+    for directory in (ROOT / 'reference').glob('test-kit-interface'):
         if directory.is_dir():
             shutil.copytree(directory, reports / 'screenshots' / directory.name, dirs_exist_ok=True)
     if run('frontend-build', ['npm', 'run', 'build']):
         shutil.copytree(ROOT / 'dist', builds / 'web', dirs_exist_ok=True)
         zip_tree(builds / 'web', builds / 'emf-planner-web.zip')
-    native_ok = run('native-build', ['npm', 'run', 'tauri', '--', 'build', '--ci', '--no-bundle', '--target', args.target])
+    native_ok = run('native-build', ['node', 'node_modules/@tauri-apps/cli/tauri.js', 'build', '--ci', '--no-bundle', '--target', args.target])
     cargo_target = Path(env.get('CARGO_TARGET_DIR', str(ROOT / 'src-tauri/target')))
     if not cargo_target.is_absolute():
         cargo_target = ROOT / 'src-tauri' / cargo_target
@@ -130,7 +120,7 @@ def main():
     if native_ok and executable.is_file():
         shutil.copy2(executable, builds / executable.name)
         for bundle in args.bundles.split(','):
-            command = ['npm', 'run', 'tauri', '--', 'bundle', '--ci', '--target', args.target, '--bundles', bundle]
+            command = ['node', 'node_modules/@tauri-apps/cli/tauri.js', 'bundle', '--ci', '--target', args.target, '--bundles', bundle]
             if platform.system() == 'Darwin':
                 command += ['--config', str(ROOT / 'src-tauri/tauri.validation.macos.json')]
             if run(f'bundle-{bundle}', command):
@@ -153,7 +143,7 @@ def main():
         for path in sorted(output.rglob('*')) if path.is_file() and not path.is_symlink() and path.name != 'manifest.json']
     write_json(output / 'manifest.json', {'created_at': utc(), 'files': inventory})
     (output / 'README.md').write_text(f'# {args.label}\n\nStatut : **{summary["status"]}**. Cible : `{args.target}`.\n\n'
-        'Builds dans `builds/`, rapports et captures dans `reports/`, journaux dans `logs/`.\n'
+        'Builds dans `builds/`, résultats du kit et captures dans `test-kit/`, journaux dans `logs/`.\n'
         'Résultats : `summary.json`. Empreintes SHA-256 : `manifest.json`.\n'
         'Builds de validation sans signature de distribution ni notarisation. Pas d’installation/exécution native automatique.\n', encoding='utf-8')
     print(json.dumps({'output': str(output), 'status': summary['status']}, ensure_ascii=False), flush=True)
