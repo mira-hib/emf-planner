@@ -1,0 +1,23 @@
+﻿{
+    "built_at_utc":  "2026-10-22T21:14:48.9429702Z",
+    "target":  "x86_64-pc-windows-msvc",
+    "executable":  "D:\\projet perso\\emf-planner\\src-tauri\\target\\x86_64-pc-windows-msvc\\release\\emf-planner.exe",
+    "bytes":  6714368,
+    "sha256":  "D3131BCCB002C2BC9C0DCC895B7104B6BD0FE6A279EB88E3C8E4257B4F9F6D7C",
+    "launched":  false,
+    "validation":  {
+                       "unit_tests":  159,
+                       "unit_passed":  159,
+                       "edge_tests":  37,
+                       "edge_passed":  37,
+                       "native_method_cases":  1800,
+                       "max_native_method_relative_field_error":  2.5830227192795853E-06,
+                       "observed_original_points":  15,
+                       "max_observed_original_absolute_field_error":  9.9455311142193636E-07,
+                       "kit_scenarios":  216,
+                       "kit_partially_covered_scenarios":  65,
+                       "original_ui_observed_in_session":  false,
+                       "typescript_vite":  "passed"
+                   },
+    "scope":  "See reference/test-kit-audit-2026-10-22.md. Original UI unavailable; native method replay uses numeric-only stubs."
+}

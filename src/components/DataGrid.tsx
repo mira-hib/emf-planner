@@ -142,6 +142,8 @@ export default function DataGrid<T extends { id: string }>({
   onDeleteSelection,
   onCopySelection,
   onPasteSelection,
+  selectCells = false,
+  onReorderColumns,
 }: {
   rows: T[];
   columns: Column<T>[];
@@ -157,9 +159,49 @@ export default function DataGrid<T extends { id: string }>({
   onDeleteSelection?: () => void;
   onCopySelection?: () => void;
   onPasteSelection?: () => void;
+  selectCells?: boolean;
+  onReorderColumns?: (keys: (keyof T)[]) => void;
 }) {
   const anchor = useRef<string | null>(null);
+  const cellAnchor = useRef<{ id: string; key: keyof T } | null>(null);
+  const [cells, setCells] = useState<{ id: string; key: keyof T }[]>([]);
+  const draggedColumn = useRef<keyof T | null>(null);
+  function selectCell(id: string, key: keyof T, event: React.MouseEvent) {
+    if (!selectCells) return;
+    event.stopPropagation();
+    if (
+      !event.ctrlKey &&
+      !event.metaKey &&
+      !event.shiftKey &&
+      selectedIds?.includes(id) &&
+      selectedIds.length > 1
+    )
+      return;
+    let next = [{ id, key }];
+    if (event.shiftKey && cellAnchor.current) {
+      const a = rows.findIndex((r) => r.id === cellAnchor.current!.id),
+        b = rows.findIndex((r) => r.id === id);
+      const c = columns.findIndex((v) => v.key === cellAnchor.current!.key),
+        d = columns.findIndex((v) => v.key === key);
+      next = rows
+        .slice(Math.min(a, b), Math.max(a, b) + 1)
+        .flatMap((r) =>
+          columns
+            .slice(Math.min(c, d), Math.max(c, d) + 1)
+            .map((v) => ({ id: r.id, key: v.key })),
+        );
+    } else if (event.ctrlKey || event.metaKey) {
+      next = cells.some((c) => c.id === id && c.key === key)
+        ? cells.filter((c) => c.id !== id || c.key !== key)
+        : [...cells, { id, key }];
+      cellAnchor.current = { id, key };
+    } else if (cells.some((c) => c.id === id && c.key === key)) next = cells;
+    else cellAnchor.current = { id, key };
+    setCells(next);
+    onSelectionChange?.([], id);
+  }
   function selectRow(id: string, event: React.MouseEvent) {
+    if (selectCells) setCells([]);
     if (!onSelectionChange) {
       onSelect?.(id);
       return;
@@ -245,7 +287,35 @@ export default function DataGrid<T extends { id: string }>({
           <tr>
             <th aria-label="Numéro" />
             {columns.map((c) => (
-              <th key={String(c.key)}>{c.label}</th>
+              <th
+                key={String(c.key)}
+                draggable={!!onReorderColumns}
+                onDragStart={() => {
+                  draggedColumn.current = c.key;
+                }}
+                onDragOver={(event) => {
+                  if (onReorderColumns) event.preventDefault();
+                }}
+                onDrop={(event) => {
+                  if (!onReorderColumns || draggedColumn.current === null)
+                    return;
+                  event.preventDefault();
+                  const keys = columns.map((v) => v.key),
+                    from = keys.indexOf(draggedColumn.current),
+                    to = keys.indexOf(c.key);
+                  keys.splice(to, 0, ...keys.splice(from, 1));
+                  draggedColumn.current = null;
+                  onReorderColumns(keys);
+                }}
+                onClick={() => {
+                  if (!selectCells) return;
+                  setCells(rows.map((r) => ({ id: r.id, key: c.key })));
+                  if (rows.length)
+                    onSelectionChange?.([], selected ?? rows[0].id);
+                }}
+              >
+                {c.label}
+              </th>
             ))}
           </tr>
         </thead>
@@ -266,7 +336,7 @@ export default function DataGrid<T extends { id: string }>({
                 background: (r as { color?: string }).color?.match(
                   /^#[0-9a-f]{6}$/i,
                 )
-                  ? `${(r as { color?: string }).color}${label === "Sources rayonnantes" ? "" : "35"}`
+                  ? `${(r as { color?: string }).color}${label === "Sources rayonnantes" || label === "Positions des antennes" ? "" : "35"}`
                   : undefined,
               }}
             >
@@ -281,6 +351,7 @@ export default function DataGrid<T extends { id: string }>({
                 onClick={(event) => {
                   if (!onSelectionChange) return;
                   event.stopPropagation();
+                  if (selectCells) setCells([]);
                   if (!event.ctrlKey && !event.metaKey && !event.shiftKey) {
                     anchor.current = r.id;
                     onSelectionChange([r.id], r.id);
@@ -290,7 +361,17 @@ export default function DataGrid<T extends { id: string }>({
                 {String(i + 1).padStart(3, "0")}
               </th>
               {columns.map((c) => (
-                <td key={String(c.key)}>
+                <td
+                  key={String(c.key)}
+                  aria-selected={
+                    selectCells
+                      ? cells.some(
+                          (cell) => cell.id === r.id && cell.key === c.key,
+                        )
+                      : undefined
+                  }
+                  onClick={(event) => selectCell(r.id, c.key, event)}
+                >
                   {c.readOnly || !onUpdate ? (
                     <span>
                       {c.format ? c.format(r) : String(r[c.key] ?? "")}
@@ -305,7 +386,21 @@ export default function DataGrid<T extends { id: string }>({
                       onCommit={(value) => {
                         const parsed = c.parse ? c.parse(value) : value;
                         if (parsed !== r[c.key]) {
-                          if (onUpdateMany && selectedIds?.includes(r.id))
+                          if (
+                            selectCells &&
+                            onUpdateMany &&
+                            cells.some(
+                              (cell) => cell.id === r.id && cell.key === c.key,
+                            )
+                          )
+                            onUpdateMany(
+                              cells
+                                .filter((cell) => cell.key === c.key)
+                                .map((cell) => cell.id),
+                              c.key,
+                              parsed,
+                            );
+                          else if (onUpdateMany && selectedIds?.includes(r.id))
                             onUpdateMany(selectedIds, c.key, parsed);
                           else onUpdate(r.id, c.key, parsed);
                         }

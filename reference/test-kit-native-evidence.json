@@ -1,0 +1,217 @@
+{
+  "evidence_id": "ev_ff307460036062765da524e0772017e34daeb08373d1a03fbf102f0748d84de6",
+  "subject": {
+    "name": "image-00007ff6c6af0000-mapped.dll",
+    "digest": {
+      "sha256": "358188cc57c432319c0b687fd3e810b19a614355bc7ab59e475e8abf75a52e55"
+    },
+    "local_path": "D:\\projet perso\\emf-planner\\extracted\\dumped\\after-scenarios\\managed\\image-00007ff6c6af0000-mapped.dll",
+    "format": "pe",
+    "architecture": "x86_64"
+  },
+  "provider": {
+    "id": "rea-analysis-view",
+    "name": "REA analysis view projection",
+    "version": "1"
+  },
+  "analysis_profile": null,
+  "predicate_type": "rea.analysis-view",
+  "operation": "inspect_analysis_view",
+  "parameters": {
+    "parent_evidence_id": "ev_404e5705b063c9619936324c25897587e4dfad63283f22c7b7c506863a5dfe0f",
+    "view": {
+      "kind": "summary"
+    }
+  },
+  "raw_result": null,
+  "normalized_result": {
+    "kind": "summary",
+    "view": {
+      "kind": "summary"
+    },
+    "parent_evidence_id": "ev_404e5705b063c9619936324c25897587e4dfad63283f22c7b7c506863a5dfe0f",
+    "parent_operation": "inspect_managed_artifact",
+    "parent_digest": "404e5705b063c9619936324c25897587e4dfad63283f22c7b7c506863a5dfe0f",
+    "view_digest": "835b4071ecf5f94b512eda7f1e7e9e7dafa1e13f654194ef844168cb877173b3",
+    "artifact": {
+      "path": "D:\\projet perso\\emf-planner\\extracted\\dumped\\after-scenarios\\managed\\image-00007ff6c6af0000-mapped.dll",
+      "sha256": "358188cc57c432319c0b687fd3e810b19a614355bc7ab59e475e8abf75a52e55"
+    },
+    "coverage": {
+      "status": "complete-within-view",
+      "examined": 4663,
+      "total": 4663,
+      "next_offset": null,
+      "exhausted": true
+    },
+    "limitations": [
+      "Static inspection did not load the assembly, resolve dependencies through a CLR, decompile C#, or execute target code."
+    ],
+    "unknowns": [
+      "Collection counts and pages cover producer-returned rows; metadata completeness remains the original metadata status and coverage, not an absence claim about unreturned rows.",
+      "Metadata tokens are build-local coordinates bound to the recorded artifact SHA-256 and module MVID; this view does not load or execute the assembly."
+    ],
+    "summary": {
+      "artifact": {
+        "path": "D:\\projet perso\\emf-planner\\extracted\\dumped\\after-scenarios\\managed\\image-00007ff6c6af0000-mapped.dll",
+        "sha256": "358188cc57c432319c0b687fd3e810b19a614355bc7ab59e475e8abf75a52e55",
+        "byte_length": 17416192,
+        "format": "pe"
+      },
+      "pe": {
+        "machine": 34404,
+        "machine_hex": "0x8664",
+        "architecture": "x86_64",
+        "optional_header": "pe32-plus",
+        "section_count": 5,
+        "characteristics": 34,
+        "cli": {
+          "header_offset": 8192,
+          "header_size": 72,
+          "runtime_version": "2.5",
+          "flags": 1,
+          "flag_names": [
+            "il-only"
+          ],
+          "entry_point": {
+            "kind": "metadata-token",
+            "value": "0x06000001"
+          },
+          "metadata_rva": 725584,
+          "metadata_size": 394352,
+          "resources_rva": 1119936,
+          "resources_size": 262504,
+          "strong_name_rva": 0,
+          "strong_name_size": 0,
+          "managed_native_header_rva": 0,
+          "managed_native_header_size": 0,
+          "ready_to_run_signature": false
+        }
+      },
+      "classification": {
+        "status": "managed",
+        "container": "pe",
+        "runtime_family": "dotnet-framework",
+        "implementation": "cil",
+        "managed_architecture": "x86_64",
+        "evidence": [
+          {
+            "code": "cli-header-observed",
+            "detail": "A file-backed PE CLI header and metadata root were admitted.",
+            "file_offset": 8192
+          },
+          {
+            "code": "target-framework-observed",
+            "detail": "An assembly-level TargetFrameworkAttribute names .NET Framework.",
+            "file_offset": 851076
+          },
+          {
+            "code": "managed-architecture-derived",
+            "detail": "Managed architecture x86_64 is derived from PE machine and CLI flags.",
+            "file_offset": 8208
+          }
+        ]
+      },
+      "metadata": {
+        "status": "complete",
+        "version": "v4.0.30319",
+        "stream_names": [
+          "#Blob",
+          "#GUID",
+          "#Strings",
+          "#US",
+          "#~"
+        ],
+        "table_row_counts": {
+          "Module": 1,
+          "TypeRef": 486,
+          "TypeDef": 223,
+          "Field": 2556,
+          "MethodDef": 3530,
+          "Param": 3233,
+          "InterfaceImpl": 15,
+          "MemberRef": 1357,
+          "Constant": 443,
+          "CustomAttribute": 4610,
+          "FieldMarshal": 121,
+          "ClassLayout": 7,
+          "StandAloneSig": 372,
+          "PropertyMap": 81,
+          "Property": 1123,
+          "MethodSemantics": 2176,
+          "ModuleRef": 3,
+          "TypeSpec": 96,
+          "ImplMap": 93,
+          "FieldRVA": 36,
+          "Assembly": 1,
+          "AssemblyRef": 12,
+          "ManifestResource": 41,
+          "NestedClass": 85,
+          "GenericParam": 7,
+          "MethodSpec": 103,
+          "GenericParamConstraint": 2
+        }
+      },
+      "module": {
+        "name": "EMFPlanner.exe",
+        "generation": 0,
+        "mvid": "1bed30fd-0970-42c5-b45b-a0f90a582022",
+        "enc_id": null,
+        "enc_base_id": null,
+        "token": "0x00000001",
+        "row_offset": 725824
+      },
+      "assembly": {
+        "name": "EMFPlanner",
+        "version": "7.0.0.0",
+        "culture": null,
+        "flags": 0,
+        "hash_algorithm": 32772,
+        "public_key": {
+          "kind": "none",
+          "byte_length": 0,
+          "sha256": null,
+          "token": null
+        },
+        "token": "0x20000001",
+        "row_offset": 912954
+      },
+      "target_frameworks": [
+        ".NETFramework,Version=v4.5.2"
+      ],
+      "coverage": {
+        "state": "complete",
+        "issues": []
+      },
+      "limitations": [
+        "Static inspection did not load the assembly, resolve dependencies through a CLR, decompile C#, or execute target code."
+      ],
+      "reported_counts": {
+        "references": 12,
+        "resources": 41,
+        "attributes": 4610
+      },
+      "identity_scope": {
+        "token_identity": "build-local",
+        "requires_artifact_sha256": "358188cc57c432319c0b687fd3e810b19a614355bc7ab59e475e8abf75a52e55",
+        "requires_mvid": "1bed30fd-0970-42c5-b45b-a0f90a582022"
+      }
+    }
+  },
+  "confidence": "derived",
+  "authority": "shipped-artifact",
+  "environment": null,
+  "limitations": [
+    "Static inspection did not load the assembly, resolve dependencies through a CLR, decompile C#, or execute target code."
+  ],
+  "relationship_coverage": null,
+  "locations": [
+    {
+      "kind": "artifact-path",
+      "path": "D:\\projet perso\\emf-planner\\extracted\\dumped\\after-scenarios\\managed\\image-00007ff6c6af0000-mapped.dll"
+    }
+  ],
+  "evidence_links": [
+    "ev_404e5705b063c9619936324c25897587e4dfad63283f22c7b7c506863a5dfe0f"
+  ]
+}

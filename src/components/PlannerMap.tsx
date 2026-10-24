@@ -5,7 +5,6 @@ import {
   MapContainer,
   Polygon,
   Polyline,
-  TileLayer,
   Tooltip,
   useMap,
   useMapEvents,
@@ -16,6 +15,14 @@ import TerrainLayer from "./TerrainLayer";
 import { dashPattern } from "../lib/presentation";
 import "leaflet/dist/leaflet.css";
 import OriginMapLayer, { type OriginMapProps } from "./OriginMapLayer";
+import { CRS } from "leaflet";
+import BasemapLayer from "./BasemapLayer";
+import { LeafletAntennaHandle, SvgAntennaHandle } from "./AntennaMapHandle";
+import {
+  normalizeMapProvider,
+  selectedMapProvider,
+} from "../lib/map-providers";
+export { TILES, mapProviders } from "../lib/map-providers";
 export type DrawTool =
   | "pan"
   | "source"
@@ -29,30 +36,6 @@ export type DrawTool =
   | "ruler"
   | "calibrate-2lines"
   | "calibrate-line-point";
-export const TILES: Record<string, { url: string; attribution: string }> = {
-  "Carto clair": {
-    url: "https://basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png",
-    attribution: "© OpenStreetMap © CARTO",
-  },
-  OpenStreetMap: {
-    url: "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
-    attribution: "© OpenStreetMap",
-  },
-  "Satellite Esri": {
-    url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
-    attribution: "© Esri",
-  },
-};
-export function mapProviders(project: PlannerProject) {
-  return {
-    ...TILES,
-    ...Object.fromEntries(
-      (project.custom_maps ?? [])
-        .filter((m) => m.name && /^https?:\/\//.test(m.url))
-        .map((m) => [m.name, { url: m.url, attribution: m.attribution }]),
-    ),
-  };
-}
 export interface DisplayOptions {
   grid: boolean;
   buildings: boolean;
@@ -71,6 +54,9 @@ interface Props {
   onRulerChange?: OriginMapProps["onRulerChange"];
   onAreaChange?: OriginMapProps["onAreaChange"];
   editableOriginGrid?: boolean;
+  editableAntennas?: boolean;
+  selectedSourceIds?: string[];
+  onMoveSource?: (id: string, lat: number, lng: number) => void;
   project: PlannerProject;
   contours: Contour[];
   display: DisplayOptions;
@@ -145,6 +131,8 @@ export default function PlannerMap(props: Props) {
   const [radius, setRadius] = useState(p.settings.radius_m),
     [offset, setOffset] = useState<[number, number]>([0, 0]),
     [mapAction, setMapAction] = useState<{ version: number; delta: number }>();
+  const provider = selectedMapProvider(p);
+  const [mapStatus, setMapStatus] = useState("");
   const drag = useRef<{
       x: number;
       y: number;
@@ -225,7 +213,9 @@ export default function PlannerMap(props: Props) {
           −
         </button>
         <span>
-          {p.settings.show_basemap ? p.settings.map_provider : "Plan local"}
+          {p.settings.show_basemap
+            ? normalizeMapProvider(p.settings.map_provider)
+            : "Plan local"}
         </span>
         <span className="map-mode">
           {tool === "pan"
@@ -238,17 +228,37 @@ export default function PlannerMap(props: Props) {
           <button onClick={onFinish}>Terminer ({draft.length})</button>
         )}
       </div>
+      {p.settings.show_basemap && mapStatus && (
+        <div
+          role="status"
+          className="map-provider-status"
+          style={{
+            position: "absolute",
+            top: 34,
+            left: 8,
+            zIndex: 900,
+            maxWidth: 440,
+            background: "#fffbe5",
+            border: "1px solid #d4c56b",
+            padding: "4px 8px",
+            fontSize: 12,
+          }}
+        >
+          {mapStatus}
+        </div>
+      )}
       {p.settings.show_basemap ? (
         <MapContainer
+          key={provider?.projection ?? "spherical"}
+          crs={
+            provider?.projection === "ellipsoidal" ? CRS.EPSG3395 : CRS.EPSG3857
+          }
           center={p.map_center}
           zoom={p.map_zoom}
           zoomControl={false}
           doubleClickZoom={false}
         >
-          <TileLayer
-            {...(mapProviders(p)[p.settings.map_provider] ??
-              TILES["Carto clair"])}
-          />
+          <BasemapLayer provider={provider} onStatus={setMapStatus} />
           <ResetMap
             origin={p.origin}
             request={props.viewRequest}
@@ -327,30 +337,40 @@ export default function PlannerMap(props: Props) {
               />
             ))}
           {display.sources &&
-            p.sources.map((s) => (
-              <CircleMarker
-                key={s.id}
-                center={[s.lat, s.lng]}
-                radius={4}
-                pathOptions={{
-                  color: s.active === false ? "#999" : "#1a6748",
-                  fillOpacity: 1,
-                }}
-                eventHandlers={{
-                  click: (e) => {
-                    if (tool === "pan") {
-                      e.originalEvent.stopPropagation();
-                      onSelectSource?.(s.id);
-                    }
-                  },
-                }}
-                bubblingMouseEvents={tool !== "pan"}
-              >
-                <Tooltip>
-                  {s.name} · {s.frequency_mhz} MHz
-                </Tooltip>
-              </CircleMarker>
-            ))}
+            p.sources.map((s) =>
+              props.editableAntennas && tool === "pan" ? (
+                <LeafletAntennaHandle
+                  key={s.id}
+                  source={s}
+                  selected={props.selectedSourceIds?.includes(s.id) ?? false}
+                  onSelect={() => onSelectSource?.(s.id)}
+                  onMove={(lat, lng) => props.onMoveSource?.(s.id, lat, lng)}
+                />
+              ) : (
+                <CircleMarker
+                  key={s.id}
+                  center={[s.lat, s.lng]}
+                  radius={4}
+                  pathOptions={{
+                    color: s.active === false ? "#999" : "#1a6748",
+                    fillOpacity: 1,
+                  }}
+                  eventHandlers={{
+                    click: (e) => {
+                      if (tool === "pan") {
+                        e.originalEvent.stopPropagation();
+                        onSelectSource?.(s.id);
+                      }
+                    },
+                  }}
+                  bubblingMouseEvents={tool !== "pan"}
+                >
+                  <Tooltip>
+                    {s.name} · {s.frequency_mhz} MHz
+                  </Tooltip>
+                </CircleMarker>
+              ),
+            )}
           {display.points &&
             p.control_points.map((c) => (
               <CircleMarker
@@ -374,7 +394,7 @@ export default function PlannerMap(props: Props) {
                 </Tooltip>
               </CircleMarker>
             ))}
-          {p.background_image && (
+          {p.background_image && provider?.kind === "image" && (
             <ImageOverlay
               url={p.background_image.data_url}
               bounds={[
@@ -589,66 +609,96 @@ export default function PlannerMap(props: Props) {
               />
             ))}
           {display.sources &&
-            p.sources.map((s, sourceIndex) => {
-              const [x, y] = local(s.lat, s.lng);
-              const coincident = p.sources
-                .map((v, i) => ({ v, i }))
-                .filter(
-                  ({ v }) =>
-                    Math.abs(v.lat - s.lat) < 1e-8 &&
-                    Math.abs(v.lng - s.lng) < 1e-8,
-                );
-              const first = coincident[0]?.i === sourceIndex;
-              const markerText =
-                coincident.length > 2 &&
-                coincident.every((v, i) => v.i === coincident[0].i + i)
-                  ? `A${coincident[0].i + 1}–A${coincident[coincident.length - 1].i + 1}`
-                  : coincident.map((v) => `A${v.i + 1}`).join(", ");
-              return (
-                <g
-                  key={s.id}
-                  onClick={(e) => {
-                    if (tool === "pan") {
-                      e.stopPropagation();
-                      onSelectSource?.(s.id);
-                    }
-                  }}
-                >
-                  {display.azimuths && (
-                    <line
-                      x1={x}
-                      y1={-y}
-                      x2={x + radius * 0.6 * Math.sin(rad(s.azimuth_deg))}
-                      y2={-y - radius * 0.6 * Math.cos(rad(s.azimuth_deg))}
-                      stroke={s.active === false ? "#bbb" : "#343434"}
+            p.sources
+              .map((s, sourceIndex) => ({ s, sourceIndex }))
+              .sort(
+                (a, b) =>
+                  Number(props.selectedSourceIds?.includes(a.s.id) ?? false) -
+                  Number(props.selectedSourceIds?.includes(b.s.id) ?? false),
+              )
+              .map(({ s, sourceIndex }) => {
+                const [x, y] = local(s.lat, s.lng);
+                const coincident = p.sources
+                  .map((v, i) => ({ v, i }))
+                  .filter(
+                    ({ v }) =>
+                      Math.abs(v.lat - s.lat) < 1e-8 &&
+                      Math.abs(v.lng - s.lng) < 1e-8,
+                  );
+                const first = coincident[0]?.i === sourceIndex;
+                const markerText =
+                  coincident.length > 2 &&
+                  coincident.every((v, i) => v.i === coincident[0].i + i)
+                    ? `A${coincident[0].i + 1}–A${coincident[coincident.length - 1].i + 1}`
+                    : coincident.map((v) => `A${v.i + 1}`).join(", ");
+                const marker = (
+                  <g
+                    key={s.id}
+                    onClick={(e) => {
+                      if (tool === "pan") {
+                        e.stopPropagation();
+                        onSelectSource?.(s.id);
+                      }
+                    }}
+                  >
+                    {display.azimuths && (
+                      <line
+                        x1={x}
+                        y1={-y}
+                        x2={x + radius * 0.6 * Math.sin(rad(s.azimuth_deg))}
+                        y2={-y - radius * 0.6 * Math.cos(rad(s.azimuth_deg))}
+                        stroke={s.active === false ? "#bbb" : "#343434"}
+                        vectorEffect="non-scaling-stroke"
+                        strokeDasharray="4 2"
+                        pointerEvents="none"
+                      />
+                    )}
+                    <circle
+                      cx={x}
+                      cy={-y}
+                      r={3 * units}
+                      fill={s.active === false ? "#aaa" : "#7ecf78"}
+                      stroke={
+                        props.selectedSourceIds?.includes(s.id)
+                          ? "#0078d7"
+                          : "#333"
+                      }
+                      strokeWidth={
+                        props.selectedSourceIds?.includes(s.id) ? 2.5 : 1
+                      }
                       vectorEffect="non-scaling-stroke"
-                      strokeDasharray="4 2"
                     />
-                  )}
-                  <circle
-                    cx={x}
-                    cy={-y}
-                    r={3 * units}
-                    fill={s.active === false ? "#aaa" : "#7ecf78"}
-                    stroke="#333"
-                    vectorEffect="non-scaling-stroke"
-                  />
-                  {display.labels && first && (
-                    <text
-                      x={x + 5 * units}
-                      y={-y - 5 * units}
-                      fontSize={8 * units}
-                      fill="#2b377f"
-                    >
-                      {markerText}
-                      <title>
-                        {coincident.map((v) => v.v.name).join(", ")}
-                      </title>
-                    </text>
-                  )}
-                </g>
-              );
-            })}
+                    {display.labels && first && (
+                      <text
+                        x={x + 5 * units}
+                        y={-y - 5 * units}
+                        fontSize={8 * units}
+                        fill="#2b377f"
+                      >
+                        {markerText}
+                        <title>
+                          {coincident.map((v) => v.v.name).join(", ")}
+                        </title>
+                      </text>
+                    )}
+                  </g>
+                );
+                return props.editableAntennas && tool === "pan" ? (
+                  <SvgAntennaHandle
+                    key={s.id}
+                    point={[x, y]}
+                    label={`Déplacer l’antenne ${sourceIndex + 1}`}
+                    onSelect={() => onSelectSource?.(s.id)}
+                    onMove={(mx, my) =>
+                      props.onMoveSource?.(s.id, ...geo([mx, my]))
+                    }
+                  >
+                    {marker}
+                  </SvgAntennaHandle>
+                ) : (
+                  marker
+                );
+              })}
           {display.points &&
             p.control_points.map((c) => (
               <g

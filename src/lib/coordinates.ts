@@ -18,7 +18,15 @@ export function formatCoordinate(
 }
 export function parseCoordinate(text: string, latitude: boolean): number {
   const value = text.trim().replace(/,/g, ".").replace(/−/g, "-").toUpperCase();
-  const hemisphere = value.match(/[NSEW]/g)?.[0];
+  const hemispheres = value.match(/[NSEW]/g) ?? [];
+  if (
+    hemispheres.length > 1 ||
+    (hemispheres.length === 1 && !/^[NSEW]|[NSEW]$/.test(value))
+  )
+    throw new Error(
+      "Coordonnée ambiguë : indiquez un seul hémisphère en début ou en fin.",
+    );
+  const hemisphere = hemispheres[0];
   if (
     hemisphere &&
     (latitude ? /^[EW]$/.test(hemisphere) : /^[NS]$/.test(hemisphere))
@@ -35,6 +43,10 @@ export function parseCoordinate(text: string, latitude: boolean): number {
   )
     throw new Error("Coordonnée invalide.");
   const parts = tokens.map(Number);
+  if (parts[0] < 0 && (hemisphere === "N" || hemisphere === "E"))
+    throw new Error(
+      "Le signe et l’hémisphère de la coordonnée se contredisent.",
+    );
   if (parts.slice(1).some((v) => v < 0 || v >= 60))
     throw new Error(
       "Les minutes et secondes doivent être comprises entre 0 et 60.",

@@ -114,7 +114,7 @@ const resultHeaders = [
   "X (m)",
   "Y (m)",
   "Hauteur (m)",
-  "E calculé (V/m)",
+  "E total (V/m)",
   "Exposition (%)",
   "Densité (W/m²)",
   "E mesuré (V/m)",

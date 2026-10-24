@@ -146,6 +146,7 @@ export interface ControlPoint {
   exposure_ratio: number | null;
   compliant: boolean | null;
   group?: string;
+  group_active?: boolean;
   location?: string;
   heights?: PointHeight[];
   description?: string;
@@ -244,11 +245,15 @@ export interface CalculationSettings {
   consider_terrain: boolean;
   buildings_mode: "ignore" | "screen" | "attenuate";
   building_attenuation_db: number;
+  building_attenuation_high_db?: number;
+  building_frequency_boundary_mhz?: number;
+  point_measurement_frequency_mhz?: number;
   selected_limit: number;
   map_provider: string;
   show_basemap: boolean;
   terrain_interpolation?: "original" | "delaunay";
   coordinate_format?: "decimal" | "dms" | "dm";
+  antenna_capture_distance?: number;
   contour_width?: number;
   contour_opacity?: number;
   language?: string;
@@ -353,6 +358,7 @@ export type Section =
   | "calibrate"
   | "settings";
 export interface PointResult extends ExposureResult {
+  calculated_field?: number;
   point_id: string;
   name: string;
   height_m: number;

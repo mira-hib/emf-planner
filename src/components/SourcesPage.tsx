@@ -23,8 +23,7 @@ import {
   importExcel,
   saveText,
 } from "../lib/files";
-import { decodeMsi, parseMsi, writeMsi } from "../lib/antenna";
-import { patternAmplitude } from "../lib/engine";
+import { decodeMsi, parseMsi, sourceAntenna, writeMsi } from "../lib/antenna";
 import {
   nativeBeamWidth,
   sourceFrequency,
@@ -220,7 +219,7 @@ export default function SourcesPage() {
     setSelectedSource(rows[0]?.id ?? "");
   }
   function copySelected() {
-    const value = copySourceRows(project.sources, selected);
+    const value = copySourceRows(project.sources, selected, project.origin);
     if (!value) return;
     try {
       localStorage.setItem("emf-planner-source-buffer-v1", value);
@@ -232,7 +231,15 @@ export default function SourcesPage() {
   }
   function pasteSelected() {
     try {
-      applyRows(pasteSourceRows(project.sources, source?.id ?? "", buffer));
+      applyRows(
+        pasteSourceRows(
+          project.sources,
+          source?.id ?? "",
+          buffer,
+          undefined,
+          project.origin,
+        ),
+      );
     } catch (error) {
       a.fail(error);
     }
@@ -300,26 +307,7 @@ export default function SourcesPage() {
   function exportMsi() {
     void task(async () => {
       if (!source) return false;
-      const h =
-          source.pattern_h ??
-          Array.from(
-            { length: 360 },
-            (_, i) =>
-              -20 *
-              Math.log10(
-                patternAmplitude(undefined, i, source.beam_width_h_deg),
-              ),
-          ),
-        v =
-          source.pattern_v ??
-          Array.from(
-            { length: 360 },
-            (_, i) =>
-              -20 *
-              Math.log10(
-                patternAmplitude(undefined, i, source.beam_width_v_deg),
-              ),
-          );
+      const { horizontal: h, vertical: v } = sourceAntenna(source);
       return saveText(
         `${source.antenna_model || source.name}.msi`,
         writeMsi(source.antenna_model, source.gain_dbi, h, v),

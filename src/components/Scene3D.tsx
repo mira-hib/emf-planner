@@ -24,7 +24,7 @@ import {
   scenePosition,
   verticalPosition,
 } from "../lib/scene-geometry";
-import { mapProviders } from "./PlannerMap";
+import { geographicTile, selectedMapProvider, tileUrl } from "../lib/map-providers";
 import "./Scene3D.css";
 
 type View = "home" | "top" | "bottom" | "front" | "back" | "left" | "right";
@@ -138,23 +138,47 @@ function applyMapTexture(
   points: { x: number; y: number }[],
 ) {
   if (!project.settings.show_basemap || !points.length) return () => {};
-  const provider = mapProviders(project)[project.settings.map_provider];
-  if (!provider) return () => {};
+  const provider = selectedMapProvider(project);
+  if (provider?.kind === "image") {
+    const background = project.background_image;
+    if (!background) return () => {};
+    const coords = points.map((p) => geographicTile(...toGeo(p.x, p.y, project.origin), 0));
+    const left = Math.min(...coords.map((p) => p[0])), right = Math.max(...coords.map((p) => p[0]));
+    const top = Math.min(...coords.map((p) => p[1])), bottom = Math.max(...coords.map((p) => p[1]));
+    if (right === left || bottom === top) return () => {};
+    const canvas = document.createElement("canvas");
+    canvas.width = canvas.height = 2048;
+    const context = canvas.getContext("2d")!;
+    context.fillStyle = "white";
+    context.fillRect(0, 0, canvas.width, canvas.height);
+    const texture = new THREE.CanvasTexture(canvas);
+    texture.colorSpace = THREE.SRGBColorSpace;
+    const uv = new Float32Array(points.length * 2);
+    coords.forEach(([x, y], i) => { uv[2 * i] = (x - left) / (right - left); uv[2 * i + 1] = 1 - (y - top) / (bottom - top); });
+    mesh.geometry.setAttribute("uv", new THREE.BufferAttribute(uv, 2));
+    const material = mesh.material as THREE.MeshBasicMaterial;
+    material.map = texture;
+    material.needsUpdate = true;
+    const image = new Image();
+    image.onload = () => {
+      const [x0, y0] = geographicTile(background.north, background.west, 0);
+      const [x1, y1] = geographicTile(background.south, background.east, 0);
+      context.globalAlpha = background.opacity;
+      context.drawImage(image, (x0 - left) / (right - left) * canvas.width, (y0 - top) / (bottom - top) * canvas.height, (x1 - x0) / (right - left) * canvas.width, (y1 - y0) / (bottom - top) * canvas.height);
+      texture.needsUpdate = true;
+    };
+    image.src = background.data_url;
+    return () => { image.onload = null; image.src = ""; texture.dispose(); };
+  }
+  if (!provider || !provider.url || provider.configuration) return () => {};
   const west = Math.min(...points.map((p) => p.x)),
     east = Math.max(...points.map((p) => p.x));
   const south = Math.min(...points.map((p) => p.y)),
     north = Math.max(...points.map((p) => p.y));
   const [southLat, westLng] = toGeo(west, south, project.origin),
     [northLat, eastLng] = toGeo(east, north, project.origin);
-  const tile = (lat: number, lng: number, zoom: number) => {
-    const n = 2 ** zoom,
-      r = (lat * Math.PI) / 180;
-    return [
-      ((lng + 180) / 360) * n,
-      ((1 - Math.log(Math.tan(r) + 1 / Math.cos(r)) / Math.PI) / 2) * n,
-    ];
-  };
-  let zoom = Math.max(0, Math.min(19, Math.round(project.map_zoom))),
+  const tile = (lat: number, lng: number, zoom: number) => geographicTile(lat, lng, zoom, provider.projection);
+  let zoom = Math.max(0, Math.min(provider.maxZoom ?? 19, Math.round(project.map_zoom))),
     nw = tile(northLat, westLng, zoom),
     se = tile(southLat, eastLng, zoom);
   while (
@@ -204,13 +228,7 @@ function applyMapTexture(
           texture.needsUpdate = true;
         }
       };
-      image.src = provider.url
-        .replace(/\{z\}/g, String(zoom))
-        .replace(/\{x\}/g, String(x))
-        .replace(/\{y\}/g, String(y))
-        .replace(/\{-y\}/g, String(2 ** zoom - 1 - y))
-        .replace(/\{s\}/g, "a")
-        .replace(/\{r\}/g, "");
+      image.src = tileUrl(provider.url, x, y, zoom);
       images.push(image);
     }
   return () => {
@@ -819,9 +837,7 @@ export default function Scene3D({
       </div>
       {project.settings.show_basemap && (
         <span className="scene-map-attribution">
-          {mapProviders(project)[
-            project.settings.map_provider
-          ]?.attribution.replace(/<[^>]*>/g, "") ?? ""}
+          {selectedMapProvider(project)?.attribution.replace(/<[^>]*>/g, "") ?? ""}
         </span>
       )}
     </div>

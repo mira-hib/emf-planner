@@ -19,6 +19,7 @@ import {
   siteCoordinatesText,
 } from "../lib/files";
 import { mapProviders } from "./PlannerMap";
+import { normalizeMapProvider } from "../lib/map-providers";
 import DataGrid from "./DataGrid";
 import { NumberField } from "./Controls";
 import { ResultTable } from "./Results";
@@ -317,8 +318,8 @@ export function SettingsPage() {
         <NumberField
           label="Coefficient de réflexion"
           value={project.settings.reflection}
-          min={0.01}
-          max={5}
+          min={1}
+          max={1.6}
           onChange={(v) => settings({ reflection: v })}
         />
         <GridSettings />
@@ -335,6 +336,36 @@ export function SettingsPage() {
           min={0}
           onChange={(v) => settings({ building_attenuation_db: v })}
         />
+        <NumberField
+          label="Frontière des bandes bâtiment, MHz"
+          value={project.settings.building_frequency_boundary_mhz ?? 400}
+          min={0.1}
+          max={300000}
+          onChange={(v) =>
+            settings({
+              building_frequency_boundary_mhz: v,
+              building_attenuation_high_db:
+                project.settings.building_attenuation_high_db ??
+                project.settings.building_attenuation_db,
+            })
+          }
+        />
+        <NumberField
+          label="Atténuation bâtiment au-dessus de la frontière, dB"
+          value={
+            project.settings.building_attenuation_high_db ??
+            project.settings.building_attenuation_db
+          }
+          min={0}
+          max={300}
+          onChange={(v) => settings({ building_attenuation_high_db: v })}
+        />
+        <p className="hint">
+          La première atténuation s’applique jusqu’à la fréquence frontière
+          incluse.
+          {project.settings.building_attenuation_high_db === undefined &&
+            " Ce projet ancien utilise les pertes définies sur chaque bâtiment jusqu’à l’édition de ces bandes."}
+        </p>
         <label>
           Mode bâtiments
           <select
@@ -471,7 +502,7 @@ export function SettingsPage() {
         <label>
           Fond de carte
           <select
-            value={project.settings.map_provider}
+            value={normalizeMapProvider(project.settings.map_provider)}
             onChange={(e) => settings({ map_provider: e.target.value })}
           >
             {Object.keys(mapProviders(project)).map((n) => (

@@ -35,3 +35,8 @@ Thumbs.db
 /.tools/
 /extracted/
 /EMFPlanner.rar
+
+# Generated multiplatform builds and complete validation evidence
+/test validation/
+__pycache__/
+*.pyc

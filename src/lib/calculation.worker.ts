@@ -1,5 +1,6 @@
 import {
   calculatePoints,
+  calculatePointHeightRange,
   contours,
   horizontalGrid,
   verticalGrid,
@@ -12,6 +13,7 @@ self.onmessage = (
     kind: "points" | "horizontal" | "vertical" | "volume";
     project: PlannerProject;
     fine: boolean;
+    heightRange?: number[];
   }>,
 ) => {
   const { id, kind, project, fine } = event.data;
@@ -27,7 +29,12 @@ self.onmessage = (
       );
       self.postMessage({ id, result }, { transfer: [result.positions.buffer] });
     } else if (kind === "points")
-      self.postMessage({ id, result: calculatePoints(project) });
+      self.postMessage({
+        id,
+        result: event.data.heightRange
+          ? calculatePointHeightRange(project, event.data.heightRange)
+          : calculatePoints(project),
+      });
     else {
       const cuts =
         kind === "horizontal"

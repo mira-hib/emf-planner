@@ -332,6 +332,7 @@ export function usePlannerState() {
       "site_coordinates",
       "show_calculation_area",
       "show_origin",
+      "antenna_capture_distance",
     ];
     commit(
       (p) => ({
@@ -440,14 +441,22 @@ export function usePlannerState() {
     kind: "points" | "horizontal" | "vertical" | "volume",
     fine = false,
     onlyId?: string,
+    heightRange?: number[],
   ) {
     const project = projectRef.current;
-    if (!project.sources.some((s) => s.active !== false)) {
+    if (kind !== "points" && !project.sources.some((s) => s.active !== false)) {
       setError("Ajoutez et activez au moins une source avant de calculer.");
       return;
     }
     if (kind === "points" && !project.control_points.length) {
       setError("Ajoutez un point de contrôle avant de calculer.");
+      return;
+    }
+    if (
+      kind === "points" &&
+      !project.control_points.some((p) => p.group_active !== false)
+    ) {
+      setError("Activez au moins un groupe de points avant de calculer.");
       return;
     }
     const cuts =
@@ -519,7 +528,13 @@ export function usePlannerState() {
               }),
         }
       : project;
-    worker.current.postMessage({ id, kind, project: calculatedProject, fine });
+    worker.current.postMessage({
+      id,
+      kind,
+      project: calculatedProject,
+      fine,
+      heightRange,
+    });
   }
   function cancel() {
     worker.current?.terminate();

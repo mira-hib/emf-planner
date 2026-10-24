@@ -18,7 +18,6 @@ import type {
   Building,
   ControlPoint,
   HorizontalCut,
-  RadiatingSource,
   TerrainPoint,
   TerrainContour,
 } from "../types";
@@ -29,6 +28,8 @@ import { CalculateButton, LimitSelector, NumberField, Tool } from "./Controls";
 import FeatureTools from "./FeatureTools";
 import { styledContours } from "../lib/presentation";
 import { OriginPanel, GridSettings } from "./OriginPanel";
+import AntennaLocationsPanel from "./AntennaLocationsPanel";
+import { moveAntennas, snapAntenna } from "../lib/antenna-locations";
 const POINT_COLUMNS: Column<ControlPoint>[] = [
   { key: "name", label: "Point", width: 70 },
   {
@@ -53,14 +54,14 @@ const POINT_COLUMNS: Column<ControlPoint>[] = [
     key: "location",
     label: "Position",
     kind: "select",
-    options: ["Ground", "Roof"],
+    options: ["Ground", "Building", "Roof"],
     width: 80,
   },
   { key: "description", label: "Description", width: 130 },
 ];
 export default function MapWorkspace({ title }: { title: string }) {
   const a = usePlanner(),
-    { project: p, section, point, source, commit, task, settings } = a;
+    { project: p, section, point, commit, task, settings } = a;
   const group = a.selectedGroup,
     setGroup = a.setSelectedGroup;
   const contours = useMemo(
@@ -71,9 +72,13 @@ export default function MapWorkspace({ title }: { title: string }) {
     new Set(p.control_points.map((c) => c.group || "Groupe 1")),
   );
   return (
-    <SplitWorkspace>
+    <SplitWorkspace
+      key={section === "antennas" ? "antennas" : "map"}
+      storageKey={section === "antennas" ? "antennas" : undefined}
+      defaultWidth={section === "antennas" ? 510 : 350}
+    >
       <section
-        className={`property-pane ${section === "points" ? "points-pane" : ""}`}
+        className={`property-pane ${section === "points" ? "points-pane" : section === "antennas" ? "antennas-pane" : ""}`}
       >
         <div className="pane-caption">{title}</div>
         <FeatureTools section={section} />
@@ -149,6 +154,27 @@ export default function MapWorkspace({ title }: { title: string }) {
                   <option key={g}>{g}</option>
                 ))}
               </select>
+              <label>
+                <input
+                  type="checkbox"
+                  aria-label="Activer le groupe de points"
+                  disabled={!p.control_points.length}
+                  checked={p.control_points
+                    .filter((c) => !group || c.group === group)
+                    .every((c) => c.group_active !== false)}
+                  onChange={(e) =>
+                    commit((v) => ({
+                      ...v,
+                      control_points: v.control_points.map((c) =>
+                        !group || c.group === group
+                          ? { ...c, group_active: e.target.checked }
+                          : c,
+                      ),
+                    }))
+                  }
+                />
+                Groupe actif
+              </label>
               <button
                 onClick={() => {
                   const name = `Groupe ${groups.length + 1}`;
@@ -260,6 +286,13 @@ export default function MapWorkspace({ title }: { title: string }) {
               </button>
             </fieldset>
             <LimitSelector />
+            <NumberField
+              label="Fréquence de mesure, MHz"
+              value={p.settings.point_measurement_frequency_mhz ?? 1000}
+              min={30}
+              max={300000}
+              onChange={(v) => settings({ point_measurement_frequency_mhz: v })}
+            />
             <CalculateButton kind="points" />
           </>
         )}
@@ -424,50 +457,7 @@ export default function MapWorkspace({ title }: { title: string }) {
           </>
         )}
         {section === "origin" && <OriginPanel />}
-        {section === "antennas" && (
-          <>
-            <div className="section-tools">
-              <Tool
-                label="Placer une antenne sur le plan"
-                onClick={() => a.setTool("source")}
-              >
-                <Plus />
-              </Tool>
-            </div>
-            <DataGrid<RadiatingSource>
-              label="Positions des antennes"
-              coordinateFormat={p.settings.coordinate_format}
-              rows={p.sources}
-              columns={[
-                { key: "name", label: "Source", width: 100 },
-                {
-                  key: "lat",
-                  label: "Latitude, °",
-                  kind: "number",
-                  min: -85,
-                  max: 85,
-                  width: 100,
-                },
-                {
-                  key: "lng",
-                  label: "Longitude, °",
-                  kind: "number",
-                  min: -180,
-                  max: 180,
-                  width: 100,
-                },
-                { key: "x_m", label: "X, m", kind: "number", width: 70 },
-                { key: "y_m", label: "Y, m", kind: "number", width: 70 },
-              ]}
-              selected={source?.id}
-              onSelect={a.setSelectedSource}
-              onUpdate={a.updateSource}
-            />
-            <p className="hint">
-              Les positions sont partagées avec le tableau des sources.
-            </p>
-          </>
-        )}
+        {section === "antennas" && <AntennaLocationsPanel />}
         {section === "buildings" && (
           <>
             <div className="section-tools">
@@ -754,6 +744,10 @@ export default function MapWorkspace({ title }: { title: string }) {
                     [north, east] = toGeo(150, 150, p.origin);
                   commit((p) => ({
                     ...p,
+                    settings: {
+                      ...p.settings,
+                      map_provider: "Calibrated map image",
+                    },
                     background_image: {
                       data_url: data,
                       west,
@@ -825,6 +819,11 @@ export default function MapWorkspace({ title }: { title: string }) {
         onCursor={(x, y) => a.setCursor([x, y])}
         onFinish={a.finish}
         onSelectSource={a.setSelectedSource}
+        editableAntennas={section === "antennas"}
+        selectedSourceIds={a.selectedSourceIds}
+        onMoveSource={(id, lat, lng) =>
+          commit((v) => moveAntennas(v, [id], snapAntenna(v, id, [lat, lng])))
+        }
         onSelectPoint={(id) => {
           a.setSelectedGroup("");
           a.setSelectedPoint(id);

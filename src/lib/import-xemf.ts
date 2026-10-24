@@ -3,6 +3,7 @@ import { newPoint, newProject, newSource, uid } from "./project";
 import { deg, toLocal } from "./geometry";
 import { terrainHeight } from "./geometry";
 import { dotnetColor } from "./dotnet-color";
+import { normalizeMapProvider } from "./map-providers";
 import type { PlannerProject, SavedCutResult } from "../types";
 type Obj = Record<string, unknown>;
 export function importXemf(buffer: ArrayBuffer, name: string): PlannerProject {
@@ -57,6 +58,7 @@ export function importXemf(buffer: ArrayBuffer, name: string): PlannerProject {
       divisions.length === 2 ? [divisions[0], divisions[1]] : [600, 200],
     show_calculation_area: bool(settings, "ShowHorizPlaneScale"),
     show_origin: bool(settings, "ShowOrigin"),
+    antenna_capture_distance: n(settings, "LengthAttractAntennas", 15),
     reflection: n(settings, "KoefOslabl", 1),
     consider_terrain: bool(settings, "ConsiderRelief"),
     buildings_mode:
@@ -64,6 +66,13 @@ export function importXemf(buffer: ArrayBuffer, name: string): PlannerProject {
         n(settings, "UseBuildings")
       ] ?? "ignore",
     building_attenuation_db: n(settings, "BuildAttenSubband1", 20),
+    building_attenuation_high_db: n(settings, "BuildAttenSubband2", 6),
+    building_frequency_boundary_mhz: n(settings, "BuildFreqBorder", 400),
+    point_measurement_frequency_mhz: n(
+      settings,
+      "ControlPointMesureFreq",
+      1000,
+    ),
     selected_limit: n(settings, "ControlPointLimitIndex"),
     radius_m: calculationArea
       ? Math.max(...Object.values(calculationArea).map(Math.abs))
@@ -71,11 +80,7 @@ export function importXemf(buffer: ArrayBuffer, name: string): PlannerProject {
     terrain_interpolation: "original",
     calculation_area_m: calculationArea,
     show_basemap: bool(settings, "ShowMap"),
-    map_provider: /OpenStreetMap/i.test(provider)
-      ? "OpenStreetMap"
-      : /satellite|imagery/i.test(provider)
-        ? "Satellite Esri"
-        : "Carto clair",
+    map_provider: normalizeMapProvider(provider || "Carto Basemap"),
     contour_width: n(settings, "LineWidthZO", 2),
     display_options: {
       grid: bool(settings, "ShowHorizPlaneScale", false),
@@ -205,6 +210,7 @@ export function importXemf(buffer: ArrayBuffer, name: string): PlannerProject {
         x_m: x,
         y_m: y,
         group: s(g, "Name", `Groupe ${gi + 1}`),
+        group_active: bool(g, "Active", true),
         description: s(c, "Name"),
         location: s(c, "Location", "Ground"),
         heights,

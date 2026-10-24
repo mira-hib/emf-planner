@@ -1,0 +1,59 @@
+.antennas-pane .antenna-location-grid {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+}
+.antennas-pane .antenna-location-grid .data-grid {
+  flex: 1;
+}
+.antennas-pane .data-grid table {
+  width: 100%;
+  min-width: 460px;
+  font:
+    11px "Microsoft Sans Serif",
+    Arial,
+    sans-serif;
+}
+.antennas-pane .data-grid td,
+.antennas-pane .data-grid th {
+  height: 18px;
+  padding: 0 2px;
+}
+.antennas-pane .data-grid input {
+  min-height: 17px;
+  font-size: 11px;
+  text-align: center;
+}
+.antennas-pane .data-grid td:has(> span) {
+  color: #464646;
+}
+.antennas-pane .data-grid tr[aria-selected="true"] td {
+  background: #0078d7;
+  color: white;
+}
+.antennas-pane .data-grid tr[aria-selected="true"] input {
+  color: white;
+}
+.antennas-pane .data-grid td[aria-selected="true"] {
+  background: #0078d7;
+  color: white;
+}
+.antennas-pane .data-grid td[aria-selected="true"] input {
+  color: white;
+}
+.antennas-pane .antenna-capture {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 7px 4px;
+  font-size: 11px;
+}
+.antennas-pane .antenna-capture span {
+  white-space: nowrap;
+}
+.antennas-pane .antenna-capture input {
+  min-width: 50px;
+  flex: 1;
+  height: 24px;
+  accent-color: #0078d7;
+}

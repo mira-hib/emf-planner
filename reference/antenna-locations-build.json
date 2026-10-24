@@ -1,0 +1,24 @@
+﻿{
+    "built_at_utc":  "2026-10-22T22:15:26.5574487Z",
+    "target":  "x86_64-pc-windows-msvc",
+    "executable":  "D:\\projet perso\\emf-planner\\src-tauri\\target\\x86_64-pc-windows-msvc\\release\\emf-planner.exe",
+    "bytes":  6717952,
+    "sha256":  "69A05A4EA33BAE67382697B8EE1616ABA0CF874C9C888B90FD6DAE747D6FE993",
+    "launched":  false,
+    "validation":  {
+                       "unit_tests":  171,
+                       "unit_passed":  171,
+                       "edge_tests":  46,
+                       "edge_passed":  46,
+                       "edge_output":  ".tools/antenna-map-full-ui",
+                       "native_method_cases":  1800,
+                       "observed_original_points":  15,
+                       "max_observed_original_absolute_field_error":  9.9455311142193636E-07,
+                       "map_choices":  14,
+                       "map_services_image_http200":  10,
+                       "original_ui_observed_in_session":  false,
+                       "typescript_vite":  "passed",
+                       "git_diff_check":  "passed"
+                   },
+    "scope":  "Antenna Locations and native map providers. See antenna-locations-native-audit-2026-10-22.md and map-providers-native-audit-2026-10-22.md. Windows original UI unavailable; browser tests use deterministic tiles; real HTTP probes recorded separately."
+}

@@ -1,9 +1,20 @@
 # Suivi d'avancement
 
-État courant du 22 octobre : lots essentiels Sources, EMF Limits et Origin and Grid intégrés ;
-voir `menu-reproduction.md` et `features.md`. **81 tests métier et 28 parcours
-Edge validés**, compilation TypeScript/Vite réussie. Les entrées antérieures
+État courant du 22 octobre : campagne du kit ajoutée après les lots essentiels Sources,
+EMF Limits et Origin and Grid ; voir `test-kit-validation.md`, `menu-reproduction.md`
+et `features.md`. **159 tests métier et 37 parcours Edge validés**,
+compilation TypeScript/Vite réussie. Les entrées antérieures
 conservent les résultats et blocages historiques.
+
+Campagne du kit : mesures ajoutées aux totaux, groupes inactifs, positions de points
+dans les bâtiments et pertes par bandes, plages de hauteurs temporaires, KML/MSI,
+copie entre origines et paramètres corrigés. **1 800 cas de la méthode originale
+`CalcPPE` exécutée isolément**, écart relatif maximal 2,5830227192795853e-6 ;
+les 15 références UI antérieures restent inchangées. Le guide contient 216 scénarios,
+dont 65 partiellement rattachés à cette nouvelle suite ; aucune déclaration de
+validation exhaustive. Voir `test-kit-validation.md` et
+`reference/test-kit-audit-2026-10-22.md`. Compilation Windows finale réussie,
+sans lancement ; empreinte et chemin dans `reference/test-kit-build.json`.
 Les entrées ci-dessous conservent l’historique, dont des blocages ensuite résolus.
 
 Affinage poussé sur `main` : `6f97972`. Compilation Windows finale de 6 680 576
@@ -179,3 +190,40 @@ La prochaine rubrique prévue est **Antenna Locations**.
 - Kit de tests présent dans `test/emf_test_kit/`, avec archive `test/emf_test_kit.zip`, guide, données et outils : ajouté au suivi Git conformément à la demande de pousser tous les changements. Le README du kit précise que ses valeurs attendues proviennent du manuel ou de formules indépendantes ; ses scénarios ne sont pas comptés parmi les 81 tests et 28 parcours validés.
 - `.gitattributes` préserve les fichiers du kit à l’identique (`-text -whitespace`) : BOM, variantes CRLF et espaces intentionnels font partie des cas d’essai et ne doivent pas être normalisés par Git.
 - Reprise : continuer **Antenna Locations** ; conserver les écarts des rubriques précédentes et ne pas fermer une session native contenant des modifications non sauvegardées.
+
+## 2026-10-22 — Antenna Locations et catalogue cartographique
+
+- Lecture du memory bank et reprise de la quatrième rubrique, selon l’ordre
+  convenu. Réinspection REA de `UC_Antennas` (type trouvé, couverture complète de
+  la sélection) ; formulaire C#, conversions et gestionnaires de glissement lus.
+- Sept colonnes, lecture seule selon le natif, formats géographiques natifs,
+  hauteur Single lisible, couleurs, cinq icônes/commandes, cellules/lignes/colonnes
+  Ctrl/Maj et colonnes réordonnables. Éditions groupées limitées à la colonne.
+- Correction des commandes « sélectionnées » qui déplaçaient toutes les sources ;
+  confirmations, centrage par ancre géographique, conversion WM native et
+  conservation des sources hors sélection. Curseur d’accrochage 1–30 importé et
+  sauvegardé, premier voisin dans le rectangle WM natif. Déplacement SVG/Leaflet
+  et priorité à l’antenne sélectionnée aux positions superposées. Icône Leaflet
+  mémorisée pour conserver le geste pendant la sélection.
+- Quatorze fonds dans l’ordre de la capture, dont Google Map/Satellite, Esri,
+  Bing, 2GIS et Yandex ; marqueurs d’URL natifs, quadkeys et projection elliptique.
+  Import conservant le fournisseur exact et configuration personnalisée même
+  nom. Résolveur partagé 2D/3D, image calibrée sélectionnable et messages d’échec.
+- Dix services ont renvoyé une image lors des sondes réseau. Google Satellite
+  version 930 répond 404 : URL du même fournisseur corrigée et vérifiée. OSM
+  Relief affiche un filigrane exigeant une clé ; HERE/Mapquest nécessitent une
+  configuration utilisateur. Identifiants tiers de l’artefact non recopiés.
+- **171 tests métier et 46 parcours Edge passants ensemble** sur les sources
+  finales, TypeScript/Vite, benchmark et `git diff --check` réussis. Les 15
+  références de champ restent à un écart maximal de `9.945531114219364e-7 V/m`.
+  Cinq parcours Antenna Locations incluent le vrai Castelfranco à neuf sources et
+  le geste Leaflet ; quatre parcours cartes complètent les sondes réseau.
+- Release Windows finale compilée `x86_64-pc-windows-msvc`, sans lancement ni
+  fermeture d’une application existante. Chemin, taille et SHA-256 conservés dans
+  `reference/antenna-locations-build.json`. Captures Edge réellement relues dans
+  `reference/antenna-locations-interface/`.
+- Limites : Windows Computer Use échoue avec `native pipe`, erreur 2 ; pas de
+  nouvelle capture originale. Raccourcis WinForms et arrondis limites non tous
+  comparés, accrochage appliqué au relâchement. Audit détaillé dans
+  `reference/antenna-locations-native-audit-2026-10-22.md`. Reprise suivante :
+  **Buildings**, sans déclarer les écarts précédents achevés.

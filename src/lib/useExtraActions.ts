@@ -1,4 +1,5 @@
 import { usePlanner } from "./usePlanner";
+import { moveAntennas } from "./antenna-locations";
 import { ANTENNA_COMMANDS } from "../components/AntennaTools";
 import { DIALOG_COMMANDS } from "../components/ToolDialogs";
 import { addHorizontalHeights, reorderGroup } from "./editing";
@@ -6,7 +7,7 @@ import { rad, terrainHeight, toGeo, toLocal } from "./geometry";
 import { uid } from "./project";
 import { chooseFile, projectDxf, importDxf, saveText } from "./files";
 import { styledContours } from "./presentation";
-import { importKmlBuildings } from "./kml";
+import { decodeKml, importKmlBuildings } from "./kml";
 import { applyProjectPreset, PRESETS } from "./presets";
 export function useExtraActions(): Record<
   string,
@@ -146,7 +147,7 @@ export function useExtraActions(): Record<
       enabled: !!point,
     },
     "Centrer sur l’antenne": {
-      run: () => source && a.centerView([source.x_m ?? 0, source.y_m ?? 0]),
+      run: () => source && a.centerView(toLocal(source.lat, source.lng, p.origin)),
       enabled: !!source,
     },
     "Centrer sur le site": {
@@ -309,7 +310,7 @@ export function useExtraActions(): Record<
         void a.task(async () => {
           const file = await chooseFile(["kml"]);
           if (!file) return null;
-          commit(importKmlBuildings(p, new TextDecoder().decode(file.bytes)));
+          commit(importKmlBuildings(p, decodeKml(file.bytes)));
           return file;
         }, "Bâtiments KML importés"),
       enabled: true,
@@ -621,39 +622,31 @@ export function useExtraActions(): Record<
     },
     "Antennes sélectionnées sur l’antenne active": {
       run: () => {
-        if (!source) return;
-        commit((v) => ({
-          ...v,
-          sources: v.sources.map((s) =>
-            s.id === source.id
-              ? s
-              : {
-                  ...s,
-                  lat: source.lat,
-                  lng: source.lng,
-                  x_m: source.x_m,
-                  y_m: source.y_m,
-                },
-          ),
-        }));
+        if (source && window.confirm("Déplacer les antennes sélectionnées sur l’antenne active ?"))
+          commit(v => moveAntennas(v, a.selectedSourceIds, [source.lat, source.lng]));
       },
-      enabled: !!source,
+      enabled: !!source && a.selectedSourceIds.length > 0,
     },
     "Antennes sélectionnées au centre de l’écran": {
-      run: () =>
-        commit((v) => ({
-          ...v,
-          sources: v.sources.map((s) => ({
-            ...s,
-            x_m: a.viewCenter[0],
-            y_m: a.viewCenter[1],
-            ...(() => {
-              const geo = toGeo(a.viewCenter[0], a.viewCenter[1], p.origin);
-              return { lat: geo[0], lng: geo[1] };
-            })(),
-          })),
-        })),
-      enabled: p.sources.length > 0,
+      run: () => {
+        if (window.confirm("Déplacer les antennes sélectionnées au centre de l’écran ?"))
+          commit(v => moveAntennas(v, a.selectedSourceIds, toGeo(...a.viewCenter, v.origin)));
+      },
+      enabled: a.selectedSourceIds.length > 0,
+    },
+    "Antennes sélectionnées à l’origine": {
+      run: () => {
+        if (window.confirm("Déplacer les antennes sélectionnées à l’origine ?"))
+          commit(v => moveAntennas(v, a.selectedSourceIds, v.origin));
+      },
+      enabled: a.selectedSourceIds.length > 0,
+    },
+    "Origine sur l’antenne active": {
+      run: () => {
+        if (source && window.confirm("Déplacer l’origine sur l’antenne active ? Les positions géographiques seront conservées."))
+          a.changeOrigin([source.lat, source.lng]);
+      },
+      enabled: !!source,
     },
     "Liste des propriétaires": {
       run: () => a.openCommand("Liste des propriétaires"),

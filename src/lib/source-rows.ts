@@ -1,5 +1,6 @@
 import type { RadiatingSource } from "../types";
 import { uid } from "./project";
+import { nativeLocal } from "./native-coordinates";
 
 export const SOURCE_BUFFER_FORMAT = "emf-planner/source-rows";
 export const SOURCE_BUFFER_VERSION = 1;
@@ -269,6 +270,7 @@ export function moveSourceRows(
 export function copySourceRows(
   sources: readonly RadiatingSource[],
   selectedIds: readonly string[],
+  origin?: [number, number],
 ): string | null {
   const selected = sourceSelection(sources, selectedIds);
   if (!selected.length) return null;
@@ -276,6 +278,7 @@ export function copySourceRows(
   const text = JSON.stringify({
     format: SOURCE_BUFFER_FORMAT,
     version: SOURCE_BUFFER_VERSION,
+    ...(origin ? { origin } : {}),
     sources: selected.map(validateSource),
   });
   if (text.length > MAX_BUFFER_LENGTH) invalid("tampon trop volumineux");
@@ -292,7 +295,7 @@ export function parseSourceBuffer(text: string): RadiatingSource[] {
   }
   const buffer = record(
     value,
-    ["format", "version", "sources"],
+    ["format", "version", "sources", "origin"],
     "format du tampon",
   );
   if (
@@ -315,8 +318,26 @@ export function pasteSourceRows(
   activeId: string | null | undefined,
   text: string,
   createId: IdFactory = uid,
+  destinationOrigin?: [number, number],
 ): SourceRowsResult {
   const copies = cloneRows(parseSourceBuffer(text), sources, createId);
+  const origin = JSON.parse(text).origin;
+  if (
+    destinationOrigin &&
+    (!Array.isArray(origin) ||
+      origin[0] !== destinationOrigin[0] ||
+      origin[1] !== destinationOrigin[1])
+  ) {
+    for (const source of copies) {
+      const [x_m, y_m] = nativeLocal(
+        source.lat,
+        source.lng,
+        destinationOrigin,
+        true,
+      );
+      Object.assign(source, { x_m, y_m });
+    }
+  }
   const current = sources.findIndex((source) => source.id === activeId),
     insertion = current < 0 ? sources.length : current + 1;
   return {

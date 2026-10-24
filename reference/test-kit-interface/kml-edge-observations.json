@@ -1,0 +1,106 @@
+[
+  {
+    "name": "8",
+    "status": "accepted",
+    "count": 1,
+    "height": 10
+  },
+  {
+    "name": ";NoHeight",
+    "status": "rejected",
+    "error": "Error: Hauteur KML invalide : «  » (0 < hauteur ≤ 9999 m)."
+  },
+  {
+    "name": "abc;NotNumber",
+    "status": "rejected",
+    "error": "Error: Hauteur KML invalide : « abc » (0 < hauteur ≤ 9999 m)."
+  },
+  {
+    "name": "0;Zero",
+    "status": "rejected",
+    "error": "Error: Hauteur KML invalide : « 0 » (0 < hauteur ≤ 9999 m)."
+  },
+  {
+    "name": "-5;Negative",
+    "status": "rejected",
+    "error": "Error: Hauteur KML invalide : « -5 » (0 < hauteur ≤ 9999 m)."
+  },
+  {
+    "name": "10000;Huge",
+    "status": "rejected",
+    "error": "Error: Hauteur KML invalide : « 10000 » (0 < hauteur ≤ 9999 m)."
+  },
+  {
+    "name": "12,5;CommaDecimal",
+    "status": "accepted",
+    "count": 1,
+    "height": 12.5
+  },
+  {
+    "name": "9;Église é ü 北京 ✓",
+    "status": "accepted",
+    "count": 1,
+    "height": 9
+  },
+  {
+    "name": "9;a;b;c",
+    "status": "accepted",
+    "count": 1,
+    "height": 10
+  },
+  {
+    "name": "9;Hole",
+    "status": "rejected",
+    "error": "Error: Les polygones KML avec des trous ne sont pas encore pris en charge."
+  },
+  {
+    "name": "9;Collinear",
+    "status": "rejected",
+    "error": "Error: Contour KML dégénéré : 9;Collinear."
+  },
+  {
+    "name": "9;Bowtie",
+    "status": "rejected",
+    "error": "Error: Contour KML dégénéré : 9;Bowtie."
+  },
+  {
+    "name": "10;B01",
+    "status": "accepted",
+    "count": 1,
+    "height": 10
+  },
+  {
+    "name": "5;Tiny",
+    "status": "accepted",
+    "count": 1,
+    "height": 5
+  },
+  {
+    "name": "20;Far10km",
+    "status": "accepted",
+    "count": 1,
+    "height": 20
+  },
+  {
+    "name": "9;NoAltitude",
+    "status": "accepted",
+    "count": 1,
+    "height": 9
+  },
+  {
+    "name": "9;Unclosed",
+    "status": "accepted",
+    "count": 1,
+    "height": 9
+  },
+  {
+    "name": "7;PointNotPolygon",
+    "status": "rejected",
+    "error": "Error: Aucun polygone de bâtiment trouvé dans le KML."
+  },
+  {
+    "name": "7;LineNotPolygon",
+    "status": "rejected",
+    "error": "Error: Aucun polygone de bâtiment trouvé dans le KML."
+  }
+]

@@ -10,6 +10,9 @@
     "tauri": "tauri",
     "test": "tsx --test tests/*.test.ts",
     "test:ui": "playwright test",
+    "test:kit": "tsx --test tests/test-kit.test.ts",
+    "test:kit:ui": "playwright test tests/browser/test-kit.spec.ts",
+    "test:kit:inventory": "tsx scripts/test-kit-inventory.mts",
     "benchmark": "tsx scripts/benchmark-clone.mts"
   },
   "dependencies": {

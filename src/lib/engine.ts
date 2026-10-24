@@ -20,6 +20,11 @@ import {
 import { nativeLimitAt } from "./limits";
 import { horizontalDimensions } from "./origin-grid";
 
+interface PointContext {
+  excludedBuilding?: string;
+  inBuilding: boolean;
+}
+
 export function limitAt(limit: LimitSet, frequency: number): number {
   return nativeLimitAt(limit, frequency);
 }
@@ -58,6 +63,7 @@ export function sourceField(
   elevation: number,
   limitIndex = project.settings.selected_limit,
   lossDb = 0,
+  context?: PointContext,
 ): { field: number; distance: number } {
   if (source.active === false || source.power_w <= 0)
     return { field: 0, distance: 0 };
@@ -77,7 +83,7 @@ export function sourceField(
       : terrainHeight(project, position[0], position[1]));
   const dz = elevation - sourceZ;
   const distance = Math.max(0.05, Math.hypot(dx, dy, dz));
-  const az = rad(source.azimuth_deg),
+  const az = rad(source.azimuth_deg < 0 ? 0 : source.azimuth_deg),
     localX = dx * Math.cos(az) - dy * Math.sin(az),
     forward = dx * Math.sin(az) + dy * Math.cos(az);
   // Rotation and cyclic 360-sample H/V interpolation follow CalcSZZ.CalcPPE.
@@ -85,20 +91,9 @@ export function sourceField(
     tiltedY = forward * Math.cos(tilt) - dz * Math.sin(tilt),
     tiltedZ = forward * Math.sin(tilt) + dz * Math.cos(tilt);
   const horizontal = wrap(deg(Math.atan2(localX, tiltedY)));
-  const vertical = wrap(
-    -deg(Math.atan2(tiltedZ, Math.hypot(localX, tiltedY))) -
-      (source.pattern_v ? 0 : source.electrical_downtilt_deg),
-  );
-  const h = patternAmplitude(
-    source.pattern_h,
-    horizontal,
-    source.beam_width_h_deg,
-  );
-  const v = patternAmplitude(
-    source.pattern_v,
-    vertical,
-    source.beam_width_v_deg,
-  );
+  const vertical = wrap(-deg(Math.atan2(tiltedZ, Math.hypot(localX, tiltedY))));
+  const h = patternAmplitude(source.pattern_h, horizontal, 65);
+  const v = patternAmplitude(source.pattern_v, vertical, 10);
   const limit = project.limits[limitIndex] ?? project.limits[0];
   const factors = source.limit_factors?.[limitIndex] ?? [
     source.alpha24,
@@ -129,11 +124,27 @@ export function sourceField(
       );
       const inBuilding =
         inside(x, y, b.points) && elevation < b.foundation_m + b.height_m;
-      if (project.settings.buildings_mode === "screen" && blocked)
+      if (
+        project.settings.buildings_mode === "screen" &&
+        blocked &&
+        b.id !== context?.excludedBuilding
+      )
         return { field: 0, distance };
-      if (project.settings.buildings_mode === "attenuate" && inBuilding)
+      if (
+        project.settings.buildings_mode === "attenuate" &&
+        inBuilding &&
+        (context === undefined || context.inBuilding)
+      ) {
+        // Native penetration loss is configured per frequency band, once per ray.
         extraLoss +=
-          b.attenuation_db || project.settings.building_attenuation_db;
+          project.settings.building_attenuation_high_db !== undefined
+            ? source.frequency_mhz <=
+              (project.settings.building_frequency_boundary_mhz ?? 400)
+              ? project.settings.building_attenuation_db
+              : project.settings.building_attenuation_high_db
+            : b.attenuation_db;
+        break;
+      }
     }
   const field =
     ((project.settings.reflection *
@@ -151,6 +162,7 @@ export function exposureAt(
   elevation: number,
   limitIndex = project.settings.selected_limit,
   lossDb = 0,
+  context?: PointContext,
 ): ExposureResult {
   let e2 = 0,
     ratio = 0;
@@ -165,6 +177,7 @@ export function exposureAt(
           elevation,
           limitIndex,
           lossDb,
+          context,
         ),
         limit = limitAt(
           project.limits[limitIndex] ?? project.limits[0],
@@ -192,14 +205,17 @@ export function exposureAt(
 }
 export function calculatePoints(project: PlannerProject): PointResult[] {
   return project.control_points.flatMap((point) => {
+    if (point.group_active === false) return [];
     const x = point.x_m,
       y = point.y_m;
     const b = project.buildings.find((b) => inside(x, y, b.points));
     const terrainPosition = toLocal(point.lat, point.lng, project.origin);
     const base =
-      point.location === "Roof" && b
-        ? b.foundation_m + b.height_m
-        : terrainHeight(project, terrainPosition[0], terrainPosition[1]);
+      b && point.location === "Building"
+        ? b.foundation_m
+        : point.location === "Roof" && b
+          ? b.foundation_m + b.height_m
+          : terrainHeight(project, terrainPosition[0], terrainPosition[1]);
     return (
       point.heights?.length
         ? point.heights
@@ -210,23 +226,75 @@ export function calculatePoints(project: PlannerProject): PointResult[] {
               measured: point.measured_e_field_v_m ?? 0,
             },
           ]
-    ).map((height, i) => ({
-      point_id: point.id,
-      name: `${point.name}${(point.heights?.length ?? 1) > 1 ? `.${i + 1}` : ""}`,
-      height_m: height.height_m,
-      x,
-      y,
-      measured: height.measured,
-      elevation: base,
-      ...exposureAt(
+    ).map((height, i) => {
+      const calculated = exposureAt(
         project,
         x,
         y,
         base + height.height_m,
         project.settings.selected_limit,
         height.attenuation_db,
-      ),
-    }));
+        {
+          excludedBuilding: point.location === "Building" ? b?.id : undefined,
+          inBuilding:
+            point.location === "Building" &&
+            !!b &&
+            b.active &&
+            height.height_m < b.height_m,
+        },
+      );
+      const measured = height.measured;
+      const measurementLimit = limitAt(
+        project.limits[project.settings.selected_limit] ?? project.limits[0],
+        project.settings.point_measurement_frequency_mhz ?? 1000,
+      );
+      const ratio =
+        calculated.exposure_ratio + (measured / measurementLimit) ** 2;
+      return {
+        ...calculated,
+        point_id: point.id,
+        name: `${point.name}${(point.heights?.length ?? 1) > 1 ? `.${i + 1}` : ""}`,
+        height_m: height.height_m,
+        x,
+        y,
+        measured,
+        elevation: base,
+        calculated_field: calculated.total_field,
+        total_field: Math.hypot(calculated.total_field, measured),
+        total_power_density:
+          calculated.total_power_density + measured ** 2 / 377,
+        exposure_ratio: ratio,
+        compliant: ratio <= 1,
+      };
+    });
+  });
+}
+
+/** frmCalcOneControlPoint: range calculations ignore manual point losses and measurements. */
+export function calculatePointHeightRange(
+  project: PlannerProject,
+  heights: number[],
+): PointResult[] {
+  if (
+    !heights.length ||
+    heights.length > 1000 ||
+    heights.some((h) => !Number.isFinite(h) || h < 0 || h > 10000)
+  )
+    throw new Error(
+      "Plage de hauteurs invalide (1 à 1000 valeurs entre 0 et 10 000 m).",
+    );
+  return calculatePoints({
+    ...project,
+    control_points: project.control_points.map((c) => ({
+      ...c,
+      heights: heights.map((height_m, i) => ({
+        id: `range-${i}`,
+        height_m,
+        attenuation_db: 0,
+        measured: 0,
+        description: "",
+      })),
+    })),
   });
 }
 export function horizontalGrid(

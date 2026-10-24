@@ -69,11 +69,11 @@ export const EXTRA_TOOLS: Record<Section, string[]> = {
     "Centrer sur le site",
   ],
   antennas: [
-    "Origine sur l’antenne active",
-    "Toutes les antennes à l’origine",
-    "Antennes sélectionnées sur l’antenne active",
-    "Antennes sélectionnées au centre de l’écran",
     "Centrer sur l’antenne",
+    "Antennes sélectionnées au centre de l’écran",
+    "Antennes sélectionnées sur l’antenne active",
+    "Antennes sélectionnées à l’origine",
+    "Origine sur l’antenne active",
   ],
   buildings: [
     "Dupliquer le bâtiment",
@@ -217,24 +217,6 @@ export default function FeatureTools({ section }: { section: Section }) {
       enabled: !!source?.pattern_v,
     },
     "Diagramme V : +1°": { run: () => rotate(1), enabled: !!source?.pattern_v },
-    "Origine sur l’antenne active": {
-      run: () => source && a.changeOrigin([source.lat, source.lng]),
-      enabled: !!source,
-    },
-    "Toutes les antennes à l’origine": {
-      run: () =>
-        commit((p) => ({
-          ...p,
-          sources: p.sources.map((s) => ({
-            ...s,
-            lat: p.origin[0],
-            lng: p.origin[1],
-            x_m: 0,
-            y_m: 0,
-          })),
-        })),
-      enabled: p.sources.length > 0,
-    },
     "Dupliquer le bâtiment": {
       run: () => {
         if (!building) return;

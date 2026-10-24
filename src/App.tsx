@@ -44,6 +44,7 @@ import ToolDialogs from "./components/ToolDialogs";
 import VolumeTools, { VOLUME_COMMAND } from "./components/VolumeTools";
 import { ResultsDialog } from "./components/Results";
 import { mapProviders } from "./components/PlannerMap";
+import { normalizeMapProvider } from "./lib/map-providers";
 import OriginalIcon from "./components/OriginalIcon";
 import "./App.css";
 import { styledContours } from "./lib/presentation";
@@ -271,7 +272,7 @@ export default function App() {
                 )}
                 <select
                   aria-label="Fond de carte"
-                  value={p.settings.map_provider}
+                  value={normalizeMapProvider(p.settings.map_provider)}
                   onChange={(e) => a.settings({ map_provider: e.target.value })}
                 >
                   {Object.keys(mapProviders(p)).map((name) => (
