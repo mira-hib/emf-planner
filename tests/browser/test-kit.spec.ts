@@ -256,12 +256,12 @@ test("BLD-03 ROB-09: each edge placemark is classified independently, decimal co
   const rows: {name:string|null;status:string;count?:number;height?:number;error?:string}[]=[];
   for (const placemark of placemarks) {
     await openProject(page, base());
-    await nav(page, "B?timents").click();
+    await nav(page, "Bâtiments").click();
     const chooser=page.waitForEvent("filechooser");
-    await button(page,"Importer les b?timents KML").click();
+    await button(page,"Importer les bâtiments KML").click();
     await (await chooser).setFiles({name:"edge.kml",mimeType:"application/vnd.google-earth.kml+xml",buffer:Buffer.from(placemark.xml)});
     await expect.poll(async()=>await page.getByRole("alert").count()>0 ||
-      await page.locator(".status-message").textContent()==="B?timents KML import?s").toBe(true);
+      await page.locator(".status-message").textContent()==="Bâtiments KML importés").toBe(true);
     if(await page.getByRole("alert").count()) rows.push({name:placemark.name,status:"rejected",error:await page.getByRole("alert").innerText()});
     else {const project=await save(page);rows.push({name:placemark.name,status:"accepted",count:project.buildings.length,height:project.buildings[0]?.height_m});}
   }

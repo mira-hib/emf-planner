@@ -431,6 +431,9 @@ test("contour appearance preserves computed results and property panes resize on
 }) => {
   await page.setViewportSize({ width: 1040, height: 760 });
   await navigate(page, "Coupes horizontales");
+  // Distinct height styles apply to a single limit. Multiple limits project the
+  // heights together and use limit colors instead (HCT-05).
+  for(const index of [1,2,3]) await page.locator('.limit-selector input[type="checkbox"]').nth(index).uncheck();
   await page
     .getByRole("button", { name: "Calculer avec la grille 1", exact: true })
     .click();

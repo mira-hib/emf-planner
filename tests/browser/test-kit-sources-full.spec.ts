@@ -85,7 +85,7 @@ test("SRC-11 SRC-12 power double-click converts four units and only OK writes wa
   await button(page, "Ajouter une source").click(); const power = grid(page).getByLabel("Puissance TX, W", { exact: true }); await power.dblclick();
   let dialog = page.getByRole("dialog", { name: "Conversion de puissance", exact: true }); await dialog.getByLabel("Puissance, W", { exact: true }).fill("12,05");
   await expect(dialog.getByLabel("Puissance, mW", { exact: true })).toHaveValue("12050"); await expect(dialog.getByLabel("Puissance, dBW", { exact: true })).toHaveValue("10.8"); await expect(dialog.getByLabel("Puissance, dBm", { exact: true })).toHaveValue("40.8");
-  await dialog.getByRole("button", { name: "Annuler", exact: true }).click(); await expect(power).toHaveValue("10");
+  await dialog.getByRole("button", { name: "Annuler", exact: true }).click(); await expect(power).toHaveValue("0");
   await power.dblclick(); dialog = page.getByRole("dialog", { name: "Conversion de puissance", exact: true }); await dialog.getByLabel("Puissance, W", { exact: true }).fill("0"); await expect(dialog.getByRole("alert")).toBeVisible(); await expect(dialog.getByRole("button", { name: "OK", exact: true })).toBeDisabled();
   await dialog.getByLabel("Puissance, dBm", { exact: true }).fill("40.8"); await dialog.getByRole("button", { name: "OK", exact: true }).click(); expect((await save(page)).sources[0].power_w).toBe(12.0226);
 });

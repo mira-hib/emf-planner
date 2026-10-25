@@ -1,6 +1,6 @@
 /** ROB-05 calculation workload. Resumes only receipts from the identical input hash.
  * UI responsiveness, Task Manager and visual output are separate scenario steps. */
-import { readFileSync, writeFileSync, mkdirSync, existsSync } from "node:fs";
+import { readFileSync, writeFileSync, mkdirSync, existsSync, readdirSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { spawn } from "node:child_process";
 import { createHash } from "node:crypto";
@@ -13,9 +13,12 @@ import { parseMsi } from "../src/lib/antenna.ts";
 import { toLocal } from "../src/lib/geometry.ts";
 import type { PlannerProject, Building } from "../src/types";
 
-const output = resolve(process.argv[2] ?? "test validation/2026-10-25/stress-rob05");
+const output = resolve(process.argv[2] ?? "test validation/2026-10-25/stress-rob05-v2");
 mkdirSync(output, { recursive: true });
 const projectPath = join(output, "stress-project.emfp");
+const engineHash=createHash("sha256");
+for(const file of readdirSync("src/lib").filter(name=>/\.tsx?$/.test(name)).sort())engineHash.update(file).update(readFileSync(join("src/lib",file)));
+const engine_sha256=engineHash.digest("hex");
 if (process.argv[3] === "--cut") {
   try { setPriority(0, constants.priority.PRIORITY_BELOW_NORMAL); } catch { /* Workload stays measurable without priority privileges. */ }
   const index = Number(process.argv[4]);
@@ -29,7 +32,7 @@ if (process.argv[3] === "--cut") {
     checksum.update(Buffer.from(data.buffer, data.byteOffset, data.byteLength));
   }
   const lines = contours(grid, 1, "red");
-  const receipt = { index, height_m: grid.height_m, status: "passed", input_sha256,
+  const receipt = { index, height_m: grid.height_m, status: "passed", input_sha256, engine_sha256,
     width: grid.width, height: grid.height, grid_sha256: checksum.digest("hex"),
     contour_segments: lines.segments.length, seconds: (performance.now() - start) / 1000,
     max_rss_bytes: process.resourceUsage().maxRSS * 1024 };
@@ -72,10 +75,10 @@ if (process.argv[3] === "--cut") {
   for(let i=0;i<50;i++){
     const path=join(output,`cut-${String(i).padStart(2,"0")}.json`);
     const previous=existsSync(path)?JSON.parse(readFileSync(path,"utf8")):undefined;
-    if(previous?.status==="passed"&&previous.input_sha256===input_sha256)completed.push(previous);else queue.push(i);
+    if(previous?.status==="passed"&&previous.input_sha256===input_sha256&&previous.engine_sha256===engine_sha256)completed.push(previous);else queue.push(i);
   }
   const persist=()=>writeFileSync(join(output,"result.json"),JSON.stringify({scenario:"ROB-05",status:failures.length?"failed":completed.length===50?"passed-calculation-workload":"running",
-    input_sha256,sources:1000,buildings:2000,cuts:50,completed_cuts:completed.length,divisions:1000,workers:8,
+    input_sha256,engine_sha256,sources:1000,buildings:2000,cuts:50,completed_cuts:completed.length,divisions:1000,workers:4,
     elapsed_this_session_seconds:(performance.now()-start)/1000,assumptions:"Heights 0–49m; bounding area includes all kit buildings; generic antenna model uses kit sector65x7 pattern with each source's own gain; first limit only.",
     scope:"Calculation workload and per-process peak RSS. UI responsiveness, export, 3D and Windows Task Manager are separate checks.",
     failures,receipts:completed.sort((a,b)=>Number(a.index)-Number(b.index))},null,2));
@@ -87,6 +90,6 @@ if (process.argv[3] === "--cut") {
       child.on("exit",code=>{writeFileSync(join(output,`cut-${index}.log`),log);if(code===0)completed.push(JSON.parse(readFileSync(join(output,`cut-${String(index).padStart(2,"0")}.json`),"utf8")));else failures.push({index,exit_code:code});persist();console.log(`ROB-05 ${completed.length}/50, failures ${failures.length}`);done();});
     });
   }}
-  await Promise.all(Array.from({length:Math.min(8,queue.length)},worker));persist();
+  await Promise.all(Array.from({length:Math.min(4,queue.length)},worker));persist();
   if(failures.length)process.exitCode=1;
 }

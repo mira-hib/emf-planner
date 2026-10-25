@@ -87,5 +87,5 @@ export async function reportAliasBlocks(project: PlannerProject, requested: stri
   throw new Error(`Alias de rapport inconnu : {${requested}}`);
 }
 export async function reportAliasDocument(project: PlannerProject, alias: string, sampling?: TableSampling): Promise<Uint8Array> {
-  return new Uint8Array(await Packer.toBuffer(new Document({ sections: [{ properties: { page: { size: { width: alias.includes("A3") ? 23811 : 16838, height: alias.includes("A3") ? 16838 : 11906 }, margin: { top: 720, bottom: 720, left: 720, right: 720 } } }, children: [para(project.name), ...await reportAliasBlocks(project, alias, sampling)] }] })));
+  return new Uint8Array(await Packer.toArrayBuffer(new Document({ sections: [{ properties: { page: { size: { width: alias.includes("A3") ? 23811 : 16838, height: alias.includes("A3") ? 16838 : 11906 }, margin: { top: 720, bottom: 720, left: 720, right: 720 } } }, children: [para(project.name), ...await reportAliasBlocks(project, alias, sampling)] }] })));
 }

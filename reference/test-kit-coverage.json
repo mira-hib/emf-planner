@@ -2,7 +2,7 @@
   "scope": "Coverage references only. A test may cover a subset or record a native/kit divergence; consult the audit and actual test output.",
   "original_ui": "Original 7.1 Trial observed on 2026-10-25 with Windows Computer Use: startup, Sources, Buildings, Vertical Cuts and Settings. See reference/full-kit-runtime-observations-2026-10-25.md. These observations are not complete kit execution.",
   "total_scenarios": 216,
-  "partially_covered_scenarios": 147,
+  "partially_covered_scenarios": 149,
   "cases": [
     {
       "id": "SRC-01",
@@ -1115,8 +1115,10 @@
       "id": "VCT-13",
       "priority": "P2",
       "guide": "tests_c.tex",
-      "status": "not-run-by-kit-suite",
-      "tests": []
+      "status": "partial-automated-coverage",
+      "tests": [
+        "tests/browser/test-kit-report-full.spec.ts"
+      ]
     },
     {
       "id": "HCT-01",
@@ -1232,8 +1234,10 @@
       "id": "HCT-14",
       "priority": "P2",
       "guide": "tests_c.tex",
-      "status": "not-run-by-kit-suite",
-      "tests": []
+      "status": "partial-automated-coverage",
+      "tests": [
+        "tests/browser/test-kit-report-full.spec.ts"
+      ]
     },
     {
       "id": "TBL-01",
@@ -1338,6 +1342,7 @@
       "guide": "tests_c.tex",
       "status": "partial-automated-coverage",
       "tests": [
+        "tests/test-kit-calculation-full.test.ts",
         "tests/test-kit.test.ts"
       ]
     },
@@ -1450,7 +1455,8 @@
       "guide": "tests_d.tex",
       "status": "partial-automated-coverage",
       "tests": [
-        "tests/test-kit-report-full.test.ts"
+        "tests/test-kit-report-full.test.ts",
+        "tests/browser/test-kit-report-full.spec.ts"
       ]
     },
     {

@@ -662,12 +662,12 @@ export function useExtraActions(): Record<
     },
     // --- Tables ---
     "Tableaux de champ des coupes verticales": {
-      run: () => a.openCommand("Tableaux de champ des coupes verticales"),
-      enabled: a.verticalResults.some((r) => r.grid.fields.length > 0),
+      run: () => a.setSection("tables"),
+      enabled: p.vertical_cuts.some(c => c.active),
     },
     "Tableaux d’exposition des coupes verticales": {
-      run: () => a.openCommand("Tableaux d’exposition des coupes verticales"),
-      enabled: a.verticalResults.some((r) => r.grid.values.length > 0),
+      run: () => a.setSection("tables"),
+      enabled: p.vertical_cuts.some(c => c.active),
     },
     // --- Word charts ---
     "Graphiques dans le rapport Word": {

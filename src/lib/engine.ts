@@ -27,9 +27,11 @@ interface PointContext {
 }
 interface PreparedSource {
   sx: number; sy: number; z: number;
+  rayKey: string;
   cosAz: number; sinAz: number; cosTilt: number; sinTilt: number;
   horizontal: Float64Array; vertical: Float64Array;
   amplitudes: number[];
+  effectiveLimits?: number[];
 }
 function prepareSource(project: PlannerProject, source: RadiatingSource): PreparedSource {
   const position = toLocal(source.lat, source.lng, project.origin);
@@ -38,7 +40,8 @@ function prepareSource(project: PlannerProject, source: RadiatingSource): Prepar
     ? project.buildings.find(b => inside(sx, sy, b.points)) : undefined;
   const az = rad(source.azimuth_deg < 0 ? 0 : source.azimuth_deg), tilt = rad(-source.mechanical_downtilt_deg);
   const pattern = (values: number[] | undefined, width: number) => Float64Array.from({ length: 360 }, (_, i) => patternAmplitude(values, i, width));
-  return { sx, sy, z: source.height_m + (building ? building.foundation_m : terrainHeight(project, ...position)),
+  const z = source.height_m + (building ? building.foundation_m : terrainHeight(project, ...position));
+  return { sx, sy, z, rayKey: `${sx},${sy},${z}`,
     cosAz: Math.cos(az), sinAz: Math.sin(az), cosTilt: Math.cos(tilt), sinTilt: Math.sin(tilt),
     horizontal: pattern(source.pattern_h, 65), vertical: pattern(source.pattern_v, 10),
     amplitudes: project.limits.map((limit, index) => {
@@ -49,8 +52,10 @@ function prepareSource(project: PlannerProject, source: RadiatingSource): Prepar
 }
 const runtime = new WeakMap<PlannerProject, Map<RadiatingSource, PreparedSource>>();
 const buildingRuntime = new WeakMap<PlannerProject, BuildingIndex>();
+const blockedRuntime = new WeakMap<PlannerProject, Map<string, boolean>>();
 function prepareGrid(project: PlannerProject) {
   buildingRuntime.set(project, new BuildingIndex(project.buildings));
+  blockedRuntime.set(project, new Map());
   runtime.set(project, new Map(project.sources.filter(s => s.active !== false && s.power_w > 0).map(s => [s, prepareSource(project, s)])));
 }
 /** Equivalent colocated emitters can share one angular/obstruction calculation.
@@ -62,7 +67,11 @@ function gridSources(project: PlannerProject): RadiatingSource[] {
   const prepared = runtime.get(project)!, groups = new Map<string, RadiatingSource[]>();
   for (const source of sources) {
     const p = prepared.get(source); if (!p) continue;
-    const key = JSON.stringify([p.sx,p.sy,p.z,p.cosAz,p.sinAz,p.cosTilt,p.sinTilt,source.frequency_mhz,source.pattern_h,source.pattern_v]);
+    // Frequency only changes the penetration-loss band and the exposure divisor.
+    // Aggregate the latter independently from total field power for every limit.
+    const lossBand = project.settings.buildings_mode === "attenuate" && project.settings.building_attenuation_high_db !== undefined
+      ? source.frequency_mhz <= (project.settings.building_frequency_boundary_mhz ?? 400) : false;
+    const key = JSON.stringify([p.sx,p.sy,p.z,p.cosAz,p.sinAz,p.cosTilt,p.sinTilt,lossBand,source.pattern_h,source.pattern_v]);
     const group = groups.get(key); if(group) group.push(source); else groups.set(key,[source]);
   }
   if (groups.size > sources.length / 2) return sources;
@@ -71,7 +80,11 @@ function gridSources(project: PlannerProject): RadiatingSource[] {
     const first = group[0], prototype = prepared.get(first)!;
     const representative = { ...first, power_w: 1, num_tx: 1, gain_dbi: 0, total_attenuation_db: 0 };
     const amplitudes = project.limits.map((_, index) => Math.sqrt(group.reduce((sum, source) => sum + prepared.get(source)!.amplitudes[index] ** 2, 0)));
-    prepared.set(representative, { ...prototype, amplitudes });
+    const effectiveLimits = project.limits.map((limit,index) => {
+      const ratioPower = group.reduce((sum,source) => sum + (prepared.get(source)!.amplitudes[index] / limitAt(limit,source.frequency_mhz)) ** 2, 0);
+      return ratioPower > 0 ? amplitudes[index] / Math.sqrt(ratioPower) : 1;
+    });
+    prepared.set(representative, { ...prototype, amplitudes, effectiveLimits });
     return representative;
   });
 }
@@ -140,7 +153,10 @@ export function sourceField(
   const dz = elevation - sourceZ;
   const distance = Math.max(0.05, Math.hypot(dx, dy, dz));
   let extraLoss = lossDb;
-  if (project.settings.buildings_mode !== "ignore") {
+  const blocked = project.settings.buildings_mode === "screen" && cached && !context ? blockedRuntime.get(project) : undefined;
+  const previousRay = cached ? blocked?.get(cached.rayKey) : undefined;
+  if (previousRay === true) return { field: 0, distance };
+  if (project.settings.buildings_mode !== "ignore" && previousRay !== false) {
     const index = buildingRuntime.get(project);
     const candidates = index ? (project.settings.buildings_mode === "screen" ? index.ray(sx, sy, x, y) : index.point(x, y)).map(entry => entry.building)
       : project.buildings.filter(b => b.active);
@@ -154,7 +170,10 @@ export function sourceField(
         if (Math.min(sourceZ, elevation) >= b.foundation_m + b.height_m || Math.max(sourceZ, elevation) <= b.foundation_m) continue;
         for (let i = 0; i < b.points.length; i++) {
           const t = segmentCrosses([sx, sy], [x, y], b.points[i], b.points[(i + 1) % b.points.length]);
-          if (t !== null && sourceZ + dz * t < b.foundation_m + b.height_m && sourceZ + dz * t > b.foundation_m) return { field: 0, distance };
+          if (t !== null && sourceZ + dz * t < b.foundation_m + b.height_m && sourceZ + dz * t > b.foundation_m) {
+            if(cached)blocked?.set(cached.rayKey,true);
+            return { field: 0, distance };
+          }
         }
       }
       if (
@@ -174,6 +193,7 @@ export function sourceField(
         break;
       }
     }
+    if(cached)blocked?.set(cached.rayKey,false);
   }
   // Opaque rays exit before evaluating either antenna pattern.
   const az = rad(source.azimuth_deg < 0 ? 0 : source.azimuth_deg),
@@ -390,6 +410,7 @@ export function horizontalGrid(
     }
   runtime.delete(project);
   buildingRuntime.delete(project);
+  blockedRuntime.delete(project);
   return {
     width: countX,
     height: countY,
@@ -451,11 +472,12 @@ export function verticalGrid(
 }
 function gridTotals(project: PlannerProject, sources: RadiatingSource[], x: number, y: number, z: number) {
   let e2 = 0, ratio = 0;
+  blockedRuntime.get(project)?.clear();
   const index = project.settings.selected_limit, limit = project.limits[index] ?? project.limits[0];
   for (const source of sources) {
     const { field } = sourceField(project, source, x, y, z, index);
     e2 += field * field;
-    ratio += (field / limitAt(limit, source.frequency_mhz)) ** 2;
+    ratio += (field / (runtime.get(project)?.get(source)?.effectiveLimits?.[index] ?? limitAt(limit, source.frequency_mhz))) ** 2;
   }
   return { field: Math.sqrt(e2), ratio };
 }

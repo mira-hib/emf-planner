@@ -68,19 +68,43 @@ else:
     manifest['sources'].append({'project': 'GNU LibreDWG', 'version': '0.14', 'sha256': digest,
         'url': 'https://github.com/LibreDWG/libredwg/releases/tag/0.14', 'license': 'GPL-3.0-or-later'})
     commit = '4d75fccf839d1aa180ec53e519e307272957b625'
-    archive, digest = download(f'https://github.com/Korijn/u3d/archive/{commit}.tar.gz', f'u3d-{commit}.tar.gz')
+    archive, digest = download(f'https://github.com/Korijn/u3d/archive/{commit}.tar.gz', f'u3d-{commit}.tar.gz',
+        '2a7e2ebc0631d1a03923c8db9c99cfeafab7948dd40eb447c628d3bff898cf52')
     with tarfile.open(archive) as bundle:
         bundle.extractall(CACHE, filter='data')
     source = CACHE / f'u3d-{commit}'
     build = CACHE / 'u3d-build'
-    run(['cmake', '-S', source, '-B', build, '-DU3D_SHARED=OFF', '-DCMAKE_BUILD_TYPE=Release', '-DCMAKE_POLICY_VERSION_MINIMUM=3.5'], CACHE)
+    # This 2006 dependency predates modern macOS SDK headers and C++17.
+    # Keep the compatibility edits explicit with the packaged provenance.
+    compatibility = {
+        'RTL/Dependencies/png/pngpriv.h': [('#      include <fp.h>', '#      include <math.h>')],
+        'RTL/Dependencies/zlib/zutil.h': [('#if defined(MACOS) || defined(TARGET_OS_MAC)', '#if (defined(MACOS) || defined(TARGET_OS_MAC)) && !defined(__APPLE__)')],
+    }
+    for relative, edits in compatibility.items():
+        path = source / relative
+        text = path.read_text()
+        for old, new in edits:
+            if old not in text:
+                raise RuntimeError(f'Unexpected U3D source for compatibility patch: {relative}')
+            text = text.replace(old, new)
+        path.write_text(text)
+    run(['cmake', '-S', source, '-B', build, '-DU3D_SHARED=OFF', '-DU3D_BUILD_SAMPLES=OFF',
+         '-DCMAKE_C_STANDARD=99', '-DCMAKE_CXX_STANDARD=14', '-DCMAKE_CXX_STANDARD_REQUIRED=ON',
+         '-DCMAKE_BUILD_TYPE=Release', '-DCMAKE_POLICY_VERSION_MINIMUM=3.5'], CACHE)
     run(['cmake', '--build', build, '--parallel', str(min(os.cpu_count() or 2, 4))], CACHE)
     candidates = [path for path in build.rglob('IDTFConverter') if path.is_file()]
     if len(candidates) != 1:
         raise RuntimeError(f'Expected one built U3D converter, found {candidates}')
     shutil.copy2(candidates[0], OUT / 'IDTFConverter')
-    for path in source.glob('*LICENSE*'):
-        shutil.copy2(path, OUT / ('U3D-' + path.name))
+    # IFXCoreStatic is a loader. The encoder still dynamically loads its core
+    # and import/export/scheduling plug-ins, even with bundled image libraries.
+    for path in build.rglob('*'):
+        if path.is_file() and path.name.startswith('libIFX') and path.suffix in ['.so', '.dylib']:
+            shutil.copy2(path, OUT / path.name)
+    for path in source.iterdir():
+        if path.is_file() and any(word in path.name.lower() for word in ['license', 'copying', 'notice']):
+            shutil.copy2(path, OUT / ('U3D-' + path.name))
+    (OUT / 'U3D-compatibility-patches.json').write_text(json.dumps(compatibility, indent=2) + '\n')
     manifest['sources'].append({'project': 'U3D', 'commit': commit, 'sha256': digest,
         'url': 'https://github.com/Korijn/u3d', 'license': 'Apache-2.0'})
 

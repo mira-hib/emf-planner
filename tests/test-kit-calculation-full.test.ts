@@ -139,3 +139,22 @@ test("ROB-05 ROB-06 MET-09: repeated colocated emitters consolidate power withou
   for(let j=0;j<grid.height;j+=10)for(let i=0;i<grid.width;i+=10){const expected=exposureAt(p,grid.x0+i*grid.dx,grid.y0+j*grid.dy,1.5);near(grid.fields[j*grid.width+i]/expected.total_field,1,1e-12);near(grid.values[j*grid.width+i]/expected.exposure_ratio,1,1e-12);}
   p.sources.reverse();const reordered=horizontalGrid(p,1.5,1,50);assert.deepEqual(reordered.values,grid.values);assert.deepEqual(reordered.fields,grid.fields);
 });
+
+test("ROB-05 MET-08 MET-09: aggregation across frequency retains separate field and exposure power for every limit and loss band",()=>{
+  const p=base(1);
+  p.sources=Array.from({length:120},(_,i)=>({...p.sources[0],id:`band-${String(i).padStart(3,"0")}`,
+    power_w:1+i/7,frequency_mhz:[300,900,2100][i%3],azimuth_deg:(i%2)*90,
+    limit_factors:Array.from({length:4},(_,j)=>[.1+(i%8)/10,.2+j/5,.3+(i%4)/10] as [number,number,number])}));
+  p.limits=p.limits.map((l,i)=>({...l,use_alpha24:i!==1,use_ftdc:i!==2,use_fpr:i!==3,
+    rows:[{frequency:400,value:6+i,exponent:0},{frequency:2000,value:.1*(i+1),exponent:.5},{frequency:100000,value:20+i*10,exponent:0}]}));
+  p.settings.building_attenuation_db=3;p.settings.building_attenuation_high_db=8;p.settings.building_frequency_boundary_mhz=400;
+  p.buildings=[{id:"loss",name:"loss",active:true,height_m:20,foundation_m:0,attenuation_db:5,points:[[20,-80],[70,-80],[70,80],[20,80]]}];
+  for(const mode of ["ignore","screen","attenuate"] as const)for(let limit=0;limit<4;limit++){
+    p.settings.buildings_mode=mode;p.settings.selected_limit=limit;const grid=horizontalGrid(p,1.5,1,50);
+    for(let j=0;j<grid.height;j+=10)for(let i=0;i<grid.width;i+=10){
+      const expected=exposureAt(p,grid.x0+i*grid.dx,grid.y0+j*grid.dy,1.5,limit);
+      near(grid.fields[j*grid.width+i],expected.total_field,Math.max(1,expected.total_field)*1e-12);
+      near(grid.values[j*grid.width+i],expected.exposure_ratio,Math.max(1,expected.exposure_ratio)*1e-12);
+    }
+  }
+});

@@ -42,6 +42,7 @@ def main():
     parser.add_argument('--target', required=True)
     parser.add_argument('--bundles', required=True)
     parser.add_argument('--install', action='store_true')
+    parser.add_argument('--prepare-native', action='store_true')
     parser.add_argument('--browser', choices=['chromium', 'msedge'], default='msedge' if os.name == 'nt' else 'chromium')
     args = parser.parse_args()
     output = Path(args.output_root).resolve() / args.label
@@ -85,6 +86,8 @@ def main():
     persist()
     for name, command in [('node-version', ['node', '--version']), ('rust-version', ['rustc', '--version']), ('cargo-version', ['cargo', '--version'])]:
         run(name, command)
+    if args.prepare_native:
+        run('prepare-native', [sys.executable, 'scripts/prepare-native-exports.py'])
     if args.install and run('npm-ci', ['npm', 'ci']) and args.browser == 'chromium':
         command = ['npm', 'exec', '--', 'playwright', 'install']
         if platform.system() == 'Linux':
@@ -104,15 +107,16 @@ def main():
         run('rust-tests', ['cargo', 'test', '--locked', '--manifest-path', 'src-tauri/Cargo.toml', '--target', args.target, '--lib'])
     run('native-formats', ['node', '--import', 'tsx', 'scripts/validate-native-exports.mts', str(reports / 'native-exports')])
     browser_tests = [path.relative_to(ROOT).as_posix() for path in sorted((ROOT / 'tests/browser').glob('test-kit*.spec.ts'))]
-    run('browser-tests', ['node', 'node_modules/@playwright/test/cli.js', 'test', *browser_tests, '--output', str(reports / 'browser-artifacts'), '--reporter=list,html,json,junit'], {
-        'PLAYWRIGHT_HTML_REPORT': str(reports / 'browser-html'), 'PLAYWRIGHT_JSON_OUTPUT_FILE': str(reports / 'browser.json'),
-        'PLAYWRIGHT_JUNIT_OUTPUT_FILE': str(reports / 'browser.junit.xml')})
-    for directory in (ROOT / 'reference').glob('test-kit-interface'):
-        if directory.is_dir():
-            shutil.copytree(directory, reports / 'screenshots' / directory.name, dirs_exist_ok=True)
     if run('frontend-build', ['npm', 'run', 'build']):
         shutil.copytree(ROOT / 'dist', builds / 'web', dirs_exist_ok=True)
         zip_tree(builds / 'web', builds / 'emf-planner-web.zip')
+    run('browser-tests', ['node', 'node_modules/@playwright/test/cli.js', 'test', *browser_tests, '--output', str(reports / 'browser-artifacts'), '--reporter=list,html,json,junit'], {
+        'PLAYWRIGHT_HTML_REPORT': str(reports / 'browser-html'), 'PLAYWRIGHT_JSON_OUTPUT_FILE': str(reports / 'browser.json'),
+        'PLAYWRIGHT_JUNIT_OUTPUT_FILE': str(reports / 'browser.junit.xml'), 'PLAYWRIGHT_STATIC': '1',
+        'PLAYWRIGHT_PORT': env.get('PLAYWRIGHT_PORT', '1432'), 'PLAYWRIGHT_DIST': str(builds / 'web')})
+    for directory in (ROOT / 'reference').glob('test-kit-interface'):
+        if directory.is_dir():
+            shutil.copytree(directory, reports / 'screenshots' / directory.name, dirs_exist_ok=True)
     native_ok = run('native-build', ['node', 'node_modules/@tauri-apps/cli/tauri.js', 'build', '--ci', '--no-bundle', '--target', args.target])
     cargo_target = Path(env.get('CARGO_TARGET_DIR', str(ROOT / 'src-tauri/target')))
     if not cargo_target.is_absolute():

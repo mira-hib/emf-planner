@@ -72,8 +72,7 @@ jobs:
         env:
           CARGO_INCREMENTAL: "0"
         run: |
-          python scripts/prepare-native-exports.py
-          python scripts/validate-build.py --install --browser chromium --label "${{ matrix.label }}" --target "${{ matrix.target }}" --bundles "${{ matrix.bundles }}"
+          python scripts/validate-build.py --prepare-native --install --browser chromium --label "${{ matrix.label }}" --target "${{ matrix.target }}" --bundles "${{ matrix.bundles }}"
       - name: Upload builds, logs and complete test reports
         if: always()
         uses: actions/upload-artifact@v4
