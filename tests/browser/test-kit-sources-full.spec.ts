@@ -4,6 +4,7 @@ import JSZip from "jszip";
 import { newProject, newSource } from "../../src/lib/project";
 import type { PlannerProject } from "../../src/types";
 const kit = "test/emf_test_kit/data/";
+const additiveModifier = process.platform === "darwin" ? "Meta" : "Control";
 const grid = (page: Page) => page.getByRole("region", { name: "Sources rayonnantes", exact: true });
 const button = (page: Page, name: string) => page.getByRole("button", { name, exact: true });
 async function save(page: Page): Promise<PlannerProject> {
@@ -52,7 +53,7 @@ test("SRC-04 row selection shows current triangle and Delete removes only the Ct
     const name=grid(page).getByLabel("Nom de la source",{exact:true}).nth(i);await name.fill(`Source ${i+1}`);await name.press("Tab");
   }
   const table = grid(page); await table.getByRole("rowheader", { name: "Sélectionner la source 1", exact: true }).click();
-  await table.getByRole("rowheader", { name: "Sélectionner la source 3", exact: true }).click({ modifiers: ["Control"] });
+  await table.getByRole("rowheader", { name: "Sélectionner la source 3", exact: true }).click({ modifiers: [additiveModifier] });
   await expect(table.locator('tr[aria-selected="true"]')).toHaveCount(2); await expect(table.locator('tr[data-current="true"] th')).toHaveText("▶");
   page.once("dialog", (dialog) => dialog.accept()); await table.focus(); await table.press("Delete");
   expect((await save(page)).sources.map((source) => source.name)).toEqual(["Source 2", "Source 4"]);
@@ -60,7 +61,7 @@ test("SRC-04 row selection shows current triangle and Delete removes only the Ct
 test("SRC-05 disjoint cells and a complete column support bulk edits", async ({ page }) => {
   for (let i = 0; i < 4; i++) await button(page, "Ajouter une source").click();
   const table = grid(page), fields = table.getByLabel("Puissance TX, W", { exact: true });
-  await fields.nth(0).click(); await fields.nth(2).click({ modifiers: ["Control"] }); await fields.nth(3).click({ modifiers: ["Control"] });
+  await fields.nth(0).click(); await fields.nth(2).click({ modifiers: [additiveModifier] }); await fields.nth(3).click({ modifiers: [additiveModifier] });
   await fields.nth(0).fill("7"); await fields.nth(0).press("Tab");
   expect((await save(page)).sources.map((source) => source.power_w)).toEqual([7, 0, 7, 7]);
   await table.getByRole("columnheader", { name: "Nombre de TX" }).click();

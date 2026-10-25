@@ -15,6 +15,32 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  stress:
+    name: ROB-05 full calculation workload
+    runs-on: ubuntu-22.04
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Prepare and run all 50 full-resolution kit cuts
+        run: |
+          npm ci
+          python scripts/prepare-kit-stress.py
+          node --import tsx scripts/validate-kit-stress.mts "test validation/ROB-05/test-kit/stress"
+      - name: Retain every cut receipt and the exact input
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: emf-validation-ROB-05
+          path: test validation/
+          retention-days: 14
+          if-no-files-found: error
   build:
     strategy:
       fail-fast: false
