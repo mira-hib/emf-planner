@@ -25,11 +25,13 @@ import { usePlanner } from "../lib/usePlanner";
 import { COLORS, uid } from "../lib/project";
 import { terrainHeight } from "../lib/geometry";
 import { useExtraActions } from "../lib/useExtraActions";
+import { useGeometryActions } from "../lib/useGeometryActions";
 import OriginalIcon from "./OriginalIcon";
 import { fillSourceBeamWidths, hasSourcePatterns } from "../lib/source-fields";
 
 // Secondary commands identified in the recovered UC_*.cs forms.
 // Commands without an action stay visible and disabled until implemented.
+const PIXEL_MOVE_TOOLS = ["Déplacer l’objet d’un pixel à gauche", "Déplacer l’objet d’un pixel à droite", "Déplacer l’objet d’un pixel vers le haut", "Déplacer l’objet d’un pixel vers le bas"];
 export const EXTRA_TOOLS: Record<Section, string[]> = {
   sources: [
     "Bibliothèque d’antennes",
@@ -69,13 +71,14 @@ export const EXTRA_TOOLS: Record<Section, string[]> = {
     "Centrer sur le site",
   ],
   antennas: [
-    "Origine sur l’antenne active",
-    "Toutes les antennes à l’origine",
-    "Antennes sélectionnées sur l’antenne active",
-    "Antennes sélectionnées au centre de l’écran",
     "Centrer sur l’antenne",
+    "Antennes sélectionnées au centre de l’écran",
+    "Antennes sélectionnées sur l’antenne active",
+    "Antennes sélectionnées à l’origine",
+    "Origine sur l’antenne active",
   ],
   buildings: [
+    ...PIXEL_MOVE_TOOLS,
     "Dupliquer le bâtiment",
     "Altitude des bases depuis le terrain",
     "Altitude de la base sélectionnée",
@@ -88,6 +91,7 @@ export const EXTRA_TOOLS: Record<Section, string[]> = {
     "Bâtiments OpenStreetMap",
   ],
   terrain: [
+    ...PIXEL_MOVE_TOOLS,
     "Courbe de niveau",
     "Fermer une courbe de niveau",
     "Ajouter un sommet de relief",
@@ -97,6 +101,7 @@ export const EXTRA_TOOLS: Record<Section, string[]> = {
     "Relief DEM / SRTM",
   ],
   lines: [
+    ...PIXEL_MOVE_TOOLS,
     "Dupliquer l’objet",
     "Ajouter un nœud",
     "Supprimer un nœud",
@@ -129,6 +134,7 @@ export const EXTRA_TOOLS: Record<Section, string[]> = {
   ],
   vertical: [
     "Trier par azimut",
+    "Coupes suivant le maximum du diagramme",
     "Coupes par intervalle d’angles",
     "Coupes automatiques supplémentaires",
     "Réduire la hauteur aux résultats",
@@ -184,6 +190,7 @@ export default function FeatureTools({ section }: { section: Section }) {
   const building = p.buildings.find((b) => b.id === a.selectedObject);
   const line = p.lines.find((l) => l.id === a.selectedObject);
   const extraActions = useExtraActions();
+  const geometryActions = useGeometryActions();
   const rotate = (delta: number) => {
     a.rotateSourcePattern(delta);
   };
@@ -217,24 +224,6 @@ export default function FeatureTools({ section }: { section: Section }) {
       enabled: !!source?.pattern_v,
     },
     "Diagramme V : +1°": { run: () => rotate(1), enabled: !!source?.pattern_v },
-    "Origine sur l’antenne active": {
-      run: () => source && a.changeOrigin([source.lat, source.lng]),
-      enabled: !!source,
-    },
-    "Toutes les antennes à l’origine": {
-      run: () =>
-        commit((p) => ({
-          ...p,
-          sources: p.sources.map((s) => ({
-            ...s,
-            lat: p.origin[0],
-            lng: p.origin[1],
-            x_m: 0,
-            y_m: 0,
-          })),
-        })),
-      enabled: p.sources.length > 0,
-    },
     "Dupliquer le bâtiment": {
       run: () => {
         if (!building) return;
@@ -361,6 +350,7 @@ export default function FeatureTools({ section }: { section: Section }) {
         })),
       enabled: p.vertical_cuts.length > 1,
     },
+    ...geometryActions,
   };
   return (
     <div

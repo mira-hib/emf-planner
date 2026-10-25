@@ -9,8 +9,9 @@ import {
 import { buildStandardAliases } from "../lib/useExtraActions";
 import { uid } from "../lib/project";
 import { terrainHeight } from "../lib/geometry";
-import { exportCutReport } from "../lib/files";
+import { exportCutReport, exportAliasWord } from "../lib/files";
 import { TILES } from "./PlannerMap";
+import { normalizeMapProvider, validateMapTemplate } from "../lib/map-providers";
 import Modal from "./Modal";
 import DataGrid from "./DataGrid";
 import type { CustomMap } from "../types";
@@ -173,27 +174,7 @@ export default function ToolDialogs() {
         commit((v) => addVerticalAngles(v, values));
       else if (command.includes("point")) {
         if (!point) throw new Error("Sélectionnez un point.");
-        commit((v) => ({
-          ...v,
-          control_points: v.control_points.map((c) =>
-            c.id === point.id
-              ? {
-                  ...c,
-                  heights: values.map(
-                    (height_m) =>
-                      c.heights?.find((h) => h.height_m === height_m) ?? {
-                        id: uid(),
-                        height_m,
-                        attenuation_db: 0,
-                        measured: 0,
-                        description: "",
-                      },
-                  ),
-                }
-              : c,
-          ),
-        }));
-        a.calculate("points", false, point.id);
+        a.calculate("points", false, point.id, values);
       } else commit((v) => addHorizontalHeights(v, values));
     };
   else if (command === "Renommer le groupe")
@@ -324,16 +305,13 @@ export default function ToolDialogs() {
       }));
   else if (command === "Fonds de carte personnalisés")
     action = () => {
-      const names = new Set(Object.keys(TILES));
+      const names = new Set<string>();
       for (const map of maps) {
         if (!map.name.trim() || names.has(map.name.trim()))
           throw new Error("Chaque fond doit avoir un nom distinct.");
         names.add(map.name.trim());
-        if (!["{x}", "{y}", "{z}"].every((s) => map.url.includes(s)))
-          throw new Error("L’URL doit contenir {x}, {y} et {z}.");
-        const url = new URL(map.url.replace(/\{[xyz]\}/g, "0"));
-        if (!["https:", "http:"].includes(url.protocol))
-          throw new Error("Utilisez une URL HTTP ou HTTPS.");
+        if (map.name.trim() === "Calibrated map image") throw new Error("Calibrated map image est réservé à l’image calibrée.");
+        validateMapTemplate(map.url);
       }
       commit((v) => ({
         ...v,
@@ -347,9 +325,9 @@ export default function ToolDialogs() {
           map_provider: [
             ...Object.keys(TILES),
             ...maps.map((m) => m.name.trim()),
-          ].includes(v.settings.map_provider)
-            ? v.settings.map_provider
-            : "Carto clair",
+          ].includes(normalizeMapProvider(v.settings.map_provider))
+            ? normalizeMapProvider(v.settings.map_provider)
+            : "Carto Basemap",
         },
       }));
     };
@@ -546,8 +524,10 @@ export default function ToolDialogs() {
           )}
           {command.includes("point") && (
             <p>
-              Point {point?.name} : sa liste de hauteurs sera remplacée par la
-              plage, puis calculée.
+              Point {point?.name} : calcul de la plage sans modifier les
+              hauteurs enregistrées. L’atténuation manuelle et le champ mesuré
+              sont ignorés pour cette plage ; l’atténuation des bâtiments reste
+              prise en compte.
             </p>
           )}
         </>
@@ -719,7 +699,7 @@ export default function ToolDialogs() {
             </button>
           </div>
           <p className="hint">
-            Les fonds enregistrés apparaissent dans le sélecteur de carte.
+            Les fonds enregistrés apparaissent dans le sélecteur de carte. Pour configurer une clé ou une nouvelle URL, utilisez le nom exact du fond existant. Les marqueurs natifs [X], [Y], [Z] et [RES] (Bing) sont également acceptés.
           </p>
         </>
       ) : command === "Coordonnées en degrés / minutes / secondes" ? (
@@ -821,8 +801,10 @@ export default function ToolDialogs() {
               Exporter PDF
             </button>
             <button
-              disabled
-              title="Rapport Word des coupes pas encore implémenté"
+              onClick={() => void a.task(() => exportAliasWord({ ...p, saved_cut_results: {
+                horizontal: a.cutResults.map(r => ({ ...r, contours_only: true })),
+                vertical: a.verticalResults.map(r => ({ ...r, contours_only: true })),
+              } }, "HorizontalCutsA4_1"), "Rapport Word exporté")}
             >
               Exporter Word
             </button>
@@ -869,8 +851,10 @@ export default function ToolDialogs() {
               Exporter PDF
             </button>
             <button
-              disabled
-              title="Rapport Word des coupes pas encore implémenté"
+              onClick={() => void a.task(() => exportAliasWord({ ...p, saved_cut_results: {
+                horizontal: a.cutResults.map(r => ({ ...r, contours_only: true })),
+                vertical: a.verticalResults.map(r => ({ ...r, contours_only: true })),
+              } }, "VerticalCuts_1"), "Rapport Word exporté")}
             >
               Exporter Word
             </button>
@@ -1348,6 +1332,11 @@ export default function ToolDialogs() {
           ))}
         </>
       ) : null}
+      {command === "Coupe verticale sur la carte" && <div>
+        <p>Coupe à {p.vertical_cuts.find(c => c.id === a.selectedCut)?.azimuth_deg}°</p>
+        <button onClick={() => { a.setSection("vertical"); close(); }}>Afficher la coupe</button>
+        <button onClick={() => { commit(v => ({ ...v, vertical_cuts: v.vertical_cuts.filter(c => c.id !== a.selectedCut) })); close(); }}>Supprimer la coupe</button>
+      </div>}
       {error && (
         <p className="dialog-error" role="alert">
           {error}

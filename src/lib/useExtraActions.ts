@@ -1,4 +1,5 @@
 import { usePlanner } from "./usePlanner";
+import { moveAntennas } from "./antenna-locations";
 import { ANTENNA_COMMANDS } from "../components/AntennaTools";
 import { DIALOG_COMMANDS } from "../components/ToolDialogs";
 import { addHorizontalHeights, reorderGroup } from "./editing";
@@ -6,8 +7,12 @@ import { rad, terrainHeight, toGeo, toLocal } from "./geometry";
 import { uid } from "./project";
 import { chooseFile, projectDxf, importDxf, saveText } from "./files";
 import { styledContours } from "./presentation";
-import { importKmlBuildings } from "./kml";
+import { decodeKml, importKmlBuildings } from "./kml";
 import { applyProjectPreset, PRESETS } from "./presets";
+import { chooseWordTemplate, encodeTemplate, exportStoredWordTemplate } from "../components/ReportTemplatePanel";
+import { DEFAULT_REPORT_ALIASES } from "./report-content";
+import { sourceVerticalCuts } from "./cut-tools";
+import { isTauri, invoke } from "@tauri-apps/api/core";
 export function useExtraActions(): Record<
   string,
   { run: () => void; enabled: boolean }
@@ -67,6 +72,7 @@ export function useExtraActions(): Record<
   );
   return {
     ...dialogActions,
+    "Dossier du cache": { run: () => a.openCommand("Dossier du cache"), enabled: true },
     ...presetActions,
     "Volumes de sécurité EMF 3D": {
       run: () => a.openCommand("Volumes de sécurité EMF 3D"),
@@ -146,7 +152,7 @@ export function useExtraActions(): Record<
       enabled: !!point,
     },
     "Centrer sur l’antenne": {
-      run: () => source && a.centerView([source.x_m ?? 0, source.y_m ?? 0]),
+      run: () => source && a.centerView(toLocal(source.lat, source.lng, p.origin)),
       enabled: !!source,
     },
     "Centrer sur le site": {
@@ -255,7 +261,7 @@ export function useExtraActions(): Record<
                 .filter((r) => r.cut_id === c.id)
                 .flatMap((r) =>
                   r.contours.segments.flatMap((s) =>
-                    s.map((pt) => pt[1] - terrainHeight(p, 0, 0)),
+                    s.map((pt) => pt[1]),
                   ),
                 ),
             ),
@@ -271,7 +277,7 @@ export function useExtraActions(): Record<
                 }
               : c,
           ),
-        }));
+        }), "Dimensions ajustées — recalcul nécessaire", "stale-cuts");
       },
       enabled: hasVertical,
     },
@@ -300,7 +306,7 @@ export function useExtraActions(): Record<
                 }
               : c,
           ),
-        }));
+        }), "Dimensions ajustées — recalcul nécessaire", "stale-cuts");
       },
       enabled: hasVertical,
     },
@@ -309,7 +315,7 @@ export function useExtraActions(): Record<
         void a.task(async () => {
           const file = await chooseFile(["kml"]);
           if (!file) return null;
-          commit(importKmlBuildings(p, new TextDecoder().decode(file.bytes)));
+          commit(importKmlBuildings(p, decodeKml(file.bytes)));
           return file;
         }, "Bâtiments KML importés"),
       enabled: true,
@@ -352,26 +358,7 @@ export function useExtraActions(): Record<
     },
     "Coupes par intervalle d’angles": {
       run: () => {
-        const step = 45;
-        commit((v) => ({
-          ...v,
-          vertical_cuts: Array.from(
-            { length: Math.floor(360 / step) },
-            (_, i) => ({
-              id: uid(),
-              active: true,
-              azimuth_deg: i * step,
-              x: 0,
-              y: 0,
-              backward_m: 100,
-              forward_m: 100,
-              max_height_m: 100,
-            }),
-          ),
-        }));
-        a.setStatus(
-          `${Math.floor(360 / step)} coupes créées (pas de ${step}°).`,
-        );
+        a.openCommand("Coupes par intervalle d’angles");
       },
       enabled: true,
     },
@@ -555,7 +542,7 @@ export function useExtraActions(): Record<
               ? { ...c, dimensions: [...(c.dimensions ?? []), dim] }
               : c,
           ),
-        }));
+        }), "Cote ajoutée", false);
         a.setStatus("Cote ajoutée.");
       },
       enabled: p.vertical_cuts.some((c) => c.id === a.selectedCut),
@@ -568,7 +555,7 @@ export function useExtraActions(): Record<
             ...c,
             dimensions: undefined,
           })),
-        }));
+        }), "Cotes supprimées", false);
         a.setStatus("Toutes les cotes ont été supprimées.");
       },
       enabled: p.vertical_cuts.some((c) => c.dimensions?.length),
@@ -579,7 +566,12 @@ export function useExtraActions(): Record<
           const file = await chooseFile(["xlt", "xltx", "xlsx", "xls"]);
           if (!file) return null;
           const { importExcel } = await import("./files");
-          const rows = await importExcel(p, file.bytes);
+          const bytes = /\.(xls|xlt)$/i.test(file.name)
+            ? isTauri() && file.path
+              ? new Uint8Array(await invoke<number[]>("convert_excel_workbook", { path: file.path }))
+              : (() => { throw new Error("Le format XLS/XLT nécessite Excel dans l’application Windows. Utilisez XLSX/XLTX dans le navigateur."); })()
+            : file.bytes;
+          const rows = await importExcel(p, bytes);
           commit((v) => ({ ...v, sources: rows }));
           return file;
         }, "Sources importées depuis Excel"),
@@ -621,39 +613,31 @@ export function useExtraActions(): Record<
     },
     "Antennes sélectionnées sur l’antenne active": {
       run: () => {
-        if (!source) return;
-        commit((v) => ({
-          ...v,
-          sources: v.sources.map((s) =>
-            s.id === source.id
-              ? s
-              : {
-                  ...s,
-                  lat: source.lat,
-                  lng: source.lng,
-                  x_m: source.x_m,
-                  y_m: source.y_m,
-                },
-          ),
-        }));
+        if (source && window.confirm("Déplacer les antennes sélectionnées sur l’antenne active ?"))
+          commit(v => moveAntennas(v, a.selectedSourceIds, [source.lat, source.lng]));
       },
-      enabled: !!source,
+      enabled: !!source && a.selectedSourceIds.length > 0,
     },
     "Antennes sélectionnées au centre de l’écran": {
-      run: () =>
-        commit((v) => ({
-          ...v,
-          sources: v.sources.map((s) => ({
-            ...s,
-            x_m: a.viewCenter[0],
-            y_m: a.viewCenter[1],
-            ...(() => {
-              const geo = toGeo(a.viewCenter[0], a.viewCenter[1], p.origin);
-              return { lat: geo[0], lng: geo[1] };
-            })(),
-          })),
-        })),
-      enabled: p.sources.length > 0,
+      run: () => {
+        if (window.confirm("Déplacer les antennes sélectionnées au centre de l’écran ?"))
+          commit(v => moveAntennas(v, a.selectedSourceIds, toGeo(...a.viewCenter, v.origin)));
+      },
+      enabled: a.selectedSourceIds.length > 0,
+    },
+    "Antennes sélectionnées à l’origine": {
+      run: () => {
+        if (window.confirm("Déplacer les antennes sélectionnées à l’origine ?"))
+          commit(v => moveAntennas(v, a.selectedSourceIds, v.origin));
+      },
+      enabled: a.selectedSourceIds.length > 0,
+    },
+    "Origine sur l’antenne active": {
+      run: () => {
+        if (source && window.confirm("Déplacer l’origine sur l’antenne active ? Les positions géographiques seront conservées."))
+          a.changeOrigin([source.lat, source.lng]);
+      },
+      enabled: !!source,
     },
     "Liste des propriétaires": {
       run: () => a.openCommand("Liste des propriétaires"),
@@ -687,29 +671,16 @@ export function useExtraActions(): Record<
     },
     // --- Word charts ---
     "Graphiques dans le rapport Word": {
-      run: () => {
-        commit((v) => ({
-          ...v,
-          settings: {
-            ...v.settings,
-            include_charts_in_word: !v.settings.include_charts_in_word,
-          },
-        }));
-        a.setStatus(
-          p.settings.include_charts_in_word
-            ? "Graphiques retirés du rapport Word."
-            : "Graphiques inclus dans le rapport Word.",
-        );
-      },
+      run: () => a.setSection("report"),
       enabled: true,
     },
     // --- Alias system ---
     "Alias des tableaux et graphiques": {
-      run: () => a.openCommand("Alias des tableaux et graphiques"),
+      run: () => a.setSection("report"),
       enabled: true,
     },
     "Alias personnalisés": {
-      run: () => a.openCommand("Alias personnalisés"),
+      run: () => a.setSection("report"),
       enabled: true,
     },
     "Copier les alias": {
@@ -727,10 +698,11 @@ export function useExtraActions(): Record<
         void a.task(async () => {
           const text = await navigator.clipboard.readText();
           const parsed = JSON.parse(text) as Record<string, string>;
-          if (typeof parsed !== "object" || Array.isArray(parsed))
+          if (!parsed || typeof parsed !== "object" || Array.isArray(parsed) || Object.values(parsed).some(value => typeof value !== "string"))
             throw new Error("Format JSON invalide.");
           commit((v) => ({
             ...v,
+            report_aliases: parsed,
             settings: { ...v.settings, report_aliases: parsed },
           }));
           return parsed;
@@ -741,7 +713,8 @@ export function useExtraActions(): Record<
       run: () => {
         commit((v) => ({
           ...v,
-          settings: { ...v.settings, report_aliases: undefined },
+          report_aliases: DEFAULT_REPORT_ALIASES(),
+          settings: { ...v.settings, report_aliases: DEFAULT_REPORT_ALIASES() },
         }));
         a.setStatus("Alias restaurés aux valeurs par défaut.");
       },
@@ -755,10 +728,11 @@ export function useExtraActions(): Record<
     "Choisir un modèle Word": {
       run: () =>
         void a.task(async () => {
-          const file = await chooseFile(["docx"]);
+          const file = await chooseWordTemplate();
           if (!file) return null;
           commit((v) => ({
             ...v,
+            word_template: encodeTemplate(file.name, file.bytes),
             settings: { ...v.settings, word_template_name: file.name },
           }));
           return file;
@@ -768,11 +742,30 @@ export function useExtraActions(): Record<
     "Rapport Word depuis le modèle": {
       run: () =>
         void a.task(async () => {
-          const { exportWord } = await import("./files");
-          await exportWord(p, true);
-          return true;
+          return exportStoredWordTemplate(p);
         }, "Rapport Word généré depuis le modèle."),
-      enabled: true,
+      enabled: !!p.word_template,
+    },
+    "Coupes suivant le maximum du diagramme": {
+      run: () => commit(v => ({ ...v, vertical_cuts: sourceVerticalCuts(v, true) })),
+      enabled: p.sources.some(s => s.active !== false),
+    },
+    "Dossier des diagrammes d’antennes": { run: () => a.openCommand("Bibliothèque d’antennes"), enabled: true },
+    "Exporter DWG": {
+      enabled: isTauri(),
+      run: () => void a.task(async () => {
+        const { saveBytes } = await import("./files");
+        const dxf = projectDxf(p, styledContours(p, a.cutResults), { paper: p.cad_options ?? { scale: 1000, paper: "A3" } });
+        return saveBytes(`${p.name}.dwg`, new Uint8Array(await invoke<number[]>("dxf_to_dwg", { dxf })), "application/acad");
+      }, "Plan DWG exporté"),
+    },
+    "Importer DWG": {
+      enabled: isTauri(),
+      run: () => void a.task(async () => {
+        const file = await chooseFile(["dwg"]); if (!file) return null;
+        const bytes = new Uint8Array(await invoke<number[]>("dwg_to_dxf", { bytes: Array.from(file.bytes) }));
+        commit(importDxf(p, new TextDecoder().decode(bytes))); return true;
+      }, "Fichier DWG importé"),
     },
     // --- CAD features ---
     "Exporter DXF": {

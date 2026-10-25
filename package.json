@@ -10,6 +10,10 @@
     "tauri": "tauri",
     "test": "tsx --test tests/*.test.ts",
     "test:ui": "playwright test",
+    "test:preview": "vite preview --outDir .tools/kit-preview-dist --host 127.0.0.1 --port 1431 --strictPort",
+    "test:kit": "tsx --test tests/test-kit*.test.ts",
+    "test:kit:ui": "playwright test test-kit",
+    "test:kit:inventory": "tsx scripts/test-kit-inventory.mts",
     "benchmark": "tsx scripts/benchmark-clone.mts"
   },
   "dependencies": {
@@ -23,13 +27,15 @@
     "exceljs": "^4.4.0",
     "jspdf": "^4.2.1",
     "jspdf-autotable": "^5.0.9",
+    "jszip": "^3.10.2",
     "leaflet": "^1.9.4",
     "lucide-react": "^1.59.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-leaflet": "^5.0.0",
     "recharts": "^3.10.1",
-    "three": "^0.186.1"
+    "three": "^0.186.1",
+    "utif": "^3.1.0"
   },
   "overrides": {
     "exceljs": {

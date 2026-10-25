@@ -8,20 +8,24 @@ import {
 export default function SplitWorkspace({
   children,
   vertical = false,
+  storageKey,
+  defaultWidth = 350,
 }: {
   children: ReactNode[];
   vertical?: boolean;
+  storageKey?: string;
+  defaultWidth?: number;
 }) {
-  const key = `emf-pane-width-${vertical ? "vertical" : "map"}`,
+  const key = `emf-pane-width-${storageKey ?? (vertical ? "vertical" : "map")}`,
     host = useRef<HTMLDivElement>(null),
     [width, setWidth] = useState(() => {
       try {
         return Math.max(
           260,
-          Math.min(900, Number(localStorage.getItem(key)) || 350),
+          Math.min(900, Number(localStorage.getItem(key)) || defaultWidth),
         );
       } catch {
-        return 350;
+        return defaultWidth;
       }
     });
   useEffect(() => {

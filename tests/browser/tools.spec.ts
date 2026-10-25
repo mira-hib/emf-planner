@@ -442,6 +442,10 @@ test("contour appearance preserves computed results and property panes resize on
     .getByRole("button", { name: "Styles de ligne distincts", exact: true })
     .click();
   await expect(contours).toHaveCount(count);
+  // HCT-07: the previous computed image retains its style until recalculation.
+  await expect(page.locator('svg.local-map > path[stroke-dasharray="7 4"]')).toHaveCount(0);
+  await page.getByRole("button", { name: "Calculer avec la grille 1", exact: true }).click();
+  await expect(page.locator(".status-message")).toHaveText("Calcul terminé");
   await expect(
     page.locator('svg.local-map > path[stroke-dasharray="7 4"]'),
   ).not.toHaveCount(0);

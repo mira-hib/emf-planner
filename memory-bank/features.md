@@ -2,6 +2,19 @@
 
 Mise à jour : 22 octobre 2026, après les lots essentiels Sources, EMF Limits et Origin and Grid. Voir `menu-reproduction.md` pour l’ordre de reprise et les écarts encore présents.
 
+Dernière passe : **Antenna Locations** (sept colonnes, cellules/lignes/colonnes,
+déplacements sélectionnés, cinq commandes, accrochage, glisser-déposer SVG/Leaflet)
+et **quatorze fonds cartographiques**, dont Google, Bing, 2GIS et Yandex. Voir
+[menu-reproduction.md](menu-reproduction.md) et [map-providers.md](map-providers.md).
+HERE/Mapquest et OSM Relief demandent une configuration d’accès utilisateur.
+La prochaine rubrique est Buildings. La fidélité visuelle native complète reste
+non démontrée : le contrôle Windows est indisponible dans cette session.
+
+La campagne du kit corrige ensuite les mesures, groupes, points dans les bâtiments,
+plages de hauteurs, imports et paramètres ; voir [test-kit-validation.md](test-kit-validation.md).
+Elle ajoute aussi 1 800 références de la méthode originale `CalcPPE` exécutée isolément.
+La comparaison visuelle directe complète et les 216 scénarios du guide restent ouverts.
+
 Le précédent état « implémentation complète » était trop affirmatif : plusieurs
 commandes ouvraient une boîte ou annonçaient un succès sans réaliser la fonction.
 Les commandes inachevées restent visibles et grisées. Le catalogue central est

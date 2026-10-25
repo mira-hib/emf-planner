@@ -19,7 +19,7 @@ test("imported contours survive display changes and reload, then invalidate on s
   await page.getByRole("button", { name: /^Ouvrir/ }).click();
   await (await chooser).setFiles("tests/fixtures/original-sample.xemf");
   await navigate("Coupes verticales");
-  await expect(page.locator(".field-plot svg path")).toHaveCount(4);
+  await expect(page.locator(".field-plot [data-field-contour]")).toHaveCount(4);
   await expect(
     page.getByText("Contours enregistrés dans le projet d’origine.", {
       exact: false,
@@ -31,7 +31,7 @@ test("imported contours survive display changes and reload, then invalidate on s
       name: "Tableaux de champ des coupes verticales",
       exact: true,
     }),
-  ).toBeDisabled();
+  ).toBeEnabled();
   await navigate("CAO");
   await expect(
     page.getByRole("button", { name: "Exporter DWG", exact: true }),
@@ -55,7 +55,7 @@ test("imported contours survive display changes and reload, then invalidate on s
   page.on("dialog", (dialog) => dialog.dismiss());
   await page.reload();
   await navigate("Coupes verticales");
-  await expect(page.locator(".field-plot svg path")).toHaveCount(4);
+  await expect(page.locator(".field-plot [data-field-contour]")).toHaveCount(4);
   await navigate("Sources rayonnantes");
   const power = page
     .getByRole("region", { name: "Sources rayonnantes", exact: true })
@@ -64,18 +64,18 @@ test("imported contours survive display changes and reload, then invalidate on s
   await power.fill("13");
   await power.press("Tab");
   await navigate("Coupes verticales");
-  await expect(page.locator(".field-plot svg path")).toHaveCount(0);
+  await expect(page.locator(".field-plot [data-field-contour]")).toHaveCount(0);
   await page
     .getByRole("button", {
       name: "Annuler la dernière modification",
       exact: true,
     })
     .click();
-  await expect(page.locator(".field-plot svg path")).toHaveCount(4);
+  await expect(page.locator(".field-plot [data-field-contour]")).toHaveCount(4);
   await navigate("Paramètres");
   await expect(
     page.getByRole("button", { name: "Paramètres proxy", exact: true }),
-  ).toBeDisabled();
+  ).toBeEnabled();
   await expect(
     page.getByRole("button", { name: "Langue de l’interface", exact: true }),
   ).toBeDisabled();

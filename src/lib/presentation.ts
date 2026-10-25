@@ -14,15 +14,14 @@ export function styledContours(
       (r) =>
         (r.limit_index === undefined ||
           project.limits[r.limit_index]?.active !== false) &&
-        project.horizontal_cuts.find((c) => c.id === r.cut_id)?.active !==
-          false,
+        (r.contours.frozen_style || project.horizontal_cuts.find((c) => c.id === r.cut_id)?.active !== false),
     )
     .map((r) => {
       const cut = project.horizontal_cuts.find((c) => c.id === r.cut_id);
       return {
         ...r.contours,
-        line_style: cut?.line_style,
-        color: single && cut ? cut.color : r.contours.color,
+        line_style: r.contours.frozen_style ? r.contours.line_style : cut?.line_style,
+        color: single && cut && !r.contours.frozen_style ? cut.color : r.contours.color,
       };
     });
 }

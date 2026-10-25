@@ -24,6 +24,7 @@
     }
   },
   "bundle": {
+    "resources": { "native/": "native/" },
     "active": true,
     "targets": "all",
     "icon": [

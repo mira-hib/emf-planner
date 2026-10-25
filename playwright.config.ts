@@ -5,7 +5,7 @@ export default defineConfig({
   workers: 1,
   fullyParallel: false,
   use: {
-    baseURL: "http://127.0.0.1:1420",
+    baseURL: process.env.PLAYWRIGHT_STATIC ? "http://127.0.0.1:1431" : "http://127.0.0.1:1420",
     channel:
       process.env.PLAYWRIGHT_CHANNEL ||
       (process.platform === "win32" ? "msedge" : undefined),
@@ -18,9 +18,9 @@ export default defineConfig({
   outputDir: ".tools/test-results",
   reporter: [["list"]],
   webServer: {
-    command: "npm run dev -- --host 127.0.0.1",
-    url: "http://127.0.0.1:1420",
-    reuseExistingServer: true,
+    command: process.env.PLAYWRIGHT_STATIC ? "npm run test:preview" : "npm run dev -- --host 127.0.0.1",
+    url: process.env.PLAYWRIGHT_STATIC ? "http://127.0.0.1:1431" : "http://127.0.0.1:1420",
+    reuseExistingServer: !process.env.PLAYWRIGHT_STATIC,
     timeout: 30000,
   },
 });

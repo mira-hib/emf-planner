@@ -5,7 +5,6 @@ import {
   MapContainer,
   Polygon,
   Polyline,
-  TileLayer,
   Tooltip,
   useMap,
   useMapEvents,
@@ -16,6 +15,17 @@ import TerrainLayer from "./TerrainLayer";
 import { dashPattern } from "../lib/presentation";
 import "leaflet/dist/leaflet.css";
 import OriginMapLayer, { type OriginMapProps } from "./OriginMapLayer";
+import { CRS } from "leaflet";
+import BasemapLayer from "./BasemapLayer";
+import { LeafletAntennaHandle, SvgAntennaHandle } from "./AntennaMapHandle";
+import {LeafletEditHandle} from "./MapEditHandles";
+import MapTextLabel,{annotationIcon} from "./MapTextLabel";
+import type {LocalBounds,XY} from "../lib/geometry-editing";
+import {
+  normalizeMapProvider,
+  selectedMapProvider,
+} from "../lib/map-providers";
+export { TILES, mapProviders } from "../lib/map-providers";
 export type DrawTool =
   | "pan"
   | "source"
@@ -29,30 +39,6 @@ export type DrawTool =
   | "ruler"
   | "calibrate-2lines"
   | "calibrate-line-point";
-export const TILES: Record<string, { url: string; attribution: string }> = {
-  "Carto clair": {
-    url: "https://basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png",
-    attribution: "© OpenStreetMap © CARTO",
-  },
-  OpenStreetMap: {
-    url: "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
-    attribution: "© OpenStreetMap",
-  },
-  "Satellite Esri": {
-    url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
-    attribution: "© Esri",
-  },
-};
-export function mapProviders(project: PlannerProject) {
-  return {
-    ...TILES,
-    ...Object.fromEntries(
-      (project.custom_maps ?? [])
-        .filter((m) => m.name && /^https?:\/\//.test(m.url))
-        .map((m) => [m.name, { url: m.url, attribution: m.attribution }]),
-    ),
-  };
-}
 export interface DisplayOptions {
   grid: boolean;
   buildings: boolean;
@@ -71,6 +57,15 @@ interface Props {
   onRulerChange?: OriginMapProps["onRulerChange"];
   onAreaChange?: OriginMapProps["onAreaChange"];
   editableOriginGrid?: boolean;
+  editableAntennas?: boolean;
+  selectedSourceIds?: string[];
+  onMoveSource?: (id: string, lat: number, lng: number) => void;
+  onMovePoint?: (id:string,lat:number,lng:number)=>void;
+  onMoveObject?: (id:string,dx:number,dy:number,vertex?:number)=>void;
+  onBoundsChange?: (bounds:LocalBounds)=>void;
+  onContextCommand?: (label:string)=>void;
+  onSelectVerticalCut?: (id: string) => void;
+  respectBuildingVisibility?: boolean;
   project: PlannerProject;
   contours: Contour[];
   display: DisplayOptions;
@@ -90,15 +85,22 @@ interface Props {
 function LeafletEvents({
   onClick,
   onView,
+  onCursor,onBounds,onContext,
 }: {
   onClick: Props["onClick"];
   onView?: Props["onView"];
+  onCursor?:Props["onCursor"];
+  onBounds?:(south:number,west:number,north:number,east:number)=>void;
+  onContext?:(lat:number,lng:number)=>void;
 }) {
   const map = useMapEvents({
     click: (e) => onClick(e.latlng.lat, e.latlng.lng),
     moveend: () =>
-      onView?.([map.getCenter().lat, map.getCenter().lng], map.getZoom()),
+      {onView?.([map.getCenter().lat, map.getCenter().lng], map.getZoom());const b=map.getBounds();onBounds?.(b.getSouth(),b.getWest(),b.getNorth(),b.getEast());},
+    mousemove:e=>onCursor?.(e.latlng.lat,e.latlng.lng),
+    contextmenu:e=>{e.originalEvent.preventDefault();onContext?.(e.latlng.lat,e.latlng.lng);},
   });
+  useEffect(()=>{const b=map.getBounds();onBounds?.(b.getSouth(),b.getWest(),b.getNorth(),b.getEast());},[map]);
   return null;
 }
 function ResetMap({
@@ -145,6 +147,9 @@ export default function PlannerMap(props: Props) {
   const [radius, setRadius] = useState(p.settings.radius_m),
     [offset, setOffset] = useState<[number, number]>([0, 0]),
     [mapAction, setMapAction] = useState<{ version: number; delta: number }>();
+  const provider = selectedMapProvider(p);
+  const [mapStatus, setMapStatus] = useState("");
+  const [context,setContext]=useState<XY|null>(null);
   const drag = useRef<{
       x: number;
       y: number;
@@ -183,6 +188,19 @@ export default function PlannerMap(props: Props) {
     return [point.x, -point.y];
   };
   const units = radius / 250;
+  useEffect(()=>{
+    if(p.settings.show_basemap || !svg.current)return;
+    const element=svg.current;
+    const refresh=()=>{const matrix=element.getScreenCTM();props.onBoundsChange?.({west:offset[0]-radius,south:offset[1]-radius,east:offset[0]+radius,north:offset[1]+radius,
+      metresPerPixel:matrix?.a?1/Math.abs(matrix.a):undefined});};
+    refresh();const observer=new ResizeObserver(refresh);observer.observe(element);return()=>observer.disconnect();
+  },[p.settings.show_basemap,offset[0],offset[1],radius]);
+  const selectedGeometry=p.buildings.find(b=>b.id===props.selectedObject)??p.lines.find(l=>l.id===props.selectedObject)??p.terrain_contours?.find(c=>c.id===props.selectedObject);
+  const selectedTerrain=p.terrain_points.find(t=>t.id===props.selectedObject);
+  const objectHandles:{id:string;point:XY;vertex?:number;label:string}[]=selectedGeometry?.points.length?[
+    {id:selectedGeometry.id,point:[selectedGeometry.points.reduce((s,p)=>s+p[0],0)/selectedGeometry.points.length,selectedGeometry.points.reduce((s,p)=>s+p[1],0)/selectedGeometry.points.length],label:"Déplacer l’objet sélectionné"},
+    ...selectedGeometry.points.map((point,vertex)=>({id:selectedGeometry.id,point,vertex,label:`Déplacer le sommet ${vertex+1}`})),
+  ]:selectedTerrain?[{id:selectedTerrain.id,point:[selectedTerrain.x,selectedTerrain.y],label:"Déplacer le point de terrain"}]:[];
   const originLayer = {
     project: p,
     grid: display.grid,
@@ -225,7 +243,9 @@ export default function PlannerMap(props: Props) {
           −
         </button>
         <span>
-          {p.settings.show_basemap ? p.settings.map_provider : "Plan local"}
+          {p.settings.show_basemap
+            ? normalizeMapProvider(p.settings.map_provider)
+            : "Plan local"}
         </span>
         <span className="map-mode">
           {tool === "pan"
@@ -238,17 +258,37 @@ export default function PlannerMap(props: Props) {
           <button onClick={onFinish}>Terminer ({draft.length})</button>
         )}
       </div>
+      {p.settings.show_basemap && mapStatus && (
+        <div
+          role="status"
+          className="map-provider-status"
+          style={{
+            position: "absolute",
+            top: 34,
+            left: 8,
+            zIndex: 900,
+            maxWidth: 440,
+            background: "#fffbe5",
+            border: "1px solid #d4c56b",
+            padding: "4px 8px",
+            fontSize: 12,
+          }}
+        >
+          {mapStatus}
+        </div>
+      )}
       {p.settings.show_basemap ? (
         <MapContainer
+          key={provider?.projection ?? "spherical"}
+          crs={
+            provider?.projection === "ellipsoidal" ? CRS.EPSG3395 : CRS.EPSG3857
+          }
           center={p.map_center}
           zoom={p.map_zoom}
           zoomControl={false}
           doubleClickZoom={false}
         >
-          <TileLayer
-            {...(mapProviders(p)[p.settings.map_provider] ??
-              TILES["Carto clair"])}
-          />
+          <BasemapLayer provider={provider} onStatus={setMapStatus} />
           <ResetMap
             origin={p.origin}
             request={props.viewRequest}
@@ -256,6 +296,9 @@ export default function PlannerMap(props: Props) {
           />
           <LeafletEvents
             onClick={(lat, lng) => onClick(...local(lat, lng))}
+            onCursor={(lat,lng)=>onCursor?.(...local(lat,lng))}
+            onBounds={(s,w,n,e)=>{const sw=local(s,w),ne=local(n,e);props.onBoundsChange?.({west:sw[0],south:sw[1],east:ne[0],north:ne[1]});}}
+            onContext={(lat,lng)=>{if(tool!=="pan")onFinish();else setContext(local(lat,lng));}}
             onView={(center, zoom) => {
               props.onView?.(center, zoom);
               props.onCenterChange?.(local(...center));
@@ -270,7 +313,7 @@ export default function PlannerMap(props: Props) {
           />
           <OriginMapLayer {...originLayer} leaflet />
           {display.buildings &&
-            p.buildings.map((b) => (
+            p.buildings.filter(b => !props.respectBuildingVisibility || b.visible !== false).map((b) => (
               <Polygon
                 key={b.id}
                 positions={b.points.map(geo)}
@@ -312,6 +355,12 @@ export default function PlannerMap(props: Props) {
                   }}
                 />
               ))}
+          {display.lines&&p.lines.filter(l=>l.kind==="label"&&l.points[0]).map(l=><MapTextLabel key={l.id} line={l} position={geo(l.points[0])} onSelect={()=>props.onSelectObject?.(l.id)}/>)}
+          {display.contours &&
+            p.vertical_cuts.filter(c => c.active).map(c => <Polyline key={`vertical-${c.id}`}
+              positions={[-c.backward_m, c.forward_m].map(d => geo([c.x + d * Math.sin(rad(c.azimuth_deg)), c.y + d * Math.cos(rad(c.azimuth_deg))]))}
+              pathOptions={{ color: "#8b248e", weight: 2, dashArray: "7 5" }}
+              bubblingMouseEvents={false} eventHandlers={{ click: () => props.onSelectVerticalCut?.(c.id) }}><Tooltip>Coupe verticale {c.azimuth_deg}°</Tooltip></Polyline>)}
           {display.contours &&
             contours.map((c, i) => (
               <Polyline
@@ -327,32 +376,42 @@ export default function PlannerMap(props: Props) {
               />
             ))}
           {display.sources &&
-            p.sources.map((s) => (
-              <CircleMarker
-                key={s.id}
-                center={[s.lat, s.lng]}
-                radius={4}
-                pathOptions={{
-                  color: s.active === false ? "#999" : "#1a6748",
-                  fillOpacity: 1,
-                }}
-                eventHandlers={{
-                  click: (e) => {
-                    if (tool === "pan") {
-                      e.originalEvent.stopPropagation();
-                      onSelectSource?.(s.id);
-                    }
-                  },
-                }}
-                bubblingMouseEvents={tool !== "pan"}
-              >
-                <Tooltip>
-                  {s.name} · {s.frequency_mhz} MHz
-                </Tooltip>
-              </CircleMarker>
-            ))}
+            p.sources.map((s) =>
+              props.editableAntennas && tool === "pan" ? (
+                <LeafletAntennaHandle
+                  key={s.id}
+                  source={s}
+                  selected={props.selectedSourceIds?.includes(s.id) ?? false}
+                  onSelect={() => onSelectSource?.(s.id)}
+                  onMove={(lat, lng) => props.onMoveSource?.(s.id, lat, lng)}
+                />
+              ) : (
+                <CircleMarker
+                  key={s.id}
+                  center={[s.lat, s.lng]}
+                  radius={4}
+                  pathOptions={{
+                    color: s.active === false ? "#999" : "#1a6748",
+                    fillOpacity: 1,
+                  }}
+                  eventHandlers={{
+                    click: (e) => {
+                      if (tool === "pan") {
+                        e.originalEvent.stopPropagation();
+                        onSelectSource?.(s.id);
+                      }
+                    },
+                  }}
+                  bubblingMouseEvents={tool !== "pan"}
+                >
+                  <Tooltip>
+                    {s.name} · {s.frequency_mhz} MHz
+                  </Tooltip>
+                </CircleMarker>
+              ),
+            )}
           {display.points &&
-            p.control_points.map((c) => (
+            p.control_points.map((c) => props.onMovePoint&&tool==="pan"?<LeafletEditHandle key={c.id} position={[c.lat,c.lng]} label={`Déplacer le point ${c.name}`} round onSelect={()=>props.onSelectPoint?.(c.id)} onMove={(lat,lng)=>props.onMovePoint?.(c.id,lat,lng)}/>:(
               <CircleMarker
                 key={c.id}
                 center={[c.lat, c.lng]}
@@ -374,7 +433,7 @@ export default function PlannerMap(props: Props) {
                 </Tooltip>
               </CircleMarker>
             ))}
-          {p.background_image && (
+          {p.background_image && provider?.kind === "image" && (
             <ImageOverlay
               url={p.background_image.data_url}
               bounds={[
@@ -390,6 +449,7 @@ export default function PlannerMap(props: Props) {
               pathOptions={{ color: "#0078d7", dashArray: "5 4" }}
             />
           )}
+          {props.onMoveObject&&tool==="pan"&&objectHandles.map((h,i)=><LeafletEditHandle key={`${h.id}:${i}`} label={h.label} position={geo(h.point)} onMove={(lat,lng)=>{const pos=local(lat,lng);props.onMoveObject?.(h.id,pos[0]-h.point[0],pos[1]-h.point[1],h.vertex);}}/>)}
         </MapContainer>
       ) : (
         <svg
@@ -405,6 +465,9 @@ export default function PlannerMap(props: Props) {
           }
           onPointerDown={(e) => {
             if (tool === "pan") {
+              // Capturing a selectable object's pointer here would redirect its
+              // click to the background and prevent its selection/preview.
+              if (e.target instanceof Element && e.target.closest('[role="button"], polygon, polyline, circle, text')) return;
               drag.current = { x: e.clientX, y: e.clientY, offset };
               e.currentTarget.setPointerCapture(e.pointerId);
             }
@@ -434,6 +497,7 @@ export default function PlannerMap(props: Props) {
           onDoubleClick={() => {
             if (draft.length) onFinish();
           }}
+          onContextMenu={e=>{e.preventDefault();if(tool!=="pan")onFinish();else setContext(fromEvent(e));}}
         >
           <defs>
             <pattern
@@ -484,7 +548,7 @@ export default function PlannerMap(props: Props) {
             onSelect={tool === "pan" ? props.onSelectObject : undefined}
           />
           {display.buildings &&
-            p.buildings.map((b) => (
+            p.buildings.filter(b => !props.respectBuildingVisibility || b.visible !== false).map((b) => (
               <g
                 key={b.id}
                 onClick={(e) => {
@@ -550,10 +614,12 @@ export default function PlannerMap(props: Props) {
                   }}
                   x={l.points[0]?.[0]}
                   y={-l.points[0]?.[1]}
-                  fontSize={10 * units}
+                  fontSize={(l.font_size??10) * units}
+                  fontFamily={l.font_name??"Arial"}
+                  transform={`rotate(${l.angle_deg??0} ${l.points[0]?.[0]??0} ${-(l.points[0]?.[1]??0)})`}
                   fill={l.color}
                 >
-                  {l.name}
+                  {annotationIcon(l.icon)} {l.name}
                 </text>
               ) : (
                 <polyline
@@ -574,6 +640,19 @@ export default function PlannerMap(props: Props) {
               ),
             )}
           {display.contours &&
+            p.vertical_cuts.filter(c => c.active).map(c => {
+              const x1 = c.x - c.backward_m * Math.sin(rad(c.azimuth_deg)), y1 = c.y - c.backward_m * Math.cos(rad(c.azimuth_deg));
+              const x2 = c.x + c.forward_m * Math.sin(rad(c.azimuth_deg)), y2 = c.y + c.forward_m * Math.cos(rad(c.azimuth_deg));
+              return <g key={`vertical-${c.id}`} role="button" tabIndex={0} aria-label={`Coupe verticale ${c.azimuth_deg}°`}
+                onKeyDown={e => { if(e.key === "Enter" || e.key === " "){e.preventDefault();props.onSelectVerticalCut?.(c.id);} }}
+                onClick={e => { if (tool === "pan") { e.stopPropagation(); props.onSelectVerticalCut?.(c.id); } }}>
+                <rect x={0} y={-3*units} width={Math.hypot(x2-x1,y2-y1)} height={6*units} fill="transparent" pointerEvents="all"
+                  transform={`translate(${x1} ${-y1}) rotate(${Math.atan2(y1-y2,x2-x1)*180/Math.PI})`}/>
+                <line x1={x1} y1={-y1} x2={x2} y2={-y2} stroke="transparent" strokeWidth={8} vectorEffect="non-scaling-stroke" pointerEvents="stroke"/>
+                <line x1={x1} y1={-y1} x2={x2} y2={-y2} stroke="#8b248e" strokeDasharray="7 5" strokeWidth={2} vectorEffect="non-scaling-stroke" pointerEvents="none"/>
+              </g>;
+            })}
+          {display.contours &&
             contours.map((c, i) => (
               <path
                 key={i}
@@ -589,66 +668,96 @@ export default function PlannerMap(props: Props) {
               />
             ))}
           {display.sources &&
-            p.sources.map((s, sourceIndex) => {
-              const [x, y] = local(s.lat, s.lng);
-              const coincident = p.sources
-                .map((v, i) => ({ v, i }))
-                .filter(
-                  ({ v }) =>
-                    Math.abs(v.lat - s.lat) < 1e-8 &&
-                    Math.abs(v.lng - s.lng) < 1e-8,
-                );
-              const first = coincident[0]?.i === sourceIndex;
-              const markerText =
-                coincident.length > 2 &&
-                coincident.every((v, i) => v.i === coincident[0].i + i)
-                  ? `A${coincident[0].i + 1}–A${coincident[coincident.length - 1].i + 1}`
-                  : coincident.map((v) => `A${v.i + 1}`).join(", ");
-              return (
-                <g
-                  key={s.id}
-                  onClick={(e) => {
-                    if (tool === "pan") {
-                      e.stopPropagation();
-                      onSelectSource?.(s.id);
-                    }
-                  }}
-                >
-                  {display.azimuths && (
-                    <line
-                      x1={x}
-                      y1={-y}
-                      x2={x + radius * 0.6 * Math.sin(rad(s.azimuth_deg))}
-                      y2={-y - radius * 0.6 * Math.cos(rad(s.azimuth_deg))}
-                      stroke={s.active === false ? "#bbb" : "#343434"}
+            p.sources
+              .map((s, sourceIndex) => ({ s, sourceIndex }))
+              .sort(
+                (a, b) =>
+                  Number(props.selectedSourceIds?.includes(a.s.id) ?? false) -
+                  Number(props.selectedSourceIds?.includes(b.s.id) ?? false),
+              )
+              .map(({ s, sourceIndex }) => {
+                const [x, y] = local(s.lat, s.lng);
+                const coincident = p.sources
+                  .map((v, i) => ({ v, i }))
+                  .filter(
+                    ({ v }) =>
+                      Math.abs(v.lat - s.lat) < 1e-8 &&
+                      Math.abs(v.lng - s.lng) < 1e-8,
+                  );
+                const first = coincident[0]?.i === sourceIndex;
+                const markerText =
+                  coincident.length > 2 &&
+                  coincident.every((v, i) => v.i === coincident[0].i + i)
+                    ? `A${coincident[0].i + 1}–A${coincident[coincident.length - 1].i + 1}`
+                    : coincident.map((v) => `A${v.i + 1}`).join(", ");
+                const marker = (
+                  <g
+                    key={s.id}
+                    onClick={(e) => {
+                      if (tool === "pan") {
+                        e.stopPropagation();
+                        onSelectSource?.(s.id);
+                      }
+                    }}
+                  >
+                    {display.azimuths && (
+                      <line
+                        x1={x}
+                        y1={-y}
+                        x2={x + radius * 0.6 * Math.sin(rad(s.azimuth_deg))}
+                        y2={-y - radius * 0.6 * Math.cos(rad(s.azimuth_deg))}
+                        stroke={s.active === false ? "#bbb" : "#343434"}
+                        vectorEffect="non-scaling-stroke"
+                        strokeDasharray="4 2"
+                        pointerEvents="none"
+                      />
+                    )}
+                    <circle
+                      cx={x}
+                      cy={-y}
+                      r={3 * units}
+                      fill={s.active === false ? "#aaa" : "#7ecf78"}
+                      stroke={
+                        props.selectedSourceIds?.includes(s.id)
+                          ? "#0078d7"
+                          : "#333"
+                      }
+                      strokeWidth={
+                        props.selectedSourceIds?.includes(s.id) ? 2.5 : 1
+                      }
                       vectorEffect="non-scaling-stroke"
-                      strokeDasharray="4 2"
                     />
-                  )}
-                  <circle
-                    cx={x}
-                    cy={-y}
-                    r={3 * units}
-                    fill={s.active === false ? "#aaa" : "#7ecf78"}
-                    stroke="#333"
-                    vectorEffect="non-scaling-stroke"
-                  />
-                  {display.labels && first && (
-                    <text
-                      x={x + 5 * units}
-                      y={-y - 5 * units}
-                      fontSize={8 * units}
-                      fill="#2b377f"
-                    >
-                      {markerText}
-                      <title>
-                        {coincident.map((v) => v.v.name).join(", ")}
-                      </title>
-                    </text>
-                  )}
-                </g>
-              );
-            })}
+                    {display.labels && first && (
+                      <text
+                        x={x + 5 * units}
+                        y={-y - 5 * units}
+                        fontSize={8 * units}
+                        fill="#2b377f"
+                      >
+                        {markerText}
+                        <title>
+                          {coincident.map((v) => v.v.name).join(", ")}
+                        </title>
+                      </text>
+                    )}
+                  </g>
+                );
+                return props.editableAntennas && tool === "pan" ? (
+                  <SvgAntennaHandle
+                    key={s.id}
+                    point={[x, y]}
+                    label={`Déplacer l’antenne ${sourceIndex + 1}`}
+                    onSelect={() => onSelectSource?.(s.id)}
+                    onMove={(mx, my) =>
+                      props.onMoveSource?.(s.id, ...geo([mx, my]))
+                    }
+                  >
+                    {marker}
+                  </SvgAntennaHandle>
+                ) : (
+                  marker
+                );
+              })}
           {display.points &&
             p.control_points.map((c) => (
               <g
@@ -683,6 +792,8 @@ export default function PlannerMap(props: Props) {
               </g>
             ))}
           <OriginMapLayer {...originLayer} />
+          {props.onMoveObject&&tool==="pan"&&objectHandles.map((h,i)=><SvgAntennaHandle key={`${h.id}:${i}`} point={h.point} label={h.label} onSelect={()=>props.onSelectObject?.(h.id)} onMove={(x,y)=>props.onMoveObject?.(h.id,x-h.point[0],y-h.point[1],h.vertex)}><circle cx={h.point[0]} cy={-h.point[1]} r={(h.vertex===undefined?4:2.5)*units} fill="white" stroke="#0078d7" vectorEffect="non-scaling-stroke"/></SvgAntennaHandle>)}
+          {props.onMovePoint&&tool==="pan"&&display.points&&p.control_points.map(c=><SvgAntennaHandle key={`point-handle:${c.id}`} point={[c.x_m,c.y_m]} label={`Déplacer le point ${c.name}`} onSelect={()=>props.onSelectPoint?.(c.id)} onMove={(x,y)=>props.onMovePoint?.(c.id,...toGeo(x,y,p.origin))}><circle cx={c.x_m} cy={-c.y_m} r={4*units} fill="white" stroke="#0078d7" vectorEffect="non-scaling-stroke"/></SvgAntennaHandle>)}
           {draft.length > 0 && (
             <>
               <polyline
@@ -699,6 +810,11 @@ export default function PlannerMap(props: Props) {
           )}
         </svg>
       )}
+      {context&&<div role="menu" aria-label="Actions du plan" style={{position:"absolute",zIndex:1200,left:"35%",top:"35%",background:"white",border:"1px solid #999",padding:5,display:"grid",gap:4}}>
+        {props.onOriginMove&&<button role="menuitem" onClick={()=>{props.onOriginMove?.(...context);setContext(null);}}>Définir l’origine ici</button>}
+        {props.onContextCommand&&["Supprimer les objets hors écran","Supprimer les objets hors écran sans terrain"].map(label=><button role="menuitem" key={label} onClick={()=>{props.onContextCommand?.(label);setContext(null);}}>{label}</button>)}
+        <button role="menuitem" onClick={()=>setContext(null)}>Fermer le menu</button>
+      </div>}
       <div className="north-arrow">
         N<span>↑</span>
       </div>

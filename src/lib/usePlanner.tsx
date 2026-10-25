@@ -16,6 +16,10 @@ import {
 import { chooseFile, readProject, saveProject } from "./files";
 import { terrainHeight, toGeo, toLocal } from "./geometry";
 import { rebaseProject } from "./origin-grid";
+import { CalculationPool } from "./calculation-pool";
+import { readPreferences, writePreferences } from "./preferences";
+import { configureNetwork } from "./network";
+import { isTauri } from "@tauri-apps/api/core";
 import type {
   Building,
   Contour,
@@ -76,6 +80,7 @@ export function usePlannerState() {
     version: number;
   } | null>(null);
   const [viewCenter, setViewCenter] = useState<[number, number]>([0, 0]);
+  const [viewBounds, setViewBounds] = useState<{ west: number; south: number; east: number; north: number; metresPerPixel?: number }>({ west: -150, south: -150, east: 150, north: 150 });
   const [ruler, setRuler] = useState<[number, number][]>([]);
   function toggleRuler() {
     if (ruler.length === 2) {
@@ -120,6 +125,7 @@ export function usePlannerState() {
     [busy, setBusy] = useState(false),
     [progress, setProgress] = useState(0),
     [elapsed, setElapsed] = useState(0);
+  const [cutResultsStale, setCutResultsStale] = useState(project.saved_cut_results?.stale ?? false);
   const [display, setDisplay] = useState<DisplayOptions>({
       grid: false,
       buildings: true,
@@ -136,7 +142,7 @@ export function usePlannerState() {
     [tool, setTool] = useState<DrawTool>("pan"),
     [draft, setDraft] = useState<[number, number][]>([]),
     [cursor, setCursor] = useState<[number, number]>([0, 0]);
-  const worker = useRef<Worker | null>(null),
+  const worker = useRef<CalculationPool | null>(null),
     job = useRef(0),
     started = useRef(0);
   const source =
@@ -159,26 +165,39 @@ export function usePlannerState() {
     setCutResults([]);
     setVerticalResults([]);
     setVolume(null);
+    setCutResultsStale(false);
   };
   const commit = useCallback(
     (
       action: PlannerProject | ((p: PlannerProject) => PlannerProject),
       message = "Modifications non enregistrées",
-      invalidate = true,
+      invalidate: boolean | "stale-cuts" = true,
     ) => {
       const before = projectRef.current,
         changed = typeof action === "function" ? action(before) : action,
-        next = invalidate
+        next = invalidate === true
           ? { ...changed, saved_cut_results: undefined }
+          : invalidate === "stale-cuts" && changed.saved_cut_results
+            ? { ...changed, saved_cut_results: { ...changed.saved_cut_results, stale: true } }
           : changed;
       past.current.push(before);
       if (past.current.length > 40) past.current.shift();
       future.current = [];
       projectRef.current = next;
+      if (next.owner_names !== before.owner_names || next.owner_colors !== before.owner_colors)
+        writePreferences({ owner_names: next.owner_names, owner_colors: next.owner_colors });
       setProject(next);
       setDirty(true);
       setStatus(message);
-      if (invalidate) resetCalculations();
+      if (invalidate === true) resetCalculations();
+      else if (invalidate === "stale-cuts") {
+        worker.current?.terminate();
+        job.current++;
+        setBusy(false);
+        setResults([]);
+        setVolume(null);
+        setCutResultsStale(!!(next.saved_cut_results?.horizontal.length || next.saved_cut_results?.vertical.length));
+      }
     },
     [],
   );
@@ -192,6 +211,7 @@ export function usePlannerState() {
     resetCalculations();
     setCutResults(next.saved_cut_results?.horizontal ?? []);
     setVerticalResults(next.saved_cut_results?.vertical ?? []);
+    setCutResultsStale(next.saved_cut_results?.stale ?? false);
     setStatus(redo ? "Modification rétablie" : "Modification annulée");
   }, []);
   const fail = useCallback((e: unknown) => {
@@ -233,6 +253,7 @@ export function usePlannerState() {
     return () => window.removeEventListener("beforeunload", handler);
   }, [dirty]);
   useEffect(() => () => worker.current?.terminate(), []);
+  useEffect(() => { if (isTauri()) void configureNetwork(readPreferences()).catch(fail); }, [fail]);
   function load(p: PlannerProject) {
     resetCalculations();
     past.current = [];
@@ -241,6 +262,7 @@ export function usePlannerState() {
     setProject(p);
     setCutResults(p.saved_cut_results?.horizontal ?? []);
     setVerticalResults(p.saved_cut_results?.vertical ?? []);
+    setCutResultsStale(p.saved_cut_results?.stale ?? false);
     setDisplay((d) => ({ ...d, ...p.settings.display_options }));
     setSelectedSource(p.sources[0]?.id ?? "");
     setSelectedPoint(p.control_points[0]?.id ?? "");
@@ -277,7 +299,11 @@ export function usePlannerState() {
     await task(async () => {
       const p = projectRef.current,
         done = await saveProject(p);
-      if (done && p === projectRef.current) setDirty(false);
+      if (done && p === projectRef.current) {
+        setDirty(false);
+        try { localStorage.setItem("emf-planner-autosave-v2", JSON.stringify(p)); }
+        catch { /* The project file is saved even if browser storage is full. */ }
+      }
       return done;
     }, "Projet enregistré");
   }
@@ -320,6 +346,7 @@ export function usePlannerState() {
     return () => window.removeEventListener("keydown", key);
   }, [restore]);
   function settings(patch: Partial<PlannerProject["settings"]>) {
+    if (patch.coordinate_format) writePreferences({ coordinate_format: patch.coordinate_format });
     const appearance = [
       "map_provider",
       "show_basemap",
@@ -332,6 +359,11 @@ export function usePlannerState() {
       "site_coordinates",
       "show_calculation_area",
       "show_origin",
+      "antenna_capture_distance",
+      "vertical_display",
+      "terrain_line_height_m",
+      "cut_add_owner",
+      "cut_use_antenna_names",
     ];
     commit(
       (p) => ({
@@ -347,6 +379,13 @@ export function usePlannerState() {
       "Modifications non enregistrées",
       Object.keys(patch).some((k) => !appearance.includes(k)),
     );
+  }
+  function setMapView(center: [number, number], zoom: number) {
+    const before = projectRef.current;
+    if (before.map_zoom === zoom && before.map_center[0] === center[0] && before.map_center[1] === center[1]) return;
+    const next = { ...before, map_center: center, map_zoom: zoom };
+    projectRef.current = next;
+    setProject(next);
   }
   function updateSource(
     id: string,
@@ -403,7 +442,7 @@ export function usePlannerState() {
     );
   }
   function addSource(x = 0, y = 0) {
-    const s = newSource(project.origin, `Source ${project.sources.length + 1}`),
+    const s = newSource(project.origin),
       [lat, lng] = toGeo(x, y, project.origin);
     Object.assign(s, { lat, lng, x_m: x, y_m: y });
     commit((p) => ({ ...p, sources: [...p.sources, s] }));
@@ -440,14 +479,22 @@ export function usePlannerState() {
     kind: "points" | "horizontal" | "vertical" | "volume",
     fine = false,
     onlyId?: string,
+    heightRange?: number[],
   ) {
     const project = projectRef.current;
-    if (!project.sources.some((s) => s.active !== false)) {
+    if (kind !== "points" && !project.sources.some((s) => s.active !== false)) {
       setError("Ajoutez et activez au moins une source avant de calculer.");
       return;
     }
     if (kind === "points" && !project.control_points.length) {
       setError("Ajoutez un point de contrôle avant de calculer.");
+      return;
+    }
+    if (
+      kind === "points" &&
+      !project.control_points.some((p) => p.group_active !== false)
+    ) {
+      setError("Activez au moins un groupe de points avant de calculer.");
       return;
     }
     const cuts =
@@ -460,10 +507,7 @@ export function usePlannerState() {
       return;
     }
     worker.current?.terminate();
-    worker.current = new Worker(
-      new URL("./calculation.worker.ts", import.meta.url),
-      { type: "module" },
-    );
+    worker.current = new CalculationPool();
     const id = ++job.current;
     started.current = performance.now();
     setBusy(true);
@@ -496,6 +540,18 @@ export function usePlannerState() {
         setSelectedCut(e.data.result[0]?.cut_id ?? e.data.result[0]?.id ?? "");
       }
       setProgress(100);
+      if (kind === "vertical" || kind === "horizontal") setCutResultsStale(false);
+      if (kind === "vertical" || kind === "horizontal") {
+        const before = projectRef.current;
+        const saved = before.saved_cut_results ?? { horizontal: [], vertical: [] };
+        const compact = (e.data.result as CutResult[]).map(r => ({ ...r, contours_only: true as const,
+          grid: { ...r.grid, fields: [], values: [] } }));
+        const next = { ...before, saved_cut_results: { ...saved, stale: false,
+          [kind]: kind === "vertical" && onlyId ? [...saved.vertical.filter(r => r.cut_id !== onlyId), ...compact] : compact } };
+        projectRef.current = next;
+        setProject(next);
+        setDirty(true);
+      }
       setStatus("Calcul terminé");
       worker.current?.terminate();
     };
@@ -519,7 +575,13 @@ export function usePlannerState() {
               }),
         }
       : project;
-    worker.current.postMessage({ id, kind, project: calculatedProject, fine });
+    worker.current.postMessage({
+      id,
+      kind,
+      project: calculatedProject,
+      fine,
+      heightRange,
+    });
   }
   function cancel() {
     worker.current?.terminate();
@@ -646,6 +708,10 @@ export function usePlannerState() {
     viewRequest,
     centerView,
     viewCenter,
+    viewBounds,
+    setViewBounds,
+    setMapView,
+    cutResultsStale,
     setViewCenter,
     ruler,
     setRuler,

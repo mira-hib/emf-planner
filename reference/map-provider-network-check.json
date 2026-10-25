@@ -1,0 +1,141 @@
+{
+  "checked_at": "2026-10-22T22:01:16.755Z",
+  "scope": "One zoom-3 tile per HTTPS endpoint from Node fetch. Not a browser rendering or coverage guarantee.",
+  "checks": [
+    {
+      "name": "OpenStreetMap",
+      "url": "https://tile.openstreetmap.org/3/4/2.png",
+      "status": 200,
+      "type": "image/png",
+      "bytes": 6987,
+      "signature": "89504e470d0a1a0a",
+      "cors": "*"
+    },
+    {
+      "name": "Carto Basemap",
+      "url": "https://basemaps.cartocdn.com/light_nolabels/3/4/2@2x.png",
+      "status": 200,
+      "type": "image/png",
+      "bytes": 2049,
+      "signature": "89504e470d0a1a0a",
+      "cors": "*"
+    },
+    {
+      "name": "OSM Relief",
+      "url": "https://a.tile.thunderforest.com/cycle/3/4/2.png",
+      "status": 200,
+      "type": "image/png",
+      "bytes": 32578,
+      "signature": "89504e470d0a1a0a",
+      "cors": "*"
+    },
+    {
+      "name": "Google Map",
+      "url": "https://mt2.google.com/vt/lyrs=m@169000000&hl=en&x=4&y=2&zoom=14&s=Galile",
+      "status": 200,
+      "type": "image/png",
+      "bytes": 24234,
+      "signature": "89504e470d0a1a0a",
+      "cors": "*"
+    },
+    {
+      "name": "Google Satellite",
+      "url": "https://mt2.google.com/vt/lyrs=s&x=4&y=2&z=3",
+      "status": 200,
+      "type": "image/jpeg",
+      "bytes": 9906,
+      "signature": "ffd8ffe000104a46",
+      "cors": "*"
+    },
+    {
+      "name": "Esri Satellite",
+      "url": "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/3/2/4.jpg",
+      "status": 200,
+      "type": "image/jpeg",
+      "bytes": 15791,
+      "signature": "ffd8ffe000104a46",
+      "cors": "*"
+    },
+    {
+      "name": "OpenTopoMap",
+      "url": "https://a.tile.opentopomap.org/3/4/2.png",
+      "status": 200,
+      "type": "image/png",
+      "bytes": 45268,
+      "signature": "89504e470d0a1a0a",
+      "cors": "*"
+    },
+    {
+      "name": "Bing Sat",
+      "url": "https://ecn.t0.tiles.virtualearth.net/tiles/a120.jpeg?g=0",
+      "status": 200,
+      "type": "image/jpeg",
+      "bytes": 20963,
+      "signature": "ffd8ffe000104a46",
+      "cors": "*"
+    },
+    {
+      "name": "2GIS",
+      "url": "https://tile1.maps.2gis.com/tiles?v=1112&x=4&y=2&z=3",
+      "status": 200,
+      "type": "image/png",
+      "bytes": 28512,
+      "signature": "89504e470d0a1a0a",
+      "cors": "*"
+    },
+    {
+      "name": "Yandex map",
+      "url": "https://core-renderer-tiles.maps.yandex.net/tiles?l=map&x=4&y=2&z=3",
+      "status": 200,
+      "type": "image/png",
+      "bytes": 23889,
+      "signature": "89504e470d0a1a0a",
+      "cors": "*"
+    },
+    {
+      "name": "Yandex Sat",
+      "url": "https://sat01.maps.yandex.net/tiles?l=sat&x=4&y=2&z=3&g=Gaga",
+      "status": 200,
+      "type": "image/jpeg",
+      "bytes": 27637,
+      "signature": "ffd8ffe000104a46",
+      "cors": "*"
+    },
+    {
+      "name": "Google Satellite packaged v930 (retired)",
+      "url": "https://khms2.googleapis.com/kh?v=930&src=app&x=4&y=2&z=3&s=",
+      "status": 404,
+      "type": "application/json; charset=UTF-8",
+      "bytes": 114,
+      "signature": "7b0a202022657272",
+      "cors": null
+    },
+    {
+      "name": "Google Map unversioned candidate",
+      "url": "https://mt2.google.com/vt/lyrs=m&hl=en&x=4&y=2&z=3&s=Galile",
+      "status": 200,
+      "type": "image/png",
+      "bytes": 24229,
+      "signature": "89504e470d0a1a0a",
+      "cors": "*"
+    },
+    {
+      "name": "Google Satellite unversioned candidate",
+      "url": "https://mt2.google.com/vt/lyrs=s&x=4&y=2&z=3",
+      "status": 200,
+      "type": "image/jpeg",
+      "bytes": 9906,
+      "signature": "ffd8ffe000104a46",
+      "cors": "*"
+    },
+    {
+      "name": "Bing host candidate",
+      "url": "https://t0.tiles.virtualearth.net/tiles/a120.jpeg?g=0",
+      "status": 200,
+      "type": "image/jpeg",
+      "bytes": 20963,
+      "signature": "ffd8ffe000104a46",
+      "cors": "*"
+    }
+  ]
+}

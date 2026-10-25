@@ -6,6 +6,7 @@ import {
   nativeLocal,
   nativeScale,
 } from "./native-coordinates";
+import { calibrationTransform, type CalibratedImage, type CalibrationReference } from "./map-image-calibration";
 
 export type Area = NonNullable<
   PlannerProject["settings"]["calculation_area_m"]
@@ -131,9 +132,17 @@ export function rebaseProject(
     toLocal(...toGeo(x, y, project.origin), origin);
   const corners = areaWorldCorners(project);
   const area = localArea(corners, origin);
+  let background_image = project.background_image;
+  const reference = (background_image as CalibratedImage | undefined)?.calibration;
+  if (reference) {
+    const calibration: CalibrationReference = { ...reference, mapPoints: reference.mapPoints.map(convert) as CalibrationReference["mapPoints"] };
+    calibration.transform = calibrationTransform(calibration);
+    background_image = { ...background_image!, calibration } as CalibratedImage;
+  }
   return {
     ...project,
     origin,
+    background_image,
     settings: {
       ...project.settings,
       site_coordinates: project.settings.site_coordinates ?? project.origin,

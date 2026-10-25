@@ -8,17 +8,17 @@ import {
   Play,
   Plus,
   Trash2,
-  Upload,
 } from "lucide-react";
 import { usePlanner } from "../lib/usePlanner";
 import { COLORS, uid } from "../lib/project";
-import { toGeo } from "../lib/geometry";
-import { chooseFile, exportExcel, exportWord } from "../lib/files";
+import { toGeo,terrainDiagnostics } from "../lib/geometry";
+import { exportExcel, exportWord } from "../lib/files";
+import { chooseFile, saveBytes } from "../lib/files";
+import { importPointRows, importPointWorkbook, pointWorkbookBytes } from "../lib/point-workbook";
 import type {
   Building,
   ControlPoint,
   HorizontalCut,
-  RadiatingSource,
   TerrainPoint,
   TerrainContour,
 } from "../types";
@@ -29,6 +29,11 @@ import { CalculateButton, LimitSelector, NumberField, Tool } from "./Controls";
 import FeatureTools from "./FeatureTools";
 import { styledContours } from "../lib/presentation";
 import { OriginPanel, GridSettings } from "./OriginPanel";
+import AntennaLocationsPanel from "./AntennaLocationsPanel";
+import { moveAntennas, snapAntenna } from "../lib/antenna-locations";
+import CalibrationPanel from "./CalibrationPanel";
+import {moveGeometry,moveControlPoint} from "../lib/geometry-editing";
+import {useGeometryActions} from "../lib/useGeometryActions";
 const POINT_COLUMNS: Column<ControlPoint>[] = [
   { key: "name", label: "Point", width: 70 },
   {
@@ -53,14 +58,16 @@ const POINT_COLUMNS: Column<ControlPoint>[] = [
     key: "location",
     label: "Position",
     kind: "select",
-    options: ["Ground", "Roof"],
+    options: ["Ground", "Building", "Roof"],
     width: 80,
   },
   { key: "description", label: "Description", width: 130 },
 ];
 export default function MapWorkspace({ title }: { title: string }) {
   const a = usePlanner(),
-    { project: p, section, point, source, commit, task, settings } = a;
+    { project: p, section, point, commit, task, settings } = a;
+  const geometryActions=useGeometryActions();
+  const selectedLine=p.lines.find(l=>l.id===a.selectedObject);
   const group = a.selectedGroup,
     setGroup = a.setSelectedGroup;
   const contours = useMemo(
@@ -71,9 +78,13 @@ export default function MapWorkspace({ title }: { title: string }) {
     new Set(p.control_points.map((c) => c.group || "Groupe 1")),
   );
   return (
-    <SplitWorkspace>
+    <SplitWorkspace
+      key={section === "antennas" ? "antennas" : "map"}
+      storageKey={section === "antennas" ? "antennas" : undefined}
+      defaultWidth={section === "antennas" ? 510 : 350}
+    >
       <section
-        className={`property-pane ${section === "points" ? "points-pane" : ""}`}
+        className={`property-pane ${section === "points" ? "points-pane" : section === "antennas" ? "antennas-pane" : ""}`}
       >
         <div className="pane-caption">{title}</div>
         <FeatureTools section={section} />
@@ -129,6 +140,14 @@ export default function MapWorkspace({ title }: { title: string }) {
               >
                 <FileSpreadsheet />
               </Tool>
+              <Tool label="Importer les points Excel ou TSV" onClick={() => void task(async () => {
+                const file = await chooseFile(["xlsx", "xltx", "tsv", "txt"]); if (!file) return null;
+                const points = /\.(xlsx|xltx)$/i.test(file.name) ? await importPointWorkbook(p, file.bytes)
+                  : importPointRows(p, new TextDecoder("utf-8", { fatal: true }).decode(file.bytes).trimEnd().split(/\r?\n/).map(row => row.split("\t")));
+                commit(v => ({ ...v, control_points: points })); return true;
+              }, "Points importés ; les coordonnées géographiques sont prioritaires") }><FileSpreadsheet/></Tool>
+              <Tool label="Exporter les données des points Excel" onClick={() => void task(async () =>
+                saveBytes(`${p.name}_points.xlsx`, await pointWorkbookBytes(p), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"), "Points exportés") }><FileSpreadsheet/></Tool>
             </div>
             <fieldset className="group-selector">
               <legend>Groupes de points</legend>
@@ -149,6 +168,27 @@ export default function MapWorkspace({ title }: { title: string }) {
                   <option key={g}>{g}</option>
                 ))}
               </select>
+              <label>
+                <input
+                  type="checkbox"
+                  aria-label="Activer le groupe de points"
+                  disabled={!p.control_points.length}
+                  checked={p.control_points
+                    .filter((c) => !group || c.group === group)
+                    .every((c) => c.group_active !== false)}
+                  onChange={(e) =>
+                    commit((v) => ({
+                      ...v,
+                      control_points: v.control_points.map((c) =>
+                        !group || c.group === group
+                          ? { ...c, group_active: e.target.checked }
+                          : c,
+                      ),
+                    }))
+                  }
+                />
+                Groupe actif
+              </label>
               <button
                 onClick={() => {
                   const name = `Groupe ${groups.length + 1}`;
@@ -260,6 +300,13 @@ export default function MapWorkspace({ title }: { title: string }) {
               </button>
             </fieldset>
             <LimitSelector />
+            <NumberField
+              label="Fréquence de mesure, MHz"
+              value={p.settings.point_measurement_frequency_mhz ?? 1000}
+              min={30}
+              max={300000}
+              onChange={(v) => settings({ point_measurement_frequency_mhz: v })}
+            />
             <CalculateButton kind="points" />
           </>
         )}
@@ -349,7 +396,7 @@ export default function MapWorkspace({ title }: { title: string }) {
                       ),
                     }),
                     "Coupe horizontale modifiée",
-                    key !== "color",
+                    "stale-cuts",
                   )
                 }
                 onAdd={() =>
@@ -369,6 +416,9 @@ export default function MapWorkspace({ title }: { title: string }) {
                   }))
                 }
               />
+              {a.cutResultsStale && <p role="status">Image conservée : recalcul nécessaire après modification des coupes.</p>}
+              <label><input type="checkbox" checked={p.settings.project_lower_cuts ?? false} onChange={e => a.settings({ project_lower_cuts: e.target.checked })}/>Projeter les coupes inférieures sur les supérieures</label>
+              <label><input type="checkbox" checked={p.settings.merge_same_color ?? false} onChange={e => a.settings({ merge_same_color: e.target.checked })}/>Fusionner les coupes adjacentes de même couleur</label>
               <button
                 disabled={!a.selectedCut}
                 onClick={() =>
@@ -424,50 +474,7 @@ export default function MapWorkspace({ title }: { title: string }) {
           </>
         )}
         {section === "origin" && <OriginPanel />}
-        {section === "antennas" && (
-          <>
-            <div className="section-tools">
-              <Tool
-                label="Placer une antenne sur le plan"
-                onClick={() => a.setTool("source")}
-              >
-                <Plus />
-              </Tool>
-            </div>
-            <DataGrid<RadiatingSource>
-              label="Positions des antennes"
-              coordinateFormat={p.settings.coordinate_format}
-              rows={p.sources}
-              columns={[
-                { key: "name", label: "Source", width: 100 },
-                {
-                  key: "lat",
-                  label: "Latitude, °",
-                  kind: "number",
-                  min: -85,
-                  max: 85,
-                  width: 100,
-                },
-                {
-                  key: "lng",
-                  label: "Longitude, °",
-                  kind: "number",
-                  min: -180,
-                  max: 180,
-                  width: 100,
-                },
-                { key: "x_m", label: "X, m", kind: "number", width: 70 },
-                { key: "y_m", label: "Y, m", kind: "number", width: 70 },
-              ]}
-              selected={source?.id}
-              onSelect={a.setSelectedSource}
-              onUpdate={a.updateSource}
-            />
-            <p className="hint">
-              Les positions sont partagées avec le tableau des sources.
-            </p>
-          </>
-        )}
+        {section === "antennas" && <AntennaLocationsPanel />}
         {section === "buildings" && (
           <>
             <div className="section-tools">
@@ -522,6 +529,8 @@ export default function MapWorkspace({ title }: { title: string }) {
                     width: 90,
                   },
                   { key: "active", label: "Écran", kind: "boolean", width: 55 },
+                  { key: "visible", label: "Coupe H", kind: "boolean", width: 65 },
+                  { key: "custom_attenuation", label: "Atténuation interne", kind: "boolean", editValue: b => b.custom_attenuation !== false, width: 115 },
                 ]}
                 selected={a.selectedObject}
                 onSelect={a.setSelectedObject}
@@ -539,6 +548,7 @@ export default function MapWorkspace({ title }: { title: string }) {
               Placez au moins trois sommets sur le plan puis cliquez sur «
               Terminer ».
             </p>
+            <button onClick={geometryActions["Supprimer tous les bâtiments"].run} disabled={!geometryActions["Supprimer tous les bâtiments"].enabled}>Supprimer tous les bâtiments</button>
             <label>
               Traitement des bâtiments
               <select
@@ -630,6 +640,8 @@ export default function MapWorkspace({ title }: { title: string }) {
               <DataGrid<TerrainPoint>
                 label="Points du terrain"
                 rows={p.terrain_points}
+                selected={a.selectedObject}
+                onSelect={a.setSelectedObject}
                 columns={[
                   { key: "x", label: "X, m", kind: "number", width: 90 },
                   { key: "y", label: "Y, m", kind: "number", width: 90 },
@@ -672,6 +684,8 @@ export default function MapWorkspace({ title }: { title: string }) {
               Les points et sommets des courbes de niveau participent à
               l’interpolation triangulée du terrain.
             </p>
+            <div className="button-row"><button disabled={!geometryActions["Dupliquer le point de terrain"].enabled} onClick={geometryActions["Dupliquer le point de terrain"].run}>Dupliquer le point de terrain</button><button disabled={!p.terrain_points.some(t=>t.id===a.selectedObject)} onClick={()=>commit(v=>({...v,terrain_points:v.terrain_points.filter(t=>t.id!==a.selectedObject)}))}>Supprimer le point de terrain sélectionné</button><button disabled={!geometryActions["Supprimer tout le terrain"].enabled} onClick={geometryActions["Supprimer tout le terrain"].run}>Supprimer tout le terrain</button></div>
+            {terrainDiagnostics(p).map(message=><p key={message} role="status" className="hint">{message}</p>)}
           </>
         )}
         {section === "lines" && (
@@ -733,87 +747,14 @@ export default function MapWorkspace({ title }: { title: string }) {
             >
               Supprimer la ligne sélectionnée
             </button>
+            {selectedLine&&<fieldset><legend>Présentation de l’annotation</legend>
+              <label>Police<input aria-label="Police de l’annotation" value={selectedLine.font_name??"Arial"} onChange={e=>commit(v=>({...v,lines:v.lines.map(l=>l.id===selectedLine.id?{...l,font_name:e.target.value}:l)}),"Police modifiée",false)}/></label>
+              <NumberField label="Taille de l’annotation" value={selectedLine.font_size??10} min={1} max={100} onChange={n=>commit(v=>({...v,lines:v.lines.map(l=>l.id===selectedLine.id?{...l,font_size:n}:l)}),"Taille modifiée",false)}/>
+              <NumberField label="Rotation de l’annotation, °" value={selectedLine.angle_deg??0} min={-360} max={360} onChange={n=>commit(v=>({...v,lines:v.lines.map(l=>l.id===selectedLine.id?{...l,angle_deg:n}:l)}),"Rotation modifiée",false)}/>
+            </fieldset>}
           </>
         )}
-        {section === "calibrate" && (
-          <>
-            <button
-              onClick={() =>
-                void task(async () => {
-                  const f = await chooseFile(["png", "jpg", "jpeg", "webp"]);
-                  if (!f) return null;
-                  if (f.bytes.length > 20 * 1024 * 1024)
-                    throw new Error("Image trop volumineuse (20 Mo maximum).");
-                  const data = await new Promise<string>((resolve, reject) => {
-                    const reader = new FileReader();
-                    reader.onload = () => resolve(reader.result as string);
-                    reader.onerror = reject;
-                    reader.readAsDataURL(new Blob([new Uint8Array(f.bytes)]));
-                  });
-                  const [south, west] = toGeo(-150, -150, p.origin),
-                    [north, east] = toGeo(150, 150, p.origin);
-                  commit((p) => ({
-                    ...p,
-                    background_image: {
-                      data_url: data,
-                      west,
-                      south,
-                      east,
-                      north,
-                      opacity: 0.7,
-                    },
-                  }));
-                  return f;
-                }, "Fond de plan chargé")
-              }
-            >
-              <Upload size={14} /> Charger une image
-            </button>
-            {p.background_image && (
-              <fieldset>
-                <legend>Emprise géographique de l’image</legend>
-                {(["west", "east", "south", "north", "opacity"] as const).map(
-                  (k, i) => (
-                    <NumberField
-                      key={k}
-                      label={
-                        [
-                          "Longitude ouest",
-                          "Longitude est",
-                          "Latitude sud",
-                          "Latitude nord",
-                          "Opacité",
-                        ][i]
-                      }
-                      value={p.background_image![k]}
-                      min={k === "opacity" ? 0 : undefined}
-                      max={k === "opacity" ? 1 : undefined}
-                      onChange={(v) =>
-                        commit((p) => ({
-                          ...p,
-                          background_image: p.background_image
-                            ? { ...p.background_image, [k]: v }
-                            : undefined,
-                        }))
-                      }
-                    />
-                  ),
-                )}
-                <button
-                  onClick={() =>
-                    commit((p) => ({ ...p, background_image: undefined }))
-                  }
-                >
-                  Retirer l’image
-                </button>
-              </fieldset>
-            )}
-            <p className="hint">
-              Renseignez les coordonnées des bords de l’image pour la
-              positionner sur le plan.
-            </p>
-          </>
-        )}
+        {section === "calibrate" && <CalibrationPanel />}
       </section>
       <PlannerMap
         project={p}
@@ -825,6 +766,18 @@ export default function MapWorkspace({ title }: { title: string }) {
         onCursor={(x, y) => a.setCursor([x, y])}
         onFinish={a.finish}
         onSelectSource={a.setSelectedSource}
+        editableAntennas={section === "antennas"}
+        selectedSourceIds={a.selectedSourceIds}
+        onMoveSource={(id, lat, lng) =>
+          commit((v) => moveAntennas(v, [id], snapAntenna(v, id, [lat, lng])))
+        }
+        onMovePoint={section==="points"?(id,lat,lng)=>commit(v=>moveControlPoint(v,id,lat,lng)):undefined}
+        onMoveObject={["buildings","terrain","lines"].includes(section)?(id,dx,dy,vertex)=>commit(v=>moveGeometry(v,id,dx,dy,vertex)):undefined}
+        onContextCommand={a.openCommand}
+        onBoundsChange={a.setViewBounds}
+        onView={a.setMapView}
+        onSelectVerticalCut={id => { a.setSelectedCut(id); a.openCommand("Coupe verticale sur la carte"); }}
+        respectBuildingVisibility={section === "horizontal"}
         onSelectPoint={(id) => {
           a.setSelectedGroup("");
           a.setSelectedPoint(id);

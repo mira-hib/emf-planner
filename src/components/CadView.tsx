@@ -13,6 +13,7 @@ import {
   type CadPaper,
 } from "../lib/cad";
 import "./CadView.css";
+import { invoke, isTauri } from "@tauri-apps/api/core";
 
 function DrawingEntity({
   entity: e,
@@ -191,6 +192,11 @@ export default function CadView() {
               <img src="/original-icons/UC_CAD.cmdExportToDWG.png" alt="" />
               DXF
             </button>
+            <button disabled={!isTauri()} title={isTauri() ? "Exporter la feuille et ses calques au format DWG" : "L’export DWG nécessite l’application desktop"}
+              onClick={() => void task(async () => {
+                const bytes = await invoke<number[]>("dxf_to_dwg", { dxf: projectDxf(project, contours, { paper: options }) });
+                return saveBytes(`${project.name}-plan.dwg`, new Uint8Array(bytes), "application/acad");
+              }, "Plan DWG exporté")}>DWG</button>
             <button
               title="Exporter la feuille SVG avec son image de fond"
               onClick={() =>

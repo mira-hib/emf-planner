@@ -2,6 +2,12 @@ import names from "../data/icon-index.json";
 import type { Section } from "../types";
 const available = new Set(names);
 const exact: Record<string, string> = {
+  "Centrer sur l’antenne": "UC_Antennas.cmdPosition",
+  "Antennes sélectionnées au centre de l’écran":
+    "UC_Antennas.cmdMoveSelectedAntennasToCenterScreen",
+  "Antennes sélectionnées sur l’antenne active": "UC_Antennas.cmdMoveToActive",
+  "Antennes sélectionnées à l’origine": "UC_Antennas.cmdMoveToOrigin",
+  "Origine sur l’antenne active": "UC_Antennas.cmdMoveOriginToActive",
   Fichier: "Form1.cmdFile",
   "Enregistrer le projet": "Form1.cmdSAVE",
   Paramètres: "Form1.ToolStripDropDownButton1",

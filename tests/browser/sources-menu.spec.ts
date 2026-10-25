@@ -22,7 +22,10 @@ test.beforeEach(async ({ page }) => {
 test("source groups support bulk edits, ordered duplication, persistent clipboard and confirmed deletion", async ({
   page,
 }) => {
-  for (let i = 0; i < 3; i++) await button(page, "Ajouter une source").click();
+  for (let i = 0; i < 3; i++) {
+    await button(page, "Ajouter une source").click();
+    const name=grid(page).getByLabel("Nom de la source",{exact:true}).nth(i);await name.fill(`Source ${i+1}`);await name.press("Tab");
+  }
   const table = grid(page),
     rows = table.locator("tbody tr");
   await table
@@ -198,7 +201,7 @@ test("MSI patterns, native beamwidth commands and feeder options survive saving"
   expect(source.pattern_h).toHaveLength(360);
   expect(source.feeder?.include_connectors).toBe(false);
   expect(source.total_attenuation_db).toBeLessThan(40); // 20 dB of disabled connector losses are excluded.
-  await expect(button(page, "Importer Excel .xlt")).toBeDisabled();
+  await expect(button(page, "Importer Excel .xlt")).toBeEnabled();
   await page
     .getByRole("navigation")
     .getByRole("button", { name: "Limites EMF", exact: true })

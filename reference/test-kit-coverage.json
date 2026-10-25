@@ -1,0 +1,1864 @@
+{
+  "scope": "Coverage references only. A test may cover a subset or record a native/kit divergence; consult the audit and actual test output.",
+  "original_ui": "Original 7.1 Trial observed on 2026-10-25 with Windows Computer Use: startup, Sources, Buildings, Vertical Cuts and Settings. See reference/full-kit-runtime-observations-2026-10-25.md. These observations are not complete kit execution.",
+  "total_scenarios": 216,
+  "partially_covered_scenarios": 147,
+  "cases": [
+    {
+      "id": "SRC-01",
+      "priority": "P2",
+      "guide": "tests_a.tex",
+      "status": "partial-automated-coverage",
+      "tests": [
+        "tests/browser/test-kit-sources-full.spec.ts"
+      ]
+    },
+    {
+      "id": "SRC-02",
+      "priority": "P1",
+      "guide": "tests_a.tex",
+      "status": "partial-automated-coverage",
+      "tests": [
+        "tests/test-kit-sources-full.test.ts",
+        "tests/browser/test-kit-sources-full.spec.ts"
+      ]
+    },
+    {
+      "id": "SRC-03",
+      "priority": "P2",
+      "guide": "tests_a.tex",
+      "status": "partial-automated-coverage",
+      "tests": [
+        "tests/browser/test-kit-sources-full.spec.ts"
+      ]
+    },
+    {
+      "id": "SRC-04",
+      "priority": "P2",
+      "guide": "tests_a.tex",
+      "status": "partial-automated-coverage",
+      "tests": [
+        "tests/browser/test-kit-sources-full.spec.ts"
+      ]
+    },
+    {
+      "id": "SRC-05",
+      "priority": "P2",
+      "guide": "tests_a.tex",
+      "status": "partial-automated-coverage",
+      "tests": [
+        "tests/browser/test-kit-sources-full.spec.ts"
+      ]
+    },
+    {
+      "id": "SRC-06",
+      "priority": "P1",
+      "guide": "tests_a.tex",
+      "status": "not-run-by-kit-suite",
+      "tests": []
+    },
+    {
+      "id": "SRC-07",
+      "priority": "P1",
+      "guide": "tests_a.tex",
+      "status": "partial-automated-coverage",
+      "tests": [
+        "tests/test-kit.test.ts"
+      ]
+    },
+    {
+      "id": "SRC-08",
+      "priority": "P3",
+      "guide": "tests_a.tex",
+      "status": "not-run-by-kit-suite",
+      "tests": []
+    },
+    {
+      "id": "SRC-09",
+      "priority": "P3",
+      "guide": "tests_a.tex",
+      "status": "partial-automated-coverage",
+      "tests": [
+        "tests/browser/test-kit-sources-full.spec.ts"
+      ]
+    },
+    {
+      "id": "SRC-10",
+      "priority": "P1",
+      "guide": "tests_a.tex",
+      "status": "partial-automated-coverage",
+      "tests": [
+        "tests/test-kit-sources-full.test.ts",
+        "tests/browser/test-kit-sources-full.spec.ts"
+      ]
+    },
+    {
+      "id": "SRC-11",
+      "priority": "P1",
+      "guide": "tests_a.tex",
+      "status": "partial-automated-coverage",
+      "tests": [
+        "tests/test-kit-sources-full.test.ts",
+        "tests/test-kit.test.ts",
+        "tests/browser/test-kit-sources-full.spec.ts"
+      ]
+    },
+    {
+      "id": "SRC-12",
+      "priority": "P2",
+      "guide": "tests_a.tex",
+      "status": "partial-automated-coverage",
+      "tests": [
+        "tests/test-kit-sources-full.test.ts",
+        "tests/test-kit.test.ts",
+        "tests/browser/test-kit-sources-full.spec.ts"
+      ]
+    },
+    {
+      "id": "SRC-13",
+      "priority": "P1",
+      "guide": "tests_a.tex",
+      "status": "partial-automated-coverage",
+      "tests": [
+        "tests/test-kit-sources-full.test.ts",
+        "tests/browser/test-kit-sources-full.spec.ts"
+      ]
+    },
+    {
+      "id": "SRC-14",
+      "priority": "P2",
+      "guide": "tests_a.tex",
+      "status": "partial-automated-coverage",
+      "tests": [
+        "tests/test-kit-sources-full.test.ts"
+      ]
+    },
+    {
+      "id": "SRC-15",
+      "priority": "P2",
+      "guide": "tests_a.tex",
+      "status": "partial-automated-coverage",
+      "tests": [
+        "tests/test-kit-sources-full.test.ts"
+      ]
+    },
+    {
+      "id": "SRC-16",
+      "priority": "P2",
+      "guide": "tests_a.tex",
+      "status": "partial-automated-coverage",
+      "tests": [
+        "tests/browser/test-kit-sources-full.spec.ts"
+      ]
+    },
+    {
+      "id": "SRC-17",
+      "priority": "P1",
+      "guide": "tests_a.tex",
+      "status": "partial-automated-coverage",
+      "tests": [
+        "tests/test-kit.test.ts"
+      ]
+    },
+    {
+      "id": "SRC-18",
+      "priority": "P1",
+      "guide": "tests_a.tex",
+      "status": "partial-automated-coverage",
+      "tests": [
+        "tests/test-kit.test.ts"
+      ]
+    },
+    {
+      "id": "SRC-19",
+      "priority": "P2",
+      "guide": "tests_a.tex",
+      "status": "not-run-by-kit-suite",
+      "tests": []
+    },
+    {
+      "id": "SRC-20",
+      "priority": "P2",
+      "guide": "tests_a.tex",
+      "status": "partial-automated-coverage",
+      "tests": [
+        "tests/test-kit-sources-full.test.ts"
+      ]
+    },
+    {
+      "id": "SRC-21",
+      "priority": "P1",
+      "guide": "tests_a.tex",
+      "status": "not-run-by-kit-suite",
+      "tests": []
+    },
+    {
+      "id": "SRC-22",
+      "priority": "P1",
+      "guide": "tests_a.tex",
+      "status": "partial-automated-coverage",
+      "tests": [
+        "tests/test-kit.test.ts"
+      ]
+    },
+    {
+      "id": "SRC-23",
+      "priority": "P2",
+      "guide": "tests_a.tex",
+      "status": "not-run-by-kit-suite",
+      "tests": []
+    },
+    {
+      "id": "SRC-24",
+      "priority": "P2",
+      "guide": "tests_a.tex",
+      "status": "partial-automated-coverage",
+      "tests": [
+        "tests/test-kit.test.ts"
+      ]
+    },
+    {
+      "id": "SRC-25",
+      "priority": "P1",
+      "guide": "tests_a.tex",
+      "status": "partial-automated-coverage",
+      "tests": [
+        "tests/test-kit.test.ts"
+      ]
+    },
+    {
+      "id": "SRC-26",
+      "priority": "P3",
+      "guide": "tests_a.tex",
+      "status": "partial-automated-coverage",
+      "tests": [
+        "tests/browser/test-kit-sources-full.spec.ts"
+      ]
+    },
+    {
+      "id": "SRC-27",
+      "priority": "P1",
+      "guide": "tests_a.tex",
+      "status": "partial-automated-coverage",
+      "tests": [
+        "tests/test-kit-report-full.test.ts"
+      ]
+    },
+    {
+      "id": "SRC-28",
+      "priority": "P2",
+      "guide": "tests_a.tex",
+      "status": "partial-automated-coverage",
+      "tests": [
+        "tests/test-kit-sources-full.test.ts"
+      ]
+    },
+    {
+      "id": "SRC-29",
+      "priority": "P2",
+      "guide": "tests_a.tex",
+      "status": "partial-automated-coverage",
+      "tests": [
+        "tests/browser/test-kit-sources-full.spec.ts"
+      ]
+    },
+    {
+      "id": "SRC-30",
+      "priority": "P1",
+      "guide": "tests_a.tex",
+      "status": "partial-automated-coverage",
+      "tests": [
+        "tests/test-kit.test.ts"
+      ]
+    },
+    {
+      "id": "SRC-31",
+      "priority": "P1",
+      "guide": "tests_a.tex",
+      "status": "partial-automated-coverage",
+      "tests": [
+        "tests/test-kit.test.ts",
+        "tests/browser/test-kit.spec.ts"
+      ]
+    },
+    {
+      "id": "SRC-32",
+      "priority": "P1",
+      "guide": "tests_a.tex",
+      "status": "partial-automated-coverage",
+      "tests": [
+        "tests/test-kit-sources-full.test.ts"
+      ]
+    },
+    {
+      "id": "SRC-33",
+      "priority": "P2",
+      "guide": "tests_a.tex",
+      "status": "partial-automated-coverage",
+      "tests": [
+        "tests/test-kit-sources-full.test.ts",
+        "tests/browser/test-kit-sources-full.spec.ts"
+      ]
+    },
+    {
+      "id": "SRC-34",
+      "priority": "P2",
+      "guide": "tests_a.tex",
+      "status": "not-run-by-kit-suite",
+      "tests": []
+    },
+    {
+      "id": "SRC-35",
+      "priority": "P1",
+      "guide": "tests_a.tex",
+      "status": "partial-automated-coverage",
+      "tests": [
+        "tests/test-kit-sources-full.test.ts"
+      ]
+    },
+    {
+      "id": "SRC-36",
+      "priority": "P1",
+      "guide": "tests_a.tex",
+      "status": "partial-automated-coverage",
+      "tests": [
+        "tests/test-kit-sources-full.test.ts"
+      ]
+    },
+    {
+      "id": "SRC-37",
+      "priority": "P2",
+      "guide": "tests_a.tex",
+      "status": "partial-automated-coverage",
+      "tests": [
+        "tests/test-kit.test.ts"
+      ]
+    },
+    {
+      "id": "SRC-38",
+      "priority": "P3",
+      "guide": "tests_a.tex",
+      "status": "partial-automated-coverage",
+      "tests": [
+        "tests/test-kit-sources-full.test.ts"
+      ]
+    },
+    {
+      "id": "SRC-39",
+      "priority": "P3",
+      "guide": "tests_a.tex",
+      "status": "partial-automated-coverage",
+      "tests": [
+        "tests/test-kit.test.ts"
+      ]
+    },
+    {
+      "id": "LIM-01",
+      "priority": "P1",
+      "guide": "tests_a.tex",
+      "status": "not-run-by-kit-suite",
+      "tests": []
+    },
+    {
+      "id": "LIM-02",
+      "priority": "P1",
+      "guide": "tests_a.tex",
+      "status": "partial-automated-coverage",
+      "tests": [
+        "tests/test-kit-sources-full.test.ts",
+        "tests/browser/test-kit-sources-full.spec.ts"
+      ]
+    },
+    {
+      "id": "LIM-03",
+      "priority": "P1",
+      "guide": "tests_a.tex",
+      "status": "partial-automated-coverage",
+      "tests": [
+        "tests/test-kit-sources-full.test.ts",
+        "tests/browser/test-kit-sources-full.spec.ts"
+      ]
+    },
+    {
+      "id": "LIM-04",
+      "priority": "P1",
+      "guide": "tests_a.tex",
+      "status": "partial-automated-coverage",
+      "tests": [
+        "tests/test-kit.test.ts",
+        "tests/browser/test-kit.spec.ts"
+      ]
+    },
+    {
+      "id": "LIM-05",
+      "priority": "P1",
+      "guide": "tests_a.tex",
+      "status": "partial-automated-coverage",
+      "tests": [
+        "tests/test-kit-sources-full.test.ts",
+        "tests/browser/test-kit-sources-full.spec.ts"
+      ]
+    },
+    {
+      "id": "LIM-06",
+      "priority": "P2",
+      "guide": "tests_a.tex",
+      "status": "partial-automated-coverage",
+      "tests": [
+        "tests/test-kit-sources-full.test.ts",
+        "tests/browser/test-kit-sources-full.spec.ts"
+      ]
+    },
+    {
+      "id": "LIM-07",
+      "priority": "P2",
+      "guide": "tests_a.tex",
+      "status": "not-run-by-kit-suite",
+      "tests": []
+    },
+    {
+      "id": "LIM-08",
+      "priority": "P1",
+      "guide": "tests_a.tex",
+      "status": "not-run-by-kit-suite",
+      "tests": []
+    },
+    {
+      "id": "LIM-09",
+      "priority": "P1",
+      "guide": "tests_a.tex",
+      "status": "not-run-by-kit-suite",
+      "tests": []
+    },
+    {
+      "id": "ORI-01",
+      "priority": "P2",
+      "guide": "tests_a.tex",
+      "status": "not-run-by-kit-suite",
+      "tests": []
+    },
+    {
+      "id": "ORI-02",
+      "priority": "P1",
+      "guide": "tests_a.tex",
+      "status": "partial-automated-coverage",
+      "tests": [
+        "tests/test-kit.test.ts"
+      ]
+    },
+    {
+      "id": "ORI-03",
+      "priority": "P1",
+      "guide": "tests_a.tex",
+      "status": "partial-automated-coverage",
+      "tests": [
+        "tests/test-kit.test.ts"
+      ]
+    },
+    {
+      "id": "ORI-04",
+      "priority": "P1",
+      "guide": "tests_a.tex",
+      "status": "partial-automated-coverage",
+      "tests": [
+        "tests/test-kit-geometry-full.test.ts",
+        "tests/test-kit.test.ts"
+      ]
+    },
+    {
+      "id": "ORI-05",
+      "priority": "P2",
+      "guide": "tests_a.tex",
+      "status": "not-run-by-kit-suite",
+      "tests": []
+    },
+    {
+      "id": "ORI-06",
+      "priority": "P2",
+      "guide": "tests_a.tex",
+      "status": "not-run-by-kit-suite",
+      "tests": []
+    },
+    {
+      "id": "ORI-07",
+      "priority": "P1",
+      "guide": "tests_a.tex",
+      "status": "not-run-by-kit-suite",
+      "tests": []
+    },
+    {
+      "id": "ORI-08",
+      "priority": "P2",
+      "guide": "tests_a.tex",
+      "status": "not-run-by-kit-suite",
+      "tests": []
+    },
+    {
+      "id": "ANT-01",
+      "priority": "P1",
+      "guide": "tests_a.tex",
+      "status": "not-run-by-kit-suite",
+      "tests": []
+    },
+    {
+      "id": "ANT-02",
+      "priority": "P2",
+      "guide": "tests_a.tex",
+      "status": "not-run-by-kit-suite",
+      "tests": []
+    },
+    {
+      "id": "ANT-03",
+      "priority": "P2",
+      "guide": "tests_a.tex",
+      "status": "not-run-by-kit-suite",
+      "tests": []
+    },
+    {
+      "id": "ANT-04",
+      "priority": "P1",
+      "guide": "tests_a.tex",
+      "status": "not-run-by-kit-suite",
+      "tests": []
+    },
+    {
+      "id": "ANT-05",
+      "priority": "P1",
+      "guide": "tests_a.tex",
+      "status": "not-run-by-kit-suite",
+      "tests": []
+    },
+    {
+      "id": "BLD-01",
+      "priority": "P2",
+      "guide": "tests_b.tex",
+      "status": "not-run-by-kit-suite",
+      "tests": []
+    },
+    {
+      "id": "BLD-02",
+      "priority": "P1",
+      "guide": "tests_b.tex",
+      "status": "partial-automated-coverage",
+      "tests": [
+        "tests/browser/test-kit.spec.ts"
+      ]
+    },
+    {
+      "id": "BLD-03",
+      "priority": "P1",
+      "guide": "tests_b.tex",
+      "status": "partial-automated-coverage",
+      "tests": [
+        "tests/browser/test-kit.spec.ts"
+      ]
+    },
+    {
+      "id": "BLD-04",
+      "priority": "P1",
+      "guide": "tests_b.tex",
+      "status": "partial-automated-coverage",
+      "tests": [
+        "tests/browser/test-kit.spec.ts"
+      ]
+    },
+    {
+      "id": "BLD-05",
+      "priority": "P1",
+      "guide": "tests_b.tex",
+      "status": "partial-automated-coverage",
+      "tests": [
+        "tests/browser/test-kit.spec.ts"
+      ]
+    },
+    {
+      "id": "BLD-06",
+      "priority": "P2",
+      "guide": "tests_b.tex",
+      "status": "partial-automated-coverage",
+      "tests": [
+        "tests/browser/test-kit.spec.ts"
+      ]
+    },
+    {
+      "id": "BLD-07",
+      "priority": "P1",
+      "guide": "tests_b.tex",
+      "status": "partial-automated-coverage",
+      "tests": [
+        "tests/test-kit-geometry-full.test.ts",
+        "tests/browser/test-kit-geometry-full.spec.ts"
+      ]
+    },
+    {
+      "id": "BLD-08",
+      "priority": "P2",
+      "guide": "tests_b.tex",
+      "status": "partial-automated-coverage",
+      "tests": [
+        "tests/test-kit-geometry-full.test.ts",
+        "tests/browser/test-kit-geometry-full.spec.ts"
+      ]
+    },
+    {
+      "id": "BLD-09",
+      "priority": "P2",
+      "guide": "tests_b.tex",
+      "status": "partial-automated-coverage",
+      "tests": [
+        "tests/test-kit-geometry-full.test.ts",
+        "tests/browser/test-kit-geometry-full.spec.ts"
+      ]
+    },
+    {
+      "id": "BLD-10",
+      "priority": "P1",
+      "guide": "tests_b.tex",
+      "status": "partial-automated-coverage",
+      "tests": [
+        "tests/test-kit-geometry-full.test.ts",
+        "tests/browser/test-kit-geometry-full.spec.ts"
+      ]
+    },
+    {
+      "id": "BLD-11",
+      "priority": "P1",
+      "guide": "tests_b.tex",
+      "status": "partial-automated-coverage",
+      "tests": [
+        "tests/test-kit.test.ts"
+      ]
+    },
+    {
+      "id": "BLD-12",
+      "priority": "P1",
+      "guide": "tests_b.tex",
+      "status": "partial-automated-coverage",
+      "tests": [
+        "tests/test-kit-calculation-full.test.ts",
+        "tests/test-kit.test.ts"
+      ]
+    },
+    {
+      "id": "BLD-13",
+      "priority": "P1",
+      "guide": "tests_b.tex",
+      "status": "partial-automated-coverage",
+      "tests": [
+        "tests/test-kit-calculation-full.test.ts",
+        "tests/test-kit.test.ts"
+      ]
+    },
+    {
+      "id": "BLD-14",
+      "priority": "P2",
+      "guide": "tests_b.tex",
+      "status": "partial-automated-coverage",
+      "tests": [
+        "tests/test-kit-calculation-full.test.ts",
+        "tests/test-kit.test.ts"
+      ]
+    },
+    {
+      "id": "BLD-15",
+      "priority": "P1",
+      "guide": "tests_b.tex",
+      "status": "partial-automated-coverage",
+      "tests": [
+        "tests/test-kit.test.ts"
+      ]
+    },
+    {
+      "id": "BLD-16",
+      "priority": "P2",
+      "guide": "tests_b.tex",
+      "status": "partial-automated-coverage",
+      "tests": [
+        "tests/browser/test-kit-geometry-full.spec.ts"
+      ]
+    },
+    {
+      "id": "BLD-17",
+      "priority": "P1",
+      "guide": "tests_b.tex",
+      "status": "partial-automated-coverage",
+      "tests": [
+        "tests/test-kit-geometry-full.test.ts"
+      ]
+    },
+    {
+      "id": "TER-01",
+      "priority": "P1",
+      "guide": "tests_b.tex",
+      "status": "partial-automated-coverage",
+      "tests": [
+        "tests/test-kit-geometry-full.test.ts",
+        "tests/test-kit.test.ts"
+      ]
+    },
+    {
+      "id": "TER-02",
+      "priority": "P2",
+      "guide": "tests_b.tex",
+      "status": "partial-automated-coverage",
+      "tests": [
+        "tests/test-kit-geometry-full.test.ts"
+      ]
+    },
+    {
+      "id": "TER-03",
+      "priority": "P1",
+      "guide": "tests_b.tex",
+      "status": "partial-automated-coverage",
+      "tests": [
+        "tests/test-kit-geometry-full.test.ts"
+      ]
+    },
+    {
+      "id": "TER-04",
+      "priority": "P1",
+      "guide": "tests_b.tex",
+      "status": "partial-automated-coverage",
+      "tests": [
+        "tests/test-kit.test.ts"
+      ]
+    },
+    {
+      "id": "TER-05",
+      "priority": "P1",
+      "guide": "tests_b.tex",
+      "status": "not-run-by-kit-suite",
+      "tests": []
+    },
+    {
+      "id": "TER-06",
+      "priority": "P2",
+      "guide": "tests_b.tex",
+      "status": "partial-automated-coverage",
+      "tests": [
+        "tests/test-kit-geometry-full.test.ts"
+      ]
+    },
+    {
+      "id": "TER-07",
+      "priority": "P1",
+      "guide": "tests_b.tex",
+      "status": "not-run-by-kit-suite",
+      "tests": []
+    },
+    {
+      "id": "TER-08",
+      "priority": "P2",
+      "guide": "tests_b.tex",
+      "status": "not-run-by-kit-suite",
+      "tests": []
+    },
+    {
+      "id": "LBL-01",
+      "priority": "P2",
+      "guide": "tests_b.tex",
+      "status": "partial-automated-coverage",
+      "tests": [
+        "tests/test-kit-geometry-full.test.ts"
+      ]
+    },
+    {
+      "id": "LBL-02",
+      "priority": "P3",
+      "guide": "tests_b.tex",
+      "status": "not-run-by-kit-suite",
+      "tests": []
+    },
+    {
+      "id": "LBL-03",
+      "priority": "P1",
+      "guide": "tests_b.tex",
+      "status": "partial-automated-coverage",
+      "tests": [
+        "tests/test-kit-geometry-full.test.ts"
+      ]
+    },
+    {
+      "id": "LBL-04",
+      "priority": "P2",
+      "guide": "tests_b.tex",
+      "status": "not-run-by-kit-suite",
+      "tests": []
+    },
+    {
+      "id": "LBL-05",
+      "priority": "P3",
+      "guide": "tests_b.tex",
+      "status": "partial-automated-coverage",
+      "tests": [
+        "tests/test-kit-geometry-full.test.ts"
+      ]
+    },
+    {
+      "id": "CAL-01",
+      "priority": "P2",
+      "guide": "tests_b.tex",
+      "status": "partial-automated-coverage",
+      "tests": [
+        "tests/browser/test-kit-geometry-full.spec.ts"
+      ]
+    },
+    {
+      "id": "CAL-02",
+      "priority": "P1",
+      "guide": "tests_b.tex",
+      "status": "partial-automated-coverage",
+      "tests": [
+        "tests/browser/test-kit-geometry-full.spec.ts"
+      ]
+    },
+    {
+      "id": "CAL-03",
+      "priority": "P1",
+      "guide": "tests_b.tex",
+      "status": "partial-automated-coverage",
+      "tests": [
+        "tests/test-kit-geometry-full.test.ts"
+      ]
+    },
+    {
+      "id": "CAL-04",
+      "priority": "P1",
+      "guide": "tests_b.tex",
+      "status": "partial-automated-coverage",
+      "tests": [
+        "tests/test-kit-geometry-full.test.ts",
+        "tests/browser/test-kit-geometry-full.spec.ts"
+      ]
+    },
+    {
+      "id": "CAL-05",
+      "priority": "P2",
+      "guide": "tests_b.tex",
+      "status": "not-run-by-kit-suite",
+      "tests": []
+    },
+    {
+      "id": "CAL-06",
+      "priority": "P1",
+      "guide": "tests_b.tex",
+      "status": "partial-automated-coverage",
+      "tests": [
+        "tests/test-kit-geometry-full.test.ts",
+        "tests/browser/test-kit-geometry-full.spec.ts"
+      ]
+    },
+    {
+      "id": "CAL-07",
+      "priority": "P2",
+      "guide": "tests_b.tex",
+      "status": "not-run-by-kit-suite",
+      "tests": []
+    },
+    {
+      "id": "CAL-08",
+      "priority": "P1",
+      "guide": "tests_b.tex",
+      "status": "partial-automated-coverage",
+      "tests": [
+        "tests/test-kit-geometry-full.test.ts"
+      ]
+    },
+    {
+      "id": "CAL-09",
+      "priority": "P2",
+      "guide": "tests_b.tex",
+      "status": "not-run-by-kit-suite",
+      "tests": []
+    },
+    {
+      "id": "CAL-10",
+      "priority": "P3",
+      "guide": "tests_b.tex",
+      "status": "not-run-by-kit-suite",
+      "tests": []
+    },
+    {
+      "id": "CAL-11",
+      "priority": "P2",
+      "guide": "tests_b.tex",
+      "status": "not-run-by-kit-suite",
+      "tests": []
+    },
+    {
+      "id": "CAL-12",
+      "priority": "P3",
+      "guide": "tests_b.tex",
+      "status": "partial-automated-coverage",
+      "tests": [
+        "tests/browser/test-kit-geometry-full.spec.ts"
+      ]
+    },
+    {
+      "id": "PNT-01",
+      "priority": "P2",
+      "guide": "tests_c.tex",
+      "status": "partial-automated-coverage",
+      "tests": [
+        "tests/test-kit-geometry-full.test.ts",
+        "tests/test-kit.test.ts",
+        "tests/browser/test-kit.spec.ts"
+      ]
+    },
+    {
+      "id": "PNT-02",
+      "priority": "P2",
+      "guide": "tests_c.tex",
+      "status": "not-run-by-kit-suite",
+      "tests": []
+    },
+    {
+      "id": "PNT-03",
+      "priority": "P1",
+      "guide": "tests_c.tex",
+      "status": "partial-automated-coverage",
+      "tests": [
+        "tests/test-kit.test.ts",
+        "tests/browser/test-kit.spec.ts"
+      ]
+    },
+    {
+      "id": "PNT-04",
+      "priority": "P1",
+      "guide": "tests_c.tex",
+      "status": "partial-automated-coverage",
+      "tests": [
+        "tests/test-kit.test.ts",
+        "tests/browser/test-kit.spec.ts"
+      ]
+    },
+    {
+      "id": "PNT-05",
+      "priority": "P1",
+      "guide": "tests_c.tex",
+      "status": "partial-automated-coverage",
+      "tests": [
+        "tests/test-kit.test.ts",
+        "tests/browser/test-kit.spec.ts"
+      ]
+    },
+    {
+      "id": "PNT-06",
+      "priority": "P1",
+      "guide": "tests_c.tex",
+      "status": "partial-automated-coverage",
+      "tests": [
+        "tests/test-kit-calculation-full.test.ts",
+        "tests/test-kit.test.ts"
+      ]
+    },
+    {
+      "id": "PNT-07",
+      "priority": "P1",
+      "guide": "tests_c.tex",
+      "status": "partial-automated-coverage",
+      "tests": [
+        "tests/test-kit.test.ts",
+        "tests/browser/test-kit.spec.ts"
+      ]
+    },
+    {
+      "id": "PNT-08",
+      "priority": "P1",
+      "guide": "tests_c.tex",
+      "status": "partial-automated-coverage",
+      "tests": [
+        "tests/test-kit.test.ts",
+        "tests/browser/test-kit.spec.ts"
+      ]
+    },
+    {
+      "id": "PNT-09",
+      "priority": "P1",
+      "guide": "tests_c.tex",
+      "status": "partial-automated-coverage",
+      "tests": [
+        "tests/test-kit.test.ts"
+      ]
+    },
+    {
+      "id": "PNT-10",
+      "priority": "P2",
+      "guide": "tests_c.tex",
+      "status": "partial-automated-coverage",
+      "tests": [
+        "tests/test-kit-calculation-full.test.ts"
+      ]
+    },
+    {
+      "id": "PNT-11",
+      "priority": "P1",
+      "guide": "tests_c.tex",
+      "status": "partial-automated-coverage",
+      "tests": [
+        "tests/test-kit-report-full.test.ts"
+      ]
+    },
+    {
+      "id": "VCT-01",
+      "priority": "P1",
+      "guide": "tests_c.tex",
+      "status": "partial-automated-coverage",
+      "tests": [
+        "tests/test-kit-calculation-full.test.ts"
+      ]
+    },
+    {
+      "id": "VCT-02",
+      "priority": "P2",
+      "guide": "tests_c.tex",
+      "status": "partial-automated-coverage",
+      "tests": [
+        "tests/test-kit-calculation-full.test.ts"
+      ]
+    },
+    {
+      "id": "VCT-03",
+      "priority": "P2",
+      "guide": "tests_c.tex",
+      "status": "not-run-by-kit-suite",
+      "tests": []
+    },
+    {
+      "id": "VCT-04",
+      "priority": "P1",
+      "guide": "tests_c.tex",
+      "status": "partial-automated-coverage",
+      "tests": [
+        "tests/test-kit-calculation-full.test.ts",
+        "tests/browser/test-kit-geometry-full.spec.ts"
+      ]
+    },
+    {
+      "id": "VCT-05",
+      "priority": "P1",
+      "guide": "tests_c.tex",
+      "status": "partial-automated-coverage",
+      "tests": [
+        "tests/test-kit-calculation-full.test.ts",
+        "tests/test-kit.test.ts"
+      ]
+    },
+    {
+      "id": "VCT-06",
+      "priority": "P1",
+      "guide": "tests_c.tex",
+      "status": "partial-automated-coverage",
+      "tests": [
+        "tests/test-kit-calculation-full.test.ts",
+        "tests/test-kit.test.ts"
+      ]
+    },
+    {
+      "id": "VCT-07",
+      "priority": "P1",
+      "guide": "tests_c.tex",
+      "status": "partial-automated-coverage",
+      "tests": [
+        "tests/test-kit-calculation-full.test.ts",
+        "tests/test-kit.test.ts"
+      ]
+    },
+    {
+      "id": "VCT-08",
+      "priority": "P1",
+      "guide": "tests_c.tex",
+      "status": "partial-automated-coverage",
+      "tests": [
+        "tests/test-kit-calculation-full.test.ts"
+      ]
+    },
+    {
+      "id": "VCT-09",
+      "priority": "P2",
+      "guide": "tests_c.tex",
+      "status": "partial-automated-coverage",
+      "tests": [
+        "tests/test-kit-calculation-full.test.ts",
+        "tests/browser/test-kit-geometry-full.spec.ts"
+      ]
+    },
+    {
+      "id": "VCT-10",
+      "priority": "P2",
+      "guide": "tests_c.tex",
+      "status": "partial-automated-coverage",
+      "tests": [
+        "tests/test-kit-calculation-full.test.ts",
+        "tests/browser/test-kit-geometry-full.spec.ts"
+      ]
+    },
+    {
+      "id": "VCT-11",
+      "priority": "P2",
+      "guide": "tests_c.tex",
+      "status": "partial-automated-coverage",
+      "tests": [
+        "tests/test-kit-calculation-full.test.ts"
+      ]
+    },
+    {
+      "id": "VCT-12",
+      "priority": "P2",
+      "guide": "tests_c.tex",
+      "status": "partial-automated-coverage",
+      "tests": [
+        "tests/test-kit-calculation-full.test.ts"
+      ]
+    },
+    {
+      "id": "VCT-13",
+      "priority": "P2",
+      "guide": "tests_c.tex",
+      "status": "not-run-by-kit-suite",
+      "tests": []
+    },
+    {
+      "id": "HCT-01",
+      "priority": "P2",
+      "guide": "tests_c.tex",
+      "status": "partial-automated-coverage",
+      "tests": [
+        "tests/test-kit.test.ts"
+      ]
+    },
+    {
+      "id": "HCT-02",
+      "priority": "P2",
+      "guide": "tests_c.tex",
+      "status": "not-run-by-kit-suite",
+      "tests": []
+    },
+    {
+      "id": "HCT-03",
+      "priority": "P2",
+      "guide": "tests_c.tex",
+      "status": "not-run-by-kit-suite",
+      "tests": []
+    },
+    {
+      "id": "HCT-04",
+      "priority": "P1",
+      "guide": "tests_c.tex",
+      "status": "partial-automated-coverage",
+      "tests": [
+        "tests/test-kit-calculation-full.test.ts"
+      ]
+    },
+    {
+      "id": "HCT-05",
+      "priority": "P1",
+      "guide": "tests_c.tex",
+      "status": "partial-automated-coverage",
+      "tests": [
+        "tests/test-kit-calculation-full.test.ts"
+      ]
+    },
+    {
+      "id": "HCT-06",
+      "priority": "P1",
+      "guide": "tests_c.tex",
+      "status": "partial-automated-coverage",
+      "tests": [
+        "tests/test-kit-calculation-full.test.ts"
+      ]
+    },
+    {
+      "id": "HCT-07",
+      "priority": "P1",
+      "guide": "tests_c.tex",
+      "status": "not-run-by-kit-suite",
+      "tests": []
+    },
+    {
+      "id": "HCT-08",
+      "priority": "P1",
+      "guide": "tests_c.tex",
+      "status": "partial-automated-coverage",
+      "tests": [
+        "tests/test-kit-calculation-full.test.ts"
+      ]
+    },
+    {
+      "id": "HCT-09",
+      "priority": "P1",
+      "guide": "tests_c.tex",
+      "status": "partial-automated-coverage",
+      "tests": [
+        "tests/test-kit-calculation-full.test.ts"
+      ]
+    },
+    {
+      "id": "HCT-10",
+      "priority": "P2",
+      "guide": "tests_c.tex",
+      "status": "partial-automated-coverage",
+      "tests": [
+        "tests/browser/test-kit-geometry-full.spec.ts"
+      ]
+    },
+    {
+      "id": "HCT-11",
+      "priority": "P1",
+      "guide": "tests_c.tex",
+      "status": "partial-automated-coverage",
+      "tests": [
+        "tests/test-kit-calculation-full.test.ts",
+        "tests/test-kit.test.ts"
+      ]
+    },
+    {
+      "id": "HCT-12",
+      "priority": "P2",
+      "guide": "tests_c.tex",
+      "status": "not-run-by-kit-suite",
+      "tests": []
+    },
+    {
+      "id": "HCT-13",
+      "priority": "P1",
+      "guide": "tests_c.tex",
+      "status": "partial-automated-coverage",
+      "tests": [
+        "tests/test-kit-report-full.test.ts"
+      ]
+    },
+    {
+      "id": "HCT-14",
+      "priority": "P2",
+      "guide": "tests_c.tex",
+      "status": "not-run-by-kit-suite",
+      "tests": []
+    },
+    {
+      "id": "TBL-01",
+      "priority": "P2",
+      "guide": "tests_c.tex",
+      "status": "partial-automated-coverage",
+      "tests": [
+        "tests/test-kit-report-full.test.ts"
+      ]
+    },
+    {
+      "id": "TBL-02",
+      "priority": "P1",
+      "guide": "tests_c.tex",
+      "status": "partial-automated-coverage",
+      "tests": [
+        "tests/test-kit-report-full.test.ts"
+      ]
+    },
+    {
+      "id": "TBL-03",
+      "priority": "P1",
+      "guide": "tests_c.tex",
+      "status": "partial-automated-coverage",
+      "tests": [
+        "tests/test-kit-report-full.test.ts"
+      ]
+    },
+    {
+      "id": "TBL-04",
+      "priority": "P3",
+      "guide": "tests_c.tex",
+      "status": "not-run-by-kit-suite",
+      "tests": []
+    },
+    {
+      "id": "MET-01",
+      "priority": "P1",
+      "guide": "tests_c.tex",
+      "status": "partial-automated-coverage",
+      "tests": [
+        "tests/test-kit.test.ts"
+      ]
+    },
+    {
+      "id": "MET-02",
+      "priority": "P1",
+      "guide": "tests_c.tex",
+      "status": "partial-automated-coverage",
+      "tests": [
+        "tests/test-kit.test.ts"
+      ]
+    },
+    {
+      "id": "MET-03",
+      "priority": "P1",
+      "guide": "tests_c.tex",
+      "status": "partial-automated-coverage",
+      "tests": [
+        "tests/test-kit.test.ts"
+      ]
+    },
+    {
+      "id": "MET-04",
+      "priority": "P1",
+      "guide": "tests_c.tex",
+      "status": "partial-automated-coverage",
+      "tests": [
+        "tests/test-kit.test.ts"
+      ]
+    },
+    {
+      "id": "MET-05",
+      "priority": "P1",
+      "guide": "tests_c.tex",
+      "status": "partial-automated-coverage",
+      "tests": [
+        "tests/test-kit.test.ts"
+      ]
+    },
+    {
+      "id": "MET-06",
+      "priority": "P1",
+      "guide": "tests_c.tex",
+      "status": "partial-automated-coverage",
+      "tests": [
+        "tests/test-kit.test.ts"
+      ]
+    },
+    {
+      "id": "MET-07",
+      "priority": "P1",
+      "guide": "tests_c.tex",
+      "status": "partial-automated-coverage",
+      "tests": [
+        "tests/test-kit.test.ts"
+      ]
+    },
+    {
+      "id": "MET-08",
+      "priority": "P1",
+      "guide": "tests_c.tex",
+      "status": "partial-automated-coverage",
+      "tests": [
+        "tests/test-kit.test.ts"
+      ]
+    },
+    {
+      "id": "MET-09",
+      "priority": "P1",
+      "guide": "tests_c.tex",
+      "status": "partial-automated-coverage",
+      "tests": [
+        "tests/test-kit-calculation-full.test.ts",
+        "tests/test-kit.test.ts"
+      ]
+    },
+    {
+      "id": "MET-10",
+      "priority": "P1",
+      "guide": "tests_c.tex",
+      "status": "not-run-by-kit-suite",
+      "tests": []
+    },
+    {
+      "id": "MET-11",
+      "priority": "P1",
+      "guide": "tests_c.tex",
+      "status": "partial-automated-coverage",
+      "tests": [
+        "tests/test-kit.test.ts"
+      ]
+    },
+    {
+      "id": "MET-12",
+      "priority": "P1",
+      "guide": "tests_c.tex",
+      "status": "partial-automated-coverage",
+      "tests": [
+        "tests/test-kit.test.ts"
+      ]
+    },
+    {
+      "id": "MET-13",
+      "priority": "P1",
+      "guide": "tests_c.tex",
+      "status": "partial-automated-coverage",
+      "tests": [
+        "tests/test-kit.test.ts"
+      ]
+    },
+    {
+      "id": "MET-14",
+      "priority": "P1",
+      "guide": "tests_c.tex",
+      "status": "partial-automated-coverage",
+      "tests": [
+        "tests/test-kit.test.ts"
+      ]
+    },
+    {
+      "id": "MET-15",
+      "priority": "P1",
+      "guide": "tests_c.tex",
+      "status": "partial-automated-coverage",
+      "tests": [
+        "tests/test-kit-calculation-full.test.ts"
+      ]
+    },
+    {
+      "id": "MET-16",
+      "priority": "P2",
+      "guide": "tests_c.tex",
+      "status": "not-run-by-kit-suite",
+      "tests": []
+    },
+    {
+      "id": "RPT-01",
+      "priority": "P1",
+      "guide": "tests_d.tex",
+      "status": "not-run-by-kit-suite",
+      "tests": []
+    },
+    {
+      "id": "RPT-02",
+      "priority": "P2",
+      "guide": "tests_d.tex",
+      "status": "partial-automated-coverage",
+      "tests": [
+        "tests/test-kit-report-full.test.ts"
+      ]
+    },
+    {
+      "id": "RPT-03",
+      "priority": "P1",
+      "guide": "tests_d.tex",
+      "status": "partial-automated-coverage",
+      "tests": [
+        "tests/test-kit-report-full.test.ts"
+      ]
+    },
+    {
+      "id": "RPT-04",
+      "priority": "P2",
+      "guide": "tests_d.tex",
+      "status": "partial-automated-coverage",
+      "tests": [
+        "tests/test-kit-report-full.test.ts"
+      ]
+    },
+    {
+      "id": "RPT-05",
+      "priority": "P3",
+      "guide": "tests_d.tex",
+      "status": "partial-automated-coverage",
+      "tests": [
+        "tests/test-kit-report-full.test.ts"
+      ]
+    },
+    {
+      "id": "RPT-06",
+      "priority": "P1",
+      "guide": "tests_d.tex",
+      "status": "partial-automated-coverage",
+      "tests": [
+        "tests/test-kit-report-full.test.ts"
+      ]
+    },
+    {
+      "id": "RPT-07",
+      "priority": "P1",
+      "guide": "tests_d.tex",
+      "status": "partial-automated-coverage",
+      "tests": [
+        "tests/browser/test-kit.spec.ts"
+      ]
+    },
+    {
+      "id": "RPT-08",
+      "priority": "P2",
+      "guide": "tests_d.tex",
+      "status": "partial-automated-coverage",
+      "tests": [
+        "tests/test-kit-report-full.test.ts"
+      ]
+    },
+    {
+      "id": "RPT-09",
+      "priority": "P2",
+      "guide": "tests_d.tex",
+      "status": "not-run-by-kit-suite",
+      "tests": []
+    },
+    {
+      "id": "RPT-10",
+      "priority": "P3",
+      "guide": "tests_d.tex",
+      "status": "partial-automated-coverage",
+      "tests": [
+        "tests/test-kit-report-full.test.ts"
+      ]
+    },
+    {
+      "id": "RPT-11",
+      "priority": "P2",
+      "guide": "tests_d.tex",
+      "status": "not-run-by-kit-suite",
+      "tests": []
+    },
+    {
+      "id": "SET-01",
+      "priority": "P1",
+      "guide": "tests_d.tex",
+      "status": "partial-automated-coverage",
+      "tests": [
+        "tests/test-kit.test.ts",
+        "tests/browser/test-kit.spec.ts"
+      ]
+    },
+    {
+      "id": "SET-02",
+      "priority": "P1",
+      "guide": "tests_d.tex",
+      "status": "partial-automated-coverage",
+      "tests": [
+        "tests/test-kit-calculation-full.test.ts",
+        "tests/test-kit.test.ts"
+      ]
+    },
+    {
+      "id": "SET-03",
+      "priority": "P2",
+      "guide": "tests_d.tex",
+      "status": "not-run-by-kit-suite",
+      "tests": []
+    },
+    {
+      "id": "SET-04",
+      "priority": "P2",
+      "guide": "tests_d.tex",
+      "status": "not-run-by-kit-suite",
+      "tests": []
+    },
+    {
+      "id": "SET-05",
+      "priority": "P2",
+      "guide": "tests_d.tex",
+      "status": "partial-automated-coverage",
+      "tests": [
+        "tests/test-kit-calculation-full.test.ts"
+      ]
+    },
+    {
+      "id": "SET-06",
+      "priority": "P3",
+      "guide": "tests_d.tex",
+      "status": "partial-automated-coverage",
+      "tests": [
+        "tests/browser/test-kit-geometry-full.spec.ts"
+      ]
+    },
+    {
+      "id": "SET-07",
+      "priority": "P2",
+      "guide": "tests_d.tex",
+      "status": "partial-automated-coverage",
+      "tests": [
+        "tests/browser/test-kit-geometry-full.spec.ts"
+      ]
+    },
+    {
+      "id": "SET-08",
+      "priority": "P1",
+      "guide": "tests_d.tex",
+      "status": "partial-automated-coverage",
+      "tests": [
+        "tests/test-kit-calculation-full.test.ts",
+        "tests/browser/test-kit-geometry-full.spec.ts"
+      ]
+    },
+    {
+      "id": "PRJ-01",
+      "priority": "P1",
+      "guide": "tests_d.tex",
+      "status": "partial-automated-coverage",
+      "tests": [
+        "tests/test-kit-calculation-full.test.ts"
+      ]
+    },
+    {
+      "id": "PRJ-02",
+      "priority": "P1",
+      "guide": "tests_d.tex",
+      "status": "partial-automated-coverage",
+      "tests": [
+        "tests/test-kit.test.ts",
+        "tests/browser/test-kit.spec.ts"
+      ]
+    },
+    {
+      "id": "PRJ-03",
+      "priority": "P1",
+      "guide": "tests_d.tex",
+      "status": "not-run-by-kit-suite",
+      "tests": []
+    },
+    {
+      "id": "PRJ-04",
+      "priority": "P2",
+      "guide": "tests_d.tex",
+      "status": "not-run-by-kit-suite",
+      "tests": []
+    },
+    {
+      "id": "PRJ-05",
+      "priority": "P1",
+      "guide": "tests_d.tex",
+      "status": "partial-automated-coverage",
+      "tests": [
+        "tests/test-kit.test.ts",
+        "tests/browser/test-kit.spec.ts"
+      ]
+    },
+    {
+      "id": "PRJ-06",
+      "priority": "P2",
+      "guide": "tests_d.tex",
+      "status": "not-run-by-kit-suite",
+      "tests": []
+    },
+    {
+      "id": "INS-01",
+      "priority": "P2",
+      "guide": "tests_d.tex",
+      "status": "not-run-by-kit-suite",
+      "tests": []
+    },
+    {
+      "id": "INS-02",
+      "priority": "P2",
+      "guide": "tests_d.tex",
+      "status": "partial-automated-coverage",
+      "tests": [
+        "tests/browser/test-kit.spec.ts"
+      ]
+    },
+    {
+      "id": "INS-03",
+      "priority": "P2",
+      "guide": "tests_d.tex",
+      "status": "not-run-by-kit-suite",
+      "tests": []
+    },
+    {
+      "id": "INS-04",
+      "priority": "P2",
+      "guide": "tests_d.tex",
+      "status": "not-run-by-kit-suite",
+      "tests": []
+    },
+    {
+      "id": "INS-05",
+      "priority": "P2",
+      "guide": "tests_d.tex",
+      "status": "not-run-by-kit-suite",
+      "tests": []
+    },
+    {
+      "id": "INS-06",
+      "priority": "P2",
+      "guide": "tests_d.tex",
+      "status": "not-run-by-kit-suite",
+      "tests": []
+    },
+    {
+      "id": "INS-07",
+      "priority": "P3",
+      "guide": "tests_d.tex",
+      "status": "not-run-by-kit-suite",
+      "tests": []
+    },
+    {
+      "id": "INS-08",
+      "priority": "P3",
+      "guide": "tests_d.tex",
+      "status": "not-run-by-kit-suite",
+      "tests": []
+    },
+    {
+      "id": "ROB-01",
+      "priority": "P1",
+      "guide": "tests_d.tex",
+      "status": "not-run-by-kit-suite",
+      "tests": []
+    },
+    {
+      "id": "ROB-02",
+      "priority": "P1",
+      "guide": "tests_d.tex",
+      "status": "partial-automated-coverage",
+      "tests": [
+        "tests/test-kit-calculation-full.test.ts",
+        "tests/test-kit.test.ts",
+        "tests/browser/test-kit.spec.ts"
+      ]
+    },
+    {
+      "id": "ROB-03",
+      "priority": "P1",
+      "guide": "tests_d.tex",
+      "status": "not-run-by-kit-suite",
+      "tests": []
+    },
+    {
+      "id": "ROB-04",
+      "priority": "P1",
+      "guide": "tests_d.tex",
+      "status": "not-run-by-kit-suite",
+      "tests": []
+    },
+    {
+      "id": "ROB-05",
+      "priority": "P2",
+      "guide": "tests_d.tex",
+      "status": "partial-automated-coverage",
+      "tests": [
+        "tests/test-kit-calculation-full.test.ts",
+        "tests/test-kit.test.ts"
+      ]
+    },
+    {
+      "id": "ROB-06",
+      "priority": "P1",
+      "guide": "tests_d.tex",
+      "status": "partial-automated-coverage",
+      "tests": [
+        "tests/test-kit-calculation-full.test.ts"
+      ]
+    },
+    {
+      "id": "ROB-07",
+      "priority": "P3",
+      "guide": "tests_d.tex",
+      "status": "partial-automated-coverage",
+      "tests": [
+        "tests/browser/test-kit.spec.ts"
+      ]
+    },
+    {
+      "id": "ROB-08",
+      "priority": "P2",
+      "guide": "tests_d.tex",
+      "status": "not-run-by-kit-suite",
+      "tests": []
+    },
+    {
+      "id": "ROB-09",
+      "priority": "P1",
+      "guide": "tests_d.tex",
+      "status": "partial-automated-coverage",
+      "tests": [
+        "tests/browser/test-kit.spec.ts"
+      ]
+    },
+    {
+      "id": "ROB-10",
+      "priority": "P2",
+      "guide": "tests_d.tex",
+      "status": "partial-automated-coverage",
+      "tests": [
+        "tests/test-kit-calculation-full.test.ts"
+      ]
+    },
+    {
+      "id": "DOC-01",
+      "priority": "P3",
+      "guide": "tests_d.tex",
+      "status": "not-run-by-kit-suite",
+      "tests": []
+    },
+    {
+      "id": "DOC-02",
+      "priority": "P3",
+      "guide": "tests_d.tex",
+      "status": "not-run-by-kit-suite",
+      "tests": []
+    },
+    {
+      "id": "DOC-03",
+      "priority": "P3",
+      "guide": "tests_d.tex",
+      "status": "not-run-by-kit-suite",
+      "tests": []
+    },
+    {
+      "id": "DOC-04",
+      "priority": "P3",
+      "guide": "tests_d.tex",
+      "status": "not-run-by-kit-suite",
+      "tests": []
+    },
+    {
+      "id": "DOC-05",
+      "priority": "P2",
+      "guide": "tests_d.tex",
+      "status": "not-run-by-kit-suite",
+      "tests": []
+    },
+    {
+      "id": "DOC-06",
+      "priority": "P2",
+      "guide": "tests_d.tex",
+      "status": "not-run-by-kit-suite",
+      "tests": []
+    },
+    {
+      "id": "DOC-07",
+      "priority": "P3",
+      "guide": "tests_d.tex",
+      "status": "not-run-by-kit-suite",
+      "tests": []
+    },
+    {
+      "id": "DOC-08",
+      "priority": "P2",
+      "guide": "tests_d.tex",
+      "status": "partial-automated-coverage",
+      "tests": [
+        "tests/test-kit.test.ts"
+      ]
+    },
+    {
+      "id": "DOC-09",
+      "priority": "P2",
+      "guide": "tests_d.tex",
+      "status": "partial-automated-coverage",
+      "tests": [
+        "tests/test-kit-calculation-full.test.ts"
+      ]
+    },
+    {
+      "id": "DOC-10",
+      "priority": "P1",
+      "guide": "tests_d.tex",
+      "status": "partial-automated-coverage",
+      "tests": [
+        "tests/test-kit-calculation-full.test.ts",
+        "tests/test-kit-report-full.test.ts"
+      ]
+    },
+    {
+      "id": "DOC-11",
+      "priority": "P3",
+      "guide": "tests_d.tex",
+      "status": "partial-automated-coverage",
+      "tests": [
+        "tests/test-kit-geometry-full.test.ts"
+      ]
+    },
+    {
+      "id": "DOC-12",
+      "priority": "P3",
+      "guide": "tests_d.tex",
+      "status": "not-run-by-kit-suite",
+      "tests": []
+    }
+  ]
+}

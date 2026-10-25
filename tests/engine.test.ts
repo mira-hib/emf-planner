@@ -54,7 +54,7 @@ test("isotropic free-space analytic field, inverse distance and inactive exclusi
     };
   p.sources = [s];
   const e = exposureAt(p, 10, 0, 0);
-  assert.ok(Math.abs(e.total_field - Math.sqrt(300) / 10) < 1e-12);
+  assert.ok(Math.abs(e.total_field - p.settings.reflection * Math.sqrt(300) / 10) < 1e-12);
   assert.ok(
     Math.abs(exposureAt(p, 20, 0, 0).total_field - e.total_field / 2) < 1e-12,
   );
@@ -81,6 +81,7 @@ test("an active opaque building screens a ray below its roof", () => {
   p.sources = [
     {
       ...newSource(p.origin, "TX"),
+      power_w: 10,
       height_m: 1,
       pattern_h: Array(360).fill(0),
       pattern_v: Array(360).fill(0),
@@ -165,7 +166,7 @@ test("grid guard prevents unbounded work and contours use the calculated ratio",
 });
 test("legacy JSON projects are upgraded without dropping source parameters", () => {
   const p = newProject();
-  p.sources = [newSource(p.origin, "Legacy")];
+  p.sources = [{ ...newSource(p.origin, "Legacy"), power_w: 10 }];
   const old = JSON.parse(JSON.stringify(p));
   delete old.settings;
   delete old.origin;
@@ -173,7 +174,7 @@ test("legacy JSON projects are upgraded without dropping source parameters", () 
   const restored = normalizeProject(old);
   assert.equal(restored.sources[0].power_w, 10);
   assert.equal(restored.control_points.length, 0);
-  assert.equal(restored.settings.reflection, 1);
+  assert.equal(restored.settings.reflection, 1.3);
 });
 test(
   "original sample: 15 captured reference fields and exposure percentages",

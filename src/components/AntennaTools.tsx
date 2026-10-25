@@ -9,6 +9,7 @@ import {
   symmetricPattern,
 } from "../lib/editing";
 import { chooseFile, saveText } from "../lib/files";
+import { chooseAntennaDirectory, readAntennaLibrary, readAntennaZip } from "../lib/antenna-library";
 import { decodeMsi, parseMsi, sourceAntenna, writeMsi } from "../lib/antenna";
 import feeders from "../data/feeders.json";
 import DataGrid from "./DataGrid";
@@ -28,6 +29,23 @@ export default function AntennaTools() {
     { project, source, command, commit } = a;
   const [catalog, setCatalog] = useState<StoredAntenna[]>([]),
     [error, setError] = useState("");
+  const [libraryProgress, setLibraryProgress] = useState("");
+  const [libraryBusy, setLibraryBusy] = useState(false);
+  const [folderPatterns, setFolderPatterns] = useState<StoredAntenna[] | null>(null);
+  async function importLibrary(zip: boolean) {
+    setLibraryBusy(true); setError("");
+    try {
+      const progress = (done: number, total: number) => setLibraryProgress(`${done} / ${total} fichiers`);
+      const file = zip ? await chooseFile(["zip"]) : null;
+      const files = zip ? null : await chooseAntennaDirectory();
+      if (zip ? !file : !files) return;
+      const result = zip ? await readAntennaZip(file!.bytes, progress) : await readAntennaLibrary(files!, progress);
+      setFolderPatterns(result.patterns); setSelected(result.patterns[0]?.id ?? "");
+      setLibraryProgress(`${result.patterns.length} diagramme(s), ${result.rejected.length} rejeté(s)`);
+      setError(result.rejected.slice(0, 10).join("\n") || (result.total === 0 ? "Aucun fichier MSI dans ce dossier." : ""));
+    } catch (reason) { setError((reason as Error).message); }
+    finally { setLibraryBusy(false); }
+  }
   const initial = useMemo<StoredAntenna>(
     () => ({
       id: uid(),
@@ -93,7 +111,7 @@ export default function AntennaTools() {
       ...sourceAntenna(s),
       frequency: s.frequency_mhz,
     }));
-  const library = [
+  const library = folderPatterns ?? [
     ...(project.antenna_library ?? []),
     ...projectPatterns,
     ...catalog,
@@ -430,6 +448,7 @@ export default function AntennaTools() {
         </>
       ) : command === "Bibliothèque d’antennes" ? (
         <>
+          <div className="section-tools"><button disabled={libraryBusy} onClick={() => void importLibrary(false)}>Ouvrir un dossier…</button><button disabled={libraryBusy} onClick={() => void importLibrary(true)}>Ouvrir une archive ZIP…</button><button disabled={libraryBusy || folderPatterns === null} onClick={() => setFolderPatterns(null)}>Catalogue livré</button><span role="status">{libraryProgress}</span></div>
           <div className="library-layout">
             <div>
               <select
@@ -477,6 +496,7 @@ export default function AntennaTools() {
                   if (!f) return null;
                   const p = parseMsi(decodeMsi(f.bytes));
                   const added = { ...p, id: uid() };
+                  if (folderPatterns) setFolderPatterns([...folderPatterns, added]);
                   commit((v) => ({
                     ...v,
                     antenna_library: [...(v.antenna_library ?? []), added],
@@ -499,6 +519,7 @@ export default function AntennaTools() {
         </>
       ) : command === "Enveloppe de diagrammes" ? (
         <>
+          <div className="section-tools"><button disabled={libraryBusy} onClick={() => void importLibrary(false)}>Ouvrir un dossier…</button><button disabled={libraryBusy} onClick={() => void importLibrary(true)}>Ouvrir une archive ZIP…</button><span role="status">{libraryProgress}</span></div>
           <label>
             Nom
             <input
