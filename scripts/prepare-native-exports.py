@@ -65,6 +65,9 @@ else:
     run(['make', '-j', str(min(os.cpu_count() or 2, 4))], source)
     for name in ['dxf2dwg', 'dwg2dxf', 'dwgread']:
         shutil.copy2(source / 'programs' / name, OUT / name)
+        # configure's default -g otherwise ships tens of megabytes of debug
+        # symbols in each helper and in every installer containing it.
+        run(['strip', '-x' if platform.system() == 'Darwin' else '--strip-unneeded', OUT / name], CACHE)
     manifest['sources'].append({'project': 'GNU LibreDWG', 'version': '0.14', 'sha256': digest,
         'url': 'https://github.com/LibreDWG/libredwg/releases/tag/0.14', 'license': 'GPL-3.0-or-later'})
     commit = '4d75fccf839d1aa180ec53e519e307272957b625'

@@ -2,7 +2,7 @@
   "scope": "Coverage references only. A test may cover a subset or record a native/kit divergence; consult the audit and actual test output.",
   "original_ui": "Original 7.1 Trial observed on 2026-10-25 with Windows Computer Use: startup, Sources, Buildings, Vertical Cuts and Settings. See reference/full-kit-runtime-observations-2026-10-25.md. These observations are not complete kit execution.",
   "total_scenarios": 216,
-  "partially_covered_scenarios": 149,
+  "partially_covered_scenarios": 152,
   "cases": [
     {
       "id": "SRC-01",
@@ -882,8 +882,10 @@
       "id": "CAL-11",
       "priority": "P2",
       "guide": "tests_b.tex",
-      "status": "not-run-by-kit-suite",
-      "tests": []
+      "status": "partial-automated-coverage",
+      "tests": [
+        "tests/browser/test-kit-offline-full.spec.ts"
+      ]
     },
     {
       "id": "CAL-12",
@@ -1692,8 +1694,10 @@
       "id": "ROB-01",
       "priority": "P1",
       "guide": "tests_d.tex",
-      "status": "not-run-by-kit-suite",
-      "tests": []
+      "status": "partial-automated-coverage",
+      "tests": [
+        "tests/test-kit-fuzz-full.test.ts"
+      ]
     },
     {
       "id": "ROB-02",
@@ -1752,8 +1756,10 @@
       "id": "ROB-08",
       "priority": "P2",
       "guide": "tests_d.tex",
-      "status": "not-run-by-kit-suite",
-      "tests": []
+      "status": "partial-automated-coverage",
+      "tests": [
+        "tests/browser/test-kit-offline-full.spec.ts"
+      ]
     },
     {
       "id": "ROB-09",

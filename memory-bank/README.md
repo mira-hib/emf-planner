@@ -112,3 +112,8 @@ intervalles de coupes et surface EMF 3D. Voir `interface-refinement.md`.
 La comparaison des 15 résultats de référence passe avec un écart de champ
 maximal inférieur à 0,000001 V/m. Ce résultat concerne un seul projet et ne
 valide pas toutes les branches. Voir **`clone-interface.md`** pour continuer.
+# Reprise après coupures
+
+Lire d'abord [resume-after-powercuts.md](resume-after-powercuts.md) pour le dernier
+état des validations, builds, charge ROB-05 et lancement Windows.
+

@@ -29,7 +29,14 @@ def main():
         candidates = [output / 'remote' / label]
         if label == 'Windows-x64':
             candidates += [output / 'local-kit' / label]
-        chosen = next((p for p in candidates if (p / 'summary.json').exists() and read(p / 'summary.json')['status'] != 'running'), None)
+        def current_finished(path):
+            if not (path / 'summary.json').exists() or read(path / 'summary.json')['status'] == 'running':
+                return False
+            if path.parent.name == 'remote' and source.get('commit'):
+                receipt = path / 'download-provenance.json'
+                return receipt.exists() and read(receipt).get('commit') == source['commit']
+            return True
+        chosen = next((p for p in candidates if current_finished(p)), None)
         if chosen:
             summary = read(chosen / 'summary.json')
             for subdir in ['builds', 'test-kit', 'logs']:
@@ -55,7 +62,8 @@ def main():
     reference = output / 'test-kit/reference'
     reference.mkdir(parents=True, exist_ok=True)
     for file in ['reference/test-kit-coverage.json', 'reference/test-kit-scenarios.json',
-                 'reference/full-kit-runtime-observations-2026-10-25.md', 'reference/rea-full-kit-safety-evidence.json',
+                 'reference/full-kit-runtime-observations-2026-10-25.md', 'reference/test-kit-full-audit-2026-10-25.md',
+                 'reference/rea-full-kit-safety-evidence.json', 'reference/rea-source-defaults-reprise.json',
                  'memory-bank/full-kit-implementation.md', 'reference/test-kit-audit-2026-10-22.md',
                  'reference/test-kit-native-evidence.json', 'tests/fixtures/test-kit-native-oracle.json',
                  'memory-bank/test-kit-validation.md']:
@@ -63,6 +71,12 @@ def main():
             shutil.copy2(ROOT / file, reference / Path(file).name)
     shutil.copytree(ROOT / 'test/emf_test_kit/guide', reference / 'guide', dirs_exist_ok=True)
     shutil.copytree(ROOT / 'test/emf_test_kit/data', reference / 'data', dirs_exist_ok=True)
+    for evidence_dir, name in [(output / 'remote/ROB-05/test-kit/stress', 'ROB-05-CI'),
+                         (output / 'stress-rob05-final', 'ROB-05-Windows-local'),
+                         (output / 'stress-rob05-ui', 'ROB-05-browser-local'),
+                         (output / 'native-samples-v2', 'original-project-samples')]:
+        if evidence_dir.exists():
+            shutil.copytree(evidence_dir, output / 'test-kit' / name, dirs_exist_ok=True)
     web_source = output / 'builds/Windows-x64/web'
     if web_source.exists():
         shutil.copytree(web_source, output / 'builds/Web/dist', dirs_exist_ok=True)

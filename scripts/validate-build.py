@@ -134,9 +134,20 @@ def main():
             if run(f'bundle-{bundle}', command):
                 folder = release / 'bundle' / ('macos' if bundle == 'app' else bundle)
                 if folder.exists():
-                    shutil.copytree(folder, builds / folder.name, dirs_exist_ok=True, symlinks=True)
                     if bundle == 'app':
                         subprocess.run(['ditto', '-c', '-k', '--sequesterRsrc', '--keepParent', str(next(folder.glob('*.app'))), str(builds / 'emf-planner-macos-app.zip')], check=True)
+                    else:
+                        # Tauri leaves expanded DEB data and an entire AppDir
+                        # beside installers. Retain final packages, not those
+                        # duplicate staging trees.
+                        extension = {'deb': '.deb', 'rpm': '.rpm', 'appimage': '.AppImage',
+                                     'dmg': '.dmg', 'nsis': '.exe', 'msi': '.msi'}[bundle]
+                        final = list(folder.glob('*' + extension))
+                        if not final:
+                            raise RuntimeError(f'No final {bundle} package was produced.')
+                        (builds / folder.name).mkdir(parents=True, exist_ok=True)
+                        for package in final:
+                            shutil.copy2(package, builds / folder.name / package.name)
                 else:
                     summary['steps'].append({'name': f'artifact-{bundle}', 'status': 'failed', 'exit_code': 1, 'error': 'No bundle directory was produced.'})
     run('diff-check', ['git', '-c', 'safe.directory=' + ROOT.as_posix(), 'diff', '--check'])
