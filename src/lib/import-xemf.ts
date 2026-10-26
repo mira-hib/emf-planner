@@ -3,6 +3,8 @@ import { newPoint, newProject, newSource, uid } from "./project";
 import { deg, toLocal } from "./geometry";
 import { terrainHeight } from "./geometry";
 import { dotnetColor } from "./dotnet-color";
+import { normalizeMapProvider } from "./map-providers";
+import { validateRasterDimensions } from "./raster-validation";
 import type { PlannerProject, SavedCutResult } from "../types";
 type Obj = Record<string, unknown>;
 export function importXemf(buffer: ArrayBuffer, name: string): PlannerProject {
@@ -57,6 +59,7 @@ export function importXemf(buffer: ArrayBuffer, name: string): PlannerProject {
       divisions.length === 2 ? [divisions[0], divisions[1]] : [600, 200],
     show_calculation_area: bool(settings, "ShowHorizPlaneScale"),
     show_origin: bool(settings, "ShowOrigin"),
+    antenna_capture_distance: n(settings, "LengthAttractAntennas", 15),
     reflection: n(settings, "KoefOslabl", 1),
     consider_terrain: bool(settings, "ConsiderRelief"),
     buildings_mode:
@@ -64,6 +67,13 @@ export function importXemf(buffer: ArrayBuffer, name: string): PlannerProject {
         n(settings, "UseBuildings")
       ] ?? "ignore",
     building_attenuation_db: n(settings, "BuildAttenSubband1", 20),
+    building_attenuation_high_db: n(settings, "BuildAttenSubband2", 6),
+    building_frequency_boundary_mhz: n(settings, "BuildFreqBorder", 400),
+    point_measurement_frequency_mhz: n(
+      settings,
+      "ControlPointMesureFreq",
+      1000,
+    ),
     selected_limit: n(settings, "ControlPointLimitIndex"),
     radius_m: calculationArea
       ? Math.max(...Object.values(calculationArea).map(Math.abs))
@@ -71,11 +81,7 @@ export function importXemf(buffer: ArrayBuffer, name: string): PlannerProject {
     terrain_interpolation: "original",
     calculation_area_m: calculationArea,
     show_basemap: bool(settings, "ShowMap"),
-    map_provider: /OpenStreetMap/i.test(provider)
-      ? "OpenStreetMap"
-      : /satellite|imagery/i.test(provider)
-        ? "Satellite Esri"
-        : "Carto clair",
+    map_provider: normalizeMapProvider(provider || "Carto Basemap"),
     contour_width: n(settings, "LineWidthZO", 2),
     display_options: {
       grid: bool(settings, "ShowHorizPlaneScale", false),
@@ -205,6 +211,7 @@ export function importXemf(buffer: ArrayBuffer, name: string): PlannerProject {
         x_m: x,
         y_m: y,
         group: s(g, "Name", `Groupe ${gi + 1}`),
+        group_active: bool(g, "Active", true),
         description: s(c, "Name"),
         location: s(c, "Location", "Ground"),
         heights,
@@ -221,7 +228,8 @@ export function importXemf(buffer: ArrayBuffer, name: string): PlannerProject {
       foundation_m: n(b, "Fundation"),
       attenuation_db: p.settings.building_attenuation_db,
       points: arr(b.CoordWM).map(local),
-      active: bool(b, "UseAttenuation"),
+      active: true,
+      custom_attenuation: bool(b, "UseAttenuation"),
       visible: bool(b, "Show"),
     };
   });
@@ -313,6 +321,12 @@ export function importXemf(buffer: ArrayBuffer, name: string): PlannerProject {
       backward_m: n(c, "L2", 100),
       forward_m: n(c, "L1", 100),
       max_height_m: n(c, "H1", 100),
+      min_height_m: n(c, "H2", 0),
+      name: s(c, "Name"),
+      dimensions: arr(c.DimensionZO).map((v) => {
+        const d = obj(v);
+        return { id: uid(), x: n(d, "R"), y1: n(d, "H"), y2: n(d, "Hz") };
+      }),
     };
   });
   const limitList = obj(settings.LMT),
@@ -335,6 +349,84 @@ export function importXemf(buffer: ArrayBuffer, name: string): PlannerProject {
       };
     }),
   }));
+  const aliases = arr(settings.ALS),
+    aliasCount = aliases.length / 2;
+  if (Number.isInteger(aliasCount)) {
+    p.report_aliases = Object.fromEntries(
+      aliases
+        .slice(0, aliasCount)
+        .map((key, i) => [
+          String(key ?? ""),
+          String(aliases[i + aliasCount] ?? ""),
+        ]),
+    );
+  }
+  const raster = obj(root.RPL),
+    bitmap = obj(raster.BTM),
+    rawImage = deref(bitmap.Data);
+  const image = rawImage instanceof Uint8Array ? rawImage : arr(bitmap.Data);
+  if (image.length) {
+    const bytes =
+        image instanceof Uint8Array
+          ? image
+          : Uint8Array.from(image as number[]),
+      dimensions = validateRasterDimensions(bytes);
+    if (dimensions) {
+      const pixels = arr(raster.PointRaster).map(obj),
+        maps = arr(raster.PointMap).map(obj);
+      if (pixels.length >= 3 && maps.length >= 3) {
+        const sorted = [pixels[1], pixels[2]].sort(
+          (a, b) => n(a, "Xpix") - n(b, "Xpix"),
+        );
+        const span = Math.hypot(
+          n(sorted[1], "Xpix") - n(sorted[0], "Xpix"),
+          n(sorted[1], "Ypix") - n(sorted[0], "Ypix"),
+        );
+        const byMap = bool(raster, "UseScalingLine", false);
+        const mapSorted = [maps[1], maps[2]].sort(
+          (a, b) => n(a, "Xwm") - n(b, "Xwm"),
+        );
+        const anchor = byMap ? mapSorted[0] : maps[0],
+          pixel = byMap ? sorted[0] : pixels[0];
+        const mapSpan = Math.hypot(
+          n(mapSorted[1], "Xwm") - n(mapSorted[0], "Xwm"),
+          n(mapSorted[1], "Ywm") - n(mapSorted[0], "Ywm"),
+        );
+        const latitude = geo(anchor)[0];
+        const scale = byMap
+          ? mapSpan / span
+          : n(raster, "Length") / (span * Math.cos((latitude * Math.PI) / 180));
+        if (Number.isFinite(scale) && scale > 0) {
+          const left = n(anchor, "Xwm") - n(pixel, "Xpix") * scale,
+            top = n(anchor, "Ywm") + n(pixel, "Ypix") * scale;
+          const [north, west] = geo({ Xwm: left, Ywm: top });
+          const [south, east] = geo({
+            Xwm: left + dimensions[0] * scale,
+            Ywm: top - dimensions[1] * scale,
+          });
+          let binary = "";
+          for (let i = 0; i < bytes.length; i += 8192)
+            binary += String.fromCharCode(...bytes.subarray(i, i + 8192));
+          const mime =
+            bytes[0] === 0xff
+              ? "image/jpeg"
+              : bytes[0] === 0x42
+                ? "image/bmp"
+                : bytes[0] === 0x47
+                  ? "image/gif"
+                  : "image/png";
+          p.background_image = {
+            data_url: `data:${mime};base64,${btoa(binary)}`,
+            west,
+            south,
+            east,
+            north,
+            opacity: 0.7,
+          };
+        }
+      }
+    }
+  }
   // The original rounds local coordinates of sources/control points to 0.1 m.
   const rounded = (lat: number, lng: number): [number, number] => {
     const a = (lat * Math.PI) / 180,

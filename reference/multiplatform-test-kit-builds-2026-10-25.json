@@ -1,0 +1,88 @@
+{
+  "date": "2026-10-25",
+  "source_commit": "e0a38164b52b30029a32397f78b96bf761c32341",
+  "run": "https://github.com/mira-hib/emf-planner/actions/runs/40241427422",
+  "status": "passed-builds-and-automated-suites",
+  "archive": "test validation/emf-planner-builds-test-kit-2026-10-25.zip",
+  "bytes": 760377418,
+  "sha256": "75e5f555d590cd670e8d2c5ebac22644d10aea7dc85cae2e959b127b4f0e9ae8",
+  "archive_entries": 2491,
+  "platforms": [
+    {
+      "label": "Windows-x64",
+      "unit_tests": {
+        "tests": 144,
+        "failures": 0,
+        "errors": 0
+      },
+      "ui_expected": 29,
+      "ui_failures": 0
+    },
+    {
+      "label": "Windows-arm64",
+      "unit_tests": {
+        "tests": 144,
+        "failures": 0,
+        "errors": 0
+      },
+      "ui_expected": 29,
+      "ui_failures": 0
+    },
+    {
+      "label": "Linux-x64",
+      "unit_tests": {
+        "tests": 144,
+        "failures": 0,
+        "errors": 0
+      },
+      "ui_expected": 29,
+      "ui_failures": 0
+    },
+    {
+      "label": "Linux-arm64",
+      "unit_tests": {
+        "tests": 144,
+        "failures": 0,
+        "errors": 0
+      },
+      "ui_expected": 29,
+      "ui_failures": 0
+    },
+    {
+      "label": "macOS-x64",
+      "unit_tests": {
+        "tests": 144,
+        "failures": 0,
+        "errors": 0
+      },
+      "ui_expected": 29,
+      "ui_failures": 0
+    },
+    {
+      "label": "macOS-arm64",
+      "unit_tests": {
+        "tests": 144,
+        "failures": 0,
+        "errors": 0
+      },
+      "ui_expected": 29,
+      "ui_failures": 0
+    }
+  ],
+  "scenarios": {
+    "total": 216,
+    "partial_references": 152,
+    "without_references": 64,
+    "all_guide_scenarios_validated": false
+  },
+  "workload": {
+    "sources": 1000,
+    "buildings": 2000,
+    "cuts": 50,
+    "divisions": 1000,
+    "engine": "passed",
+    "browser": "passed",
+    "browser_calculation_seconds": 1014.6102144
+  },
+  "limitations": "See reference/test-kit-full-audit-2026-10-25.md for remaining functionality, external checks and native/guide differences."
+}

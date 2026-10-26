@@ -3,6 +3,7 @@ import { usePlanner } from "../lib/usePlanner";
 import OriginalIcon from "./OriginalIcon";
 import { useEffect, useRef, useState } from "react";
 import { formatCoordinate, parseCoordinate } from "../lib/coordinates";
+import { decimalInput } from "../lib/numeric-input";
 export function Tool({
   label,
   children,
@@ -67,7 +68,7 @@ export function NumberField({
     try {
       const n = coordinate
         ? parseCoordinate(text, latitude)
-        : Number(text.trim().replace(",", "."));
+        : decimalInput(text);
       if (
         !text.trim() ||
         !Number.isFinite(n) ||
@@ -78,6 +79,7 @@ export function NumberField({
       setInvalid(false);
       onChange(n);
     } catch {
+      setText(formatted);
       setInvalid(true);
     }
   }

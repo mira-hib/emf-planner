@@ -133,3 +133,69 @@ a ensuite été lancé à la demande de l’utilisateur via `Start-EmfPlanner.ps
 fenêtre « EMF Planner — Clone », PID observé 35952, processus répondant.
 Aucune session native ouverte n’a été fermée par l’agent. Ce contrôle de lancement
 ne remplace pas une validation des parcours dans l’application native.
+
+## Rubrique 4 — Antenna Locations et fonds de carte, 22 octobre
+
+Audit : [champs, commandes et preuves REA/C#](../reference/antenna-locations-native-audit-2026-10-22.md).
+Code : `AntennaLocationsPanel.tsx`, `AntennaMapHandle.tsx`, `lib/antenna-locations.ts`.
+
+- Grille à sept colonnes dans l’ordre natif, nom avec modèle, latitude/longitude,
+  hauteur et azimut en lecture seule, X/Y éditables au dixième affiché. Formats
+  géographiques des branches `ConvLatToStr/ConvLonToStr`, y compris les différences
+  de précision suivant l’hémisphère. Hauteurs Single affichées sans bruit binaire.
+- Sélection de lignes Ctrl/Maj, cellules disjointes Ctrl, rectangle Maj et colonnes
+  par en-tête ; édition groupée limitée aux cellules de la colonne éditée.
+  Réordonnancement des colonnes par glisser-déposer. Les commandes de déplacement
+  demandent des lignes sélectionnées ; une sélection de cellules ne déplace pas
+  les antennes. Les couleurs natives des lignes et les cinq icônes sont reprises.
+- Cinq commandes natives, dans leur ordre : centrer sur la courante, sélection au
+  centre de l’écran, sur la courante, à l’origine, puis origine sur la courante.
+  Les commandes modifiant les positions sont confirmées. Correction des anciennes
+  commandes qui déplaçaient toutes les sources malgré leur libellé « sélectionnées ».
+- Conversions WM avec facteur natif pour X/Y, coordonnées natives arrondies lors
+  des déplacements, conservation des propriétés techniques et des sources hors
+  sélection, annuler/rétablir et sauvegarde `.emfp`. Le centrage utilise l’ancre
+  géographique et le changement d’origine conserve les positions géographiques.
+- Curseur Maximum capture distance 1–30, défaut 15, import `LengthAttractAntennas`,
+  conservation dans le projet et absence d’invalidation des calculs pour ce seul
+  réglage. Seuil rectangulaire natif en dixièmes d’unité WM, première autre antenne
+  correspondante. Glisser-déposer local SVG et Leaflet, accrochage au relâchement,
+  priorité visuelle aux sources sélectionnées superposées. L’icône Leaflet reste
+  stable au changement de sélection, pour ne pas interrompre le glissement.
+- Panneau initial 510 px avec sept colonnes visibles, lignes 18 px et curseur en
+  bas ; largeur redimensionnable mémorisée séparément des autres rubriques.
+
+La capture utilisateur des cartes est traitée dans la même passe : **14 entrées
+dans l’ordre natif**, résolveur de tuiles commun 2D/3D, quadkeys Bing, projection
+elliptique Yandex, vrai fournisseur conservé à l’import, personnalisation de son
+URL et messages d’indisponibilité sans remplacement silencieux. Google Satellite
+utilise une URL du même fournisseur ayant renvoyé une image après constat du
+404 sur l’ancienne version. Dix services ont renvoyé une image lors de la sonde
+réseau ; OSM Relief porte un filigrane exigeant une clé. HERE/Mapquest sont
+configurables avec les accès de l’utilisateur. Voir [map-providers.md](map-providers.md).
+
+Les raccourcis WinForms complets et les cas limites d’arrondis intermédiaires ne
+sont pas tous reproduits. L’aperçu de déplacement applique l’accrochage à la fin
+du geste ; le natif l’applique pendant le geste. Pas de nouvelle capture originale
+Windows : `@oai/sky.list_apps` échoue avec `native pipe`, erreur système 2.
+Les captures conservées concernent Edge sur projet neuf et Castelfranco réellement
+importé. La rubrique n’est pas déclarée identique pixel par pixel.
+
+Prochaine rubrique selon l’ordre : **Buildings**. Les écarts précédents Sources,
+Limites et Origine restent suivis, sans déclaration d’achèvement général.
+
+Validation finale : **171 tests métier, 46 parcours Edge réunis sur les sources
+stabilisées**, TypeScript/Vite et benchmark réussis. Les cinq parcours Antenna
+Locations incluent Castelfranco importé, glissement SVG/Leaflet, cellules/colonnes,
+réordonnancement, confirmations et conservation des sources hors sélection. Les
+quatre parcours des cartes utilisent des tuiles interceptées ; l’accès réel à dix
+services est vérifié séparément. Les 15 résultats originaux gardent un écart
+maximal de champ de `9.945531114219364e-7 V/m`. Captures effectivement relues dans
+`reference/antenna-locations-interface/`. Résultats Edge dans
+`.tools/antenna-map-full-ui/`. Les essais isolés initiaux et leurs erreurs
+d’environnement/locateurs ne sont pas comptés comme réussis.
+
+Release Windows finale compilée avec succès pour `x86_64-pc-windows-msvc`.
+Chemin, taille, SHA-256 et validations dans
+[antenna-locations-build.json](../reference/antenna-locations-build.json).
+Exécutable non lancé ; aucune application existante fermée.

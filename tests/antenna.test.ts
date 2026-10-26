@@ -35,7 +35,7 @@ test("MSI dBd gains convert to dBi and signed losses use the original magnitude 
 });
 
 test("MSI closed angular tables accept matching endpoints and reject conflicting angles", () => {
-  const closed = `HORIZONTAL 3\n0 0\n180 30\n360 0\nVERTICAL 3\n0 0\n180 30\n360 0`;
+  const closed = `GAIN 0 dBi\nHORIZONTAL 3\n0 0\n180 30\n360 0\nVERTICAL 3\n0 0\n180 30\n360 0`;
   const p = parseMsi(closed);
   assert.equal(p.horizontal[90], 15);
   assert.equal(p.horizontal[270], 15);

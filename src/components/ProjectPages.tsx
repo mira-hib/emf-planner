@@ -19,10 +19,13 @@ import {
   siteCoordinatesText,
 } from "../lib/files";
 import { mapProviders } from "./PlannerMap";
+import { normalizeMapProvider } from "../lib/map-providers";
 import DataGrid from "./DataGrid";
 import { NumberField } from "./Controls";
 import { ResultTable } from "./Results";
 import { GridSettings } from "./OriginPanel";
+import ReportTemplatePanel from "./ReportTemplatePanel";
+import NativeTables from "./NativeTables";
 export { LimitsPage } from "./LimitsPage";
 export function TablesPage() {
   const { project, results, task, verticalResults } = usePlanner(),
@@ -79,6 +82,7 @@ export function TablesPage() {
   );
   return (
     <div className="tables-page">
+      <NativeTables />
       <div className="table-chart-controls">
         <h1>Tableaux et graphiques</h1>
         <div className="tab-bar" role="tablist">
@@ -217,6 +221,7 @@ export function ReportPage() {
     <div className="report-page">
       <div className="report-controls">
         <h1>Rapport par modèle</h1>
+        <ReportTemplatePanel />
         <label>
           Titre du projet
           <input
@@ -317,11 +322,16 @@ export function SettingsPage() {
         <NumberField
           label="Coefficient de réflexion"
           value={project.settings.reflection}
-          min={0.01}
-          max={5}
+          min={1}
+          max={1.6}
           onChange={(v) => settings({ reflection: v })}
         />
         <GridSettings />
+        <label>Workers de calcul
+          <select value={project.settings.worker_count ?? 1} onChange={e => settings({ worker_count: Number(e.target.value) })}>
+            {[1, 2, 4, 8].map(count => <option key={count} value={count}>{count}</option>)}
+          </select>
+        </label>
         <NumberField
           label="Demi-largeur de la zone, m"
           value={project.settings.radius_m}
@@ -335,6 +345,36 @@ export function SettingsPage() {
           min={0}
           onChange={(v) => settings({ building_attenuation_db: v })}
         />
+        <NumberField
+          label="Frontière des bandes bâtiment, MHz"
+          value={project.settings.building_frequency_boundary_mhz ?? 400}
+          min={0.1}
+          max={300000}
+          onChange={(v) =>
+            settings({
+              building_frequency_boundary_mhz: v,
+              building_attenuation_high_db:
+                project.settings.building_attenuation_high_db ??
+                project.settings.building_attenuation_db,
+            })
+          }
+        />
+        <NumberField
+          label="Atténuation bâtiment au-dessus de la frontière, dB"
+          value={
+            project.settings.building_attenuation_high_db ??
+            project.settings.building_attenuation_db
+          }
+          min={0}
+          max={300}
+          onChange={(v) => settings({ building_attenuation_high_db: v })}
+        />
+        <p className="hint">
+          La première atténuation s’applique jusqu’à la fréquence frontière
+          incluse.
+          {project.settings.building_attenuation_high_db === undefined &&
+            " Ce projet ancien utilise les pertes définies sur chaque bâtiment jusqu’à l’édition de ces bandes."}
+        </p>
         <label>
           Mode bâtiments
           <select
@@ -412,6 +452,7 @@ export function SettingsPage() {
         <label>
           Format des coordonnées
           <select
+            aria-label="Format des coordonnées"
             value={project.settings.coordinate_format ?? "decimal"}
             onChange={(e) =>
               settings({
@@ -432,6 +473,9 @@ export function SettingsPage() {
         </p>
         {(project.owner_names ?? []).map((name, i) => (
           <label key={i}>
+            <input type="color" aria-label={`Couleur du propriétaire ${name || i + 1}`} value={project.owner_colors?.[name] ?? "#ffffff"}
+              onChange={e => commit(p => ({ ...p, owner_colors: { ...p.owner_colors, [name]: e.target.value },
+                sources: p.sources.map(source => source.owner === name ? { ...source, color: e.target.value } : source) }), "Couleur du propriétaire modifiée", false)}/>
             <input
               value={name}
               onChange={(e) =>
@@ -471,7 +515,7 @@ export function SettingsPage() {
         <label>
           Fond de carte
           <select
-            value={project.settings.map_provider}
+            value={normalizeMapProvider(project.settings.map_provider)}
             onChange={(e) => settings({ map_provider: e.target.value })}
           >
             {Object.keys(mapProviders(project)).map((n) => (

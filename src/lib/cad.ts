@@ -560,7 +560,7 @@ export function cadDrawingDxf(drawing: CadDrawing): string {
     9,
     "$ACADVER",
     1,
-    "AC1018",
+    "AC1015",
     9,
     "$INSUNITS",
     70,
@@ -603,6 +603,7 @@ export function cadDrawingDxf(drawing: CadDrawing): string {
     dashes.size + 1,
     0,
     "LTYPE",
+    100, "AcDbSymbolTableRecord", 100, "AcDbLinetypeTableRecord",
     2,
     "CONTINUOUS",
     70,
@@ -621,6 +622,7 @@ export function cadDrawingDxf(drawing: CadDrawing): string {
     add(
       0,
       "LTYPE",
+      100, "AcDbSymbolTableRecord", 100, "AcDbLinetypeTableRecord",
       2,
       name,
       70,
@@ -649,7 +651,7 @@ export function cadDrawingDxf(drawing: CadDrawing): string {
     CAD_LAYERS.length,
   );
   CAD_LAYERS.forEach(([, , name]) =>
-    add(0, "LAYER", 2, name, 70, 0, 62, 7, 6, "CONTINUOUS"),
+    add(0, "LAYER", 100, "AcDbSymbolTableRecord", 100, "AcDbLayerTableRecord", 2, name, 70, 0, 62, 7, 6, "CONTINUOUS"),
   );
   add(
     0,
@@ -664,6 +666,7 @@ export function cadDrawingDxf(drawing: CadDrawing): string {
     1,
     0,
     "STYLE",
+    100, "AcDbSymbolTableRecord", 100, "AcDbTextStyleTableRecord",
     2,
     "STANDARD",
     70,
@@ -684,8 +687,24 @@ export function cadDrawingDxf(drawing: CadDrawing): string {
     "",
     0,
     "ENDTAB",
+  );
+  // Explicit model/paper space records are required by DWG encoders and CAD readers.
+  const blockTable = (nextHandle++).toString(16).toUpperCase();
+  const modelSpace = (nextHandle++).toString(16).toUpperCase();
+  const paperSpace = (nextHandle++).toString(16).toUpperCase();
+  pairs.push(0, "TABLE", 5, blockTable, 330, "0", 100, "AcDbSymbolTable", 2, "BLOCK_RECORD", 70, 2);
+  for (const [handle, name] of [[modelSpace, "*Model_Space"], [paperSpace, "*Paper_Space"]])
+    pairs.push(0, "BLOCK_RECORD", 5, handle, 330, blockTable, 100, "AcDbSymbolTableRecord", 100, "AcDbBlockTableRecord", 2, name, 70, 0);
+  add(0, "ENDTAB",
     0,
     "ENDSEC",
+    0, "SECTION", 2, "BLOCKS",
+  );
+  for (const [handle, name] of [[modelSpace, "*Model_Space"], [paperSpace, "*Paper_Space"]]) {
+    add(0, "BLOCK", 330, handle, 100, "AcDbEntity", 8, "0", 100, "AcDbBlockBegin", 2, name, 70, 0, 10, 0, 20, 0, 30, 0, 3, name, 1, "");
+    add(0, "ENDBLK", 330, handle, 100, "AcDbEntity", 8, "0", 100, "AcDbBlockEnd");
+  }
+  add(0, "ENDSEC",
     0,
     "SECTION",
     2,
@@ -693,6 +712,7 @@ export function cadDrawingDxf(drawing: CadDrawing): string {
   );
   const properties = (e: CadEntity) => {
     add(
+      330, modelSpace,
       100,
       "AcDbEntity",
       8,
@@ -706,6 +726,7 @@ export function cadDrawingDxf(drawing: CadDrawing): string {
     if (e.kind === "path") {
       add(0, "LWPOLYLINE");
       properties(e);
+      if (e.dash) add(6, dashes.get(e.dash.join(","))!);
       add(
         100,
         "AcDbPolyline",
@@ -716,7 +737,6 @@ export function cadDrawingDxf(drawing: CadDrawing): string {
         43,
         e.width,
       );
-      if (e.dash) add(6, dashes.get(e.dash.join(","))!);
       e.points.forEach(([x, y]) => add(10, x, 20, y));
     } else if (e.kind === "circle") {
       if (e.fill && e.fill !== "none") {

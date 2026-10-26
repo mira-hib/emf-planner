@@ -129,14 +129,16 @@ export default function TerrainLayer({
               center={geo([t.x, t.y])}
               radius={2}
               pathOptions={{ color: "#997f50", weight: 1 }}
-              interactive={false}
+              interactive={!!onSelect}
+              bubblingMouseEvents={!onSelect}
+              eventHandlers={{click:()=>onSelect?.(t.id)}}
             >
               {display.labels && (
                 <Tooltip permanent>{t.elevation.toFixed(1)}</Tooltip>
               )}
             </CircleMarker>
           ) : (
-            <g key={t.id} pointerEvents="none">
+            <g key={t.id} role={onSelect?"button":undefined} aria-label={`Point de terrain ${t.id}`} onClick={e=>{if(onSelect){e.stopPropagation();onSelect(t.id);}}} style={{cursor:onSelect?"pointer":undefined}}>
               <path
                 d={`M${t.x - 2 * units} ${-t.y}h${4 * units}m${-2 * units} ${-2 * units}v${4 * units}`}
                 stroke="#997f50"

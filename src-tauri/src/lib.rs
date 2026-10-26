@@ -5,6 +5,8 @@ mod project;
 mod export;
 mod feeder;
 mod control_point;
+mod native_exports;
+mod network;
 
 use emf::RadiatingSource;
 use control_point::ControlPoint;
@@ -252,6 +254,7 @@ fn export_dxf(path: String, data: ProjectData) -> Result<(), String> {
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        .manage(network::NetworkState::default())
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_fs::init())
@@ -271,6 +274,15 @@ pub fn run() {
             save_project,
             load_project,
             export_dxf,
+            native_exports::convert_idtf_u3d,
+            native_exports::dxf_to_dwg,
+            native_exports::dwg_to_dxf,
+            native_exports::convert_word_template,
+            native_exports::convert_excel_workbook,
+            network::configure_network,
+            network::network_request,
+            network::native_cache_stats,
+            network::clear_native_cache,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

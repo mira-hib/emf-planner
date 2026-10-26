@@ -431,6 +431,9 @@ test("contour appearance preserves computed results and property panes resize on
 }) => {
   await page.setViewportSize({ width: 1040, height: 760 });
   await navigate(page, "Coupes horizontales");
+  // Distinct height styles apply to a single limit. Multiple limits project the
+  // heights together and use limit colors instead (HCT-05).
+  for(const index of [1,2,3]) await page.locator('.limit-selector input[type="checkbox"]').nth(index).uncheck();
   await page
     .getByRole("button", { name: "Calculer avec la grille 1", exact: true })
     .click();
@@ -442,6 +445,10 @@ test("contour appearance preserves computed results and property panes resize on
     .getByRole("button", { name: "Styles de ligne distincts", exact: true })
     .click();
   await expect(contours).toHaveCount(count);
+  // HCT-07: the previous computed image retains its style until recalculation.
+  await expect(page.locator('svg.local-map > path[stroke-dasharray="7 4"]')).toHaveCount(0);
+  await page.getByRole("button", { name: "Calculer avec la grille 1", exact: true }).click();
+  await expect(page.locator(".status-message")).toHaveText("Calcul terminé");
   await expect(
     page.locator('svg.local-map > path[stroke-dasharray="7 4"]'),
   ).not.toHaveCount(0);

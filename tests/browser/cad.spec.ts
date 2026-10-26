@@ -88,7 +88,12 @@ test("Castelfranco CAD uses ten native layers, saved contours and paper scale in
   });
   await expect(
     report.getByRole("button", { name: "Exporter Word", exact: true }),
-  ).toBeDisabled();
+  ).toBeEnabled();
+  const wordDownload = page.waitForEvent("download");
+  await report.getByRole("button", { name: "Exporter Word", exact: true }).click();
+  const wordPath = test.info().outputPath("horizontal-summary.docx");
+  await (await wordDownload).saveAs(wordPath);
+  expect(readFileSync(wordPath).subarray(0, 2).toString()).toBe("PK");
   const reportDownload = page.waitForEvent("download");
   await report
     .getByRole("button", { name: "Exporter PDF", exact: true })

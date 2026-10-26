@@ -3,6 +3,7 @@ import { X } from "lucide-react";
 import type { PointResult } from "../types";
 import { usePlanner } from "../lib/usePlanner";
 import { exportExcel, exportPdf, exportWord } from "../lib/files";
+import { nativeTruncate } from "../lib/cut-tools";
 export function ResultTable({ results }: { results: PointResult[] }) {
   return (
     <div className="result-table">
@@ -13,7 +14,7 @@ export function ResultTable({ results }: { results: PointResult[] }) {
             <th>X, m</th>
             <th>Y, m</th>
             <th>Hauteur, m</th>
-            <th>Champ E, V/m</th>
+            <th>Champ E total, V/m</th>
             <th>Exposition, %</th>
             <th>S, W/m²</th>
           </tr>
@@ -27,7 +28,7 @@ export function ResultTable({ results }: { results: PointResult[] }) {
               <td>{r.height_m}</td>
               <td>{r.total_field.toFixed(6)}</td>
               <td>{(r.exposure_ratio * 100).toFixed(6)}</td>
-              <td>{r.total_power_density.toFixed(6)}</td>
+              <td>{nativeTruncate(r.total_power_density, 6)}</td>
             </tr>
           ))}
         </tbody>
@@ -121,7 +122,11 @@ export function ResultsDialog() {
                   ["Hauteur, m", (r) => r.height_m.toFixed(1)],
                   ["Altitude du terrain, m", (r) => r.elevation.toFixed(1)],
                   ["E mesuré, V/m", (r) => r.measured.toFixed(4)],
-                  ["E calculé, V/m", (r) => r.total_field.toFixed(6)],
+                  [
+                    "E calculé, V/m",
+                    (r) => (r.calculated_field ?? r.total_field).toFixed(6),
+                  ],
+                  ["E total, V/m", (r) => r.total_field.toFixed(6)],
                   [
                     "Exposition simultanée, %",
                     (r) => (r.exposure_ratio * 100).toFixed(6),

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import type { LimitSet } from "../types";
+import { pasteLimitCells, limitFrequencyWarnings } from "../lib/limit-clipboard";
 import { usePlanner } from "../lib/usePlanner";
 import {
   addLimitRow,
@@ -164,7 +165,12 @@ function LimitsChart({ limits }: { limits: LimitSet[] }) {
 }
 
 export function LimitsPage() {
-  const { project, commit } = usePlanner();
+  const { project, commit, fail } = usePlanner();
+  const activeCell = useRef({ row: 0, column: 0 });
+  function pasteCells(text: string) {
+    try { const limits = pasteLimitCells(project.limits, text, activeCell.current.row, activeCell.current.column); commit((p) => ({ ...p, limits })); }
+    catch (reason) { fail(reason); }
+  }
   const [selected, setSelected] = useState<number[]>([]);
   const anchor = useRef(0);
   const limits = project.limits;
@@ -293,7 +299,9 @@ export function LimitsPage() {
         role="region"
         aria-label="Tableau commun des limites EMF"
         tabIndex={0}
+        onPaste={(event) => { const text = event.clipboardData.getData("text/plain"); if (text) { event.preventDefault(); pasteCells(text); } }}
         onKeyDown={(event) => {
+          if (event.shiftKey && event.key === "Insert" && navigator.clipboard?.readText) { event.preventDefault(); void navigator.clipboard.readText().then(pasteCells); return; }
           if (event.target instanceof HTMLInputElement) return;
           if (event.key === "Delete") {
             event.preventDefault();
@@ -359,7 +367,7 @@ export function LimitsPage() {
                     {ri + 1}
                   </button>
                 </th>
-                <td>
+                <td onFocus={() => { activeCell.current = { row: ri, column: 0 }; }}>
                   <LimitCell
                     value={common[0][ri].frequency}
                     field="frequency"
@@ -380,7 +388,7 @@ export function LimitsPage() {
                 </td>
                 {limits.map((limit, li) =>
                   (["value", "exponent"] as const).map((field) => (
-                    <td key={`${limit.id}-${field}`}>
+                    <td key={`${limit.id}-${field}`} onFocus={() => { activeCell.current = { row: ri, column: 1 + li * 2 + (field === "exponent" ? 1 : 0) }; }}>
                       <LimitCell
                         value={common[li][ri][field]}
                         field={field}
@@ -419,6 +427,7 @@ export function LimitsPage() {
           </span>
         ))}
       </p>
+      {limitFrequencyWarnings(limits).map((message) => <p role="alert" key={message}>{message}</p>)}
       <p className="muted limits-preset-note">
         Les préréglages reproduisent les valeurs historiques d’EMFPlanner 7.1.
         Ils remplacent les quatre descriptions et tableaux ; couleurs et

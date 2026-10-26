@@ -18,16 +18,14 @@ import type { RadiatingSource } from "../types";
 import { usePlanner } from "../lib/usePlanner";
 import {
   chooseFile,
-  exportExcel,
+  exportSourcesExcel,
   exportWord,
   importExcel,
   saveText,
 } from "../lib/files";
-import { decodeMsi, parseMsi, writeMsi } from "../lib/antenna";
-import { patternAmplitude } from "../lib/engine";
+import { decodeMsi, parseMsi, sourceAntenna, writeMsi } from "../lib/antenna";
 import {
   nativeBeamWidth,
-  sourceFrequency,
   sourceFrequencyLabel,
 } from "../lib/source-fields";
 import {
@@ -39,6 +37,8 @@ import {
   toggleAllSourceRows,
 } from "../lib/source-rows";
 import SourcePowerCalculator from "./SourcePowerCalculator";
+import PowerConversionDialog from "./PowerConversionDialog";
+import { pasteSourceCells, sourceCellPatch } from "../lib/source-clipboard";
 import DataGrid, { type Column } from "./DataGrid";
 import AntennaPolar from "./AntennaPolar";
 import { Tool } from "./Controls";
@@ -71,6 +71,7 @@ const COLUMNS: Column<RadiatingSource>[] = [
     key: "num_tx",
     label: "Nombre de TX",
     kind: "number",
+    integer: "floor",
     min: 1,
     maxExclusive: 100,
     width: 62,
@@ -95,9 +96,8 @@ const COLUMNS: Column<RadiatingSource>[] = [
   {
     key: "azimuth_deg",
     label: "Azimut, °",
-    kind: "number",
-    min: 0,
-    maxExclusive: 360,
+    kind: "text",
+    editValue: (source) => source.azimuth_deg < 0 ? "0÷360" : source.azimuth_deg,
     width: 65,
   },
   {
@@ -199,6 +199,20 @@ export default function SourcesPage() {
       return "";
     }
   });
+  const [powerSource, setPowerSource] = useState<string | null>(null);
+  const [layout, setLayout] = useState<{ order: (keyof RadiatingSource)[]; widths: Record<string, number> }>(() => {
+    try { return JSON.parse(localStorage.getItem("emf-planner-source-columns-v1") ?? "null") ?? { order: [], widths: {} }; }
+    catch { return { order: [], widths: {} }; }
+  });
+  function saveLayout(next: typeof layout) { setLayout(next); localStorage.setItem("emf-planner-source-columns-v1", JSON.stringify(next)); }
+  const orderedColumns = [...COLUMNS].sort((a, b) => {
+    const ai = layout.order.indexOf(a.key), bi = layout.order.indexOf(b.key);
+    return (ai < 0 ? COLUMNS.indexOf(a) + COLUMNS.length : ai) - (bi < 0 ? COLUMNS.indexOf(b) + COLUMNS.length : bi);
+  });
+  function pasteCells(text: string, rowId: string | undefined, key: keyof RadiatingSource) {
+    try { const sources = pasteSourceCells(project.sources, project.origin, text, rowId, key, orderedColumns.filter((c) => !c.readOnly).map((c) => c.key)); commit((p) => ({ ...p, sources })); }
+    catch (reason) { a.fail(reason); }
+  }
   function applyRows(result: ReturnType<typeof moveSourceRows>) {
     if (!result.changed) return;
     commit((p) => ({ ...p, sources: result.sources }));
@@ -220,7 +234,7 @@ export default function SourcesPage() {
     setSelectedSource(rows[0]?.id ?? "");
   }
   function copySelected() {
-    const value = copySourceRows(project.sources, selected);
+    const value = copySourceRows(project.sources, selected, project.origin);
     if (!value) return;
     try {
       localStorage.setItem("emf-planner-source-buffer-v1", value);
@@ -232,7 +246,15 @@ export default function SourcesPage() {
   }
   function pasteSelected() {
     try {
-      applyRows(pasteSourceRows(project.sources, source?.id ?? "", buffer));
+      applyRows(
+        pasteSourceRows(
+          project.sources,
+          source?.id ?? "",
+          buffer,
+          undefined,
+          project.origin,
+        ),
+      );
     } catch (error) {
       a.fail(error);
     }
@@ -243,15 +265,17 @@ export default function SourcesPage() {
     value: unknown,
   ) {
     try {
-      const patch =
-        key === "frequency_mhz"
-          ? sourceFrequency(value)
-          : { [key]: key === "num_tx" ? Math.floor(Number(value)) : value };
+      if (key === "owner" && value === "Specify manually") {
+        const entered = window.prompt("Propriétaire", "");
+        if (entered === null) return;
+        value = entered;
+      }
+      const patch = key === "limit_factors" || key === "pattern_h" || key === "pattern_v" || key === "feeder" ? { [key]: value } : sourceCellPatch(key, value);
       commit(
         (p) => ({
           ...p,
           sources: p.sources.map((s) =>
-            ids.includes(s.id) ? { ...s, ...patch } : s,
+            ids.includes(s.id) ? { ...s, ...patch, ...(key === "owner" && p.owner_colors?.[String(value)] ? { color: p.owner_colors[String(value)] } : {}) } : s,
           ),
         }),
         "Sources modifiées",
@@ -263,7 +287,7 @@ export default function SourcesPage() {
   }
   function importXlsx() {
     void task(async () => {
-      const file = await chooseFile(["xlsx", "xltx"]);
+      const file = await chooseFile(["xlsx", "xltx", "xls", "xlt"]);
       if (file) {
         const sources = await importExcel(project, file.bytes);
         commit((p) => ({ ...p, sources: [...p.sources, ...sources] }));
@@ -300,26 +324,7 @@ export default function SourcesPage() {
   function exportMsi() {
     void task(async () => {
       if (!source) return false;
-      const h =
-          source.pattern_h ??
-          Array.from(
-            { length: 360 },
-            (_, i) =>
-              -20 *
-              Math.log10(
-                patternAmplitude(undefined, i, source.beam_width_h_deg),
-              ),
-          ),
-        v =
-          source.pattern_v ??
-          Array.from(
-            { length: 360 },
-            (_, i) =>
-              -20 *
-              Math.log10(
-                patternAmplitude(undefined, i, source.beam_width_v_deg),
-              ),
-          );
+      const { horizontal: h, vertical: v } = sourceAntenna(source);
       return saveText(
         `${source.antenna_model || source.name}.msi`,
         writeMsi(source.antenna_model, source.gain_dbi, h, v),
@@ -423,7 +428,7 @@ export default function SourcesPage() {
           <Tool
             label="Exporter les tableaux Excel"
             onClick={() =>
-              void task(() => exportExcel(project), "Classeur Excel exporté")
+              void task(() => exportSourcesExcel(project), "Classeur Excel exporté")
             }
           >
             <FileSpreadsheet />
@@ -474,9 +479,9 @@ export default function SourcesPage() {
         <DataGrid
           label="Sources rayonnantes"
           rows={project.sources}
-          columns={COLUMNS.map((c) => ({
+          columns={orderedColumns.map((c) => ({
             ...c,
-            width: Math.max(24, Math.round((c.width ?? 90) * 0.72)),
+            width: layout.widths[String(c.key)] ?? Math.max(24, Math.round((c.width ?? 90) * 0.72)),
             ...(c.key === "owner"
               ? {
                   kind: "select" as const,
@@ -485,6 +490,7 @@ export default function SourcesPage() {
                       "",
                       ...(project.owner_names ?? []),
                       ...project.sources.map((s) => s.owner),
+                      "Specify manually",
                     ]),
                   ],
                 }
@@ -498,6 +504,12 @@ export default function SourcesPage() {
           onDeleteSelection={removeSelected}
           onCopySelection={copySelected}
           onPasteSelection={pasteSelected}
+          selectCells
+          onPasteCells={pasteCells}
+          onReorderColumns={(order) => saveLayout({ ...layout, order })}
+          onResizeColumn={(key, width) => saveLayout({ ...layout, widths: { ...layout.widths, [key]: width } })}
+          onColumnClick={(key) => { if (key !== "active") return false; commit((p) => ({ ...p, sources: toggleAllSourceRows(p.sources) })); return true; }}
+          onCellDoubleClick={(id, key) => { if (key === "power_w") setPowerSource(id); if (key === "total_attenuation_db") { setSelectedSource(id); openCommand("Bibliothèque de câbles"); } }}
           onAdd={() => addSource()}
         />
         <div className="source-workspace-note">
@@ -647,6 +659,7 @@ export default function SourcesPage() {
           </table>
         </fieldset>
       </aside>
+      {powerSource && <PowerConversionDialog value={project.sources.find((s) => s.id === powerSource)?.power_w ?? 0} onApply={(value) => updateRows([powerSource], "power_w", value)} onClose={() => setPowerSource(null)} />}
     </div>
   );
 }

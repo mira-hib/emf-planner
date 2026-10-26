@@ -245,8 +245,14 @@ export function readNrbf(buffer: ArrayBuffer) {
       case 16:
       case 17: {
         const id = i32(),
-          n = count(i32()),
+          rawLength = i32(),
           t = type === 15 ? u8() : null;
+        if(t === 2) {
+          need(rawLength);
+          const a=bytes.slice(pos,pos+rawLength);pos+=rawLength;
+          objects.set(id,a);return a;
+        }
+        const n=count(rawLength);
         const a = values(n, t === null ? 2 : 0, t);
         objects.set(id, a);
         return a;

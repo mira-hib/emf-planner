@@ -62,7 +62,7 @@ const terrainCache = new WeakMap<
 export function terrainMesh(project: PlannerProject) {
   let cache = terrainCache.get(project);
   if (!cache) {
-    const points = [
+    const rawPoints = [
       ...project.terrain_points,
       ...(project.terrain_contours ?? []).flatMap((c) =>
         c.points.map(([x, y], i) => ({
@@ -73,9 +73,14 @@ export function terrainMesh(project: PlannerProject) {
         })),
       ),
     ];
+    const seen=new Set<string>();
+    const points=rawPoints.filter(p=>{
+      if(![p.x,p.y,p.elevation].every(Number.isFinite))return false;
+      const key=`${p.x},${p.y}`;if(seen.has(key))return false;seen.add(key);return true;
+    });
     cache = {
       points,
-      triangles:
+      triangles:points.length<3?new Uint32Array():
         project.settings.terrain_interpolation === "original"
           ? originalTerrainTriangles({ ...project, terrain_points: points })
           : Delaunator.from(
@@ -85,9 +90,21 @@ export function terrainMesh(project: PlannerProject) {
             ).triangles,
       memo: new Map(),
     };
+    cache.triangles=new Uint32Array(Array.from({length:cache.triangles.length/3},(_,i)=>Array.from(cache!.triangles.slice(i*3,i*3+3))).filter(([ai,bi,ci])=>{
+      const a=points[ai],b=points[bi],c=points[ci];return a&&b&&c&&Math.abs((b.x-a.x)*(c.y-a.y)-(b.y-a.y)*(c.x-a.x))>1e-8;
+    }).flat());
     terrainCache.set(project, cache);
   }
   return cache;
+}
+export function terrainDiagnostics(project:PlannerProject):string[]{
+  const {points,triangles}=terrainMesh(project);
+  if(!points.length)return [];
+  const messages:string[]=[];
+  if(points.length<3)messages.push("Triangulation impossible : au moins trois points distincts sont nécessaires. Les altitudes ponctuelles restent consultables.");
+  else if(!triangles.length)messages.push("Triangulation impossible : les points sont alignés ou confondus.");
+  if(project.terrain_contours?.some(c=>c.points.length<2))messages.push("Une courbe de niveau doit contenir au moins deux sommets.");
+  return messages;
 }
 export function terrainHeight(
   project: PlannerProject,

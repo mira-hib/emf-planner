@@ -1,10 +1,13 @@
 import { isTauri } from "@tauri-apps/api/core";
 import { normalizeProject, newSource, uid } from "./project";
 import { importXemf } from "./import-xemf";
+import { exportXemf, nativeProjectExtension } from "./export-xemf";
 import { calculatePoints } from "./engine";
 import { buildCadDrawing, cadDrawingDxf, type CadOptions } from "./cad";
 import { cutNumericSummary } from "./cut-report";
 import { formatCoordinate } from "./coordinates";
+import { NATIVE_SOURCE_COLUMNS, sourceWorkbookBytes } from "./source-workbook";
+import { validateArchive } from "./archive-validation";
 import type {
   Contour,
   PlannerProject,
@@ -43,7 +46,7 @@ export const saveText = (name: string, text: string, mime = "text/plain") =>
   saveBytes(name, new TextEncoder().encode(text), mime);
 export async function chooseFile(
   extensions: string[],
-): Promise<{ name: string; bytes: Uint8Array } | null> {
+): Promise<{ name: string; bytes: Uint8Array; path?: string } | null> {
   if (isTauri()) {
     const { open } = await import("@tauri-apps/plugin-dialog"),
       { readFile } = await import("@tauri-apps/plugin-fs");
@@ -52,7 +55,7 @@ export async function chooseFile(
       filters: [{ name: "Fichiers", extensions }],
     });
     return typeof path === "string"
-      ? { name: path.split(/[\\/]/).pop()!, bytes: await readFile(path) }
+      ? { name: path.split(/[\\/]/).pop()!, bytes: await readFile(path), path }
       : null;
   }
   return new Promise((resolve) => {
@@ -73,7 +76,10 @@ export async function chooseFile(
 }
 export function readProject(name: string, bytes: Uint8Array): PlannerProject {
   if (bytes[0] === 0)
-    return normalizeProject(importXemf(new Uint8Array(bytes).buffer, name));
+    return normalizeProject(
+      nativeProjectExtension(bytes) ??
+        importXemf(new Uint8Array(bytes).buffer, name),
+    );
   return normalizeProject(JSON.parse(new TextDecoder().decode(bytes)));
 }
 export async function saveProject(project: PlannerProject) {
@@ -81,6 +87,43 @@ export async function saveProject(project: PlannerProject) {
     `${project.name}.emfp`,
     JSON.stringify({ ...project, format_version: 2 }, null, 2),
     "application/json",
+  );
+}
+export async function saveNativeProject(project: PlannerProject) {
+  let raster: { bytes: Uint8Array; width: number; height: number } | undefined;
+  if (project.background_image) {
+    const { loadImage } = await import("./map-image-calibration");
+    const image = await loadImage(project.background_image.data_url);
+    const canvas = document.createElement("canvas");
+    const bg = project.background_image;
+    const height =
+      Math.log(Math.tan(Math.PI / 4 + (bg.north * Math.PI) / 360)) -
+      Math.log(Math.tan(Math.PI / 4 + (bg.south * Math.PI) / 360));
+    const aspect = ((bg.east - bg.west) * Math.PI) / 180 / height;
+    if (!Number.isFinite(aspect) || aspect <= 0)
+      throw new Error("Calibrage de l’image invalide.");
+    canvas.width = Math.min(8192, image.naturalWidth);
+    canvas.height = Math.max(1, Math.round(canvas.width / aspect));
+    if (canvas.height > 8192) {
+      canvas.width = Math.max(1, Math.round(8192 * aspect));
+      canvas.height = 8192;
+    }
+    if (canvas.width > 32767 || canvas.height > 32767)
+      throw new Error("Dimensions d’image incompatibles avec le format .xemf.");
+    canvas
+      .getContext("2d")!
+      .drawImage(image, 0, 0, canvas.width, canvas.height);
+    const base64 = canvas.toDataURL("image/png").split(",")[1];
+    raster = {
+      bytes: Uint8Array.from(atob(base64), (c) => c.charCodeAt(0)),
+      width: canvas.width,
+      height: canvas.height,
+    };
+  }
+  return saveBytes(
+    `${project.name}.xemf`,
+    exportXemf(project, raster),
+    "application/octet-stream",
   );
 }
 const SOURCE_COLUMNS: [keyof RadiatingSource, string][] = [
@@ -114,7 +157,7 @@ const resultHeaders = [
   "X (m)",
   "Y (m)",
   "Hauteur (m)",
-  "E calculé (V/m)",
+  "E total (V/m)",
   "Exposition (%)",
   "Densité (W/m²)",
   "E mesuré (V/m)",
@@ -172,6 +215,7 @@ export async function importExcel(
   project: PlannerProject,
   bytes: Uint8Array,
 ): Promise<RadiatingSource[]> {
+  validateArchive(bytes);
   const { default: ExcelJS } = await import("exceljs"),
     book = new ExcelJS.Workbook();
   await book.xlsx.load(new Uint8Array(bytes).buffer);
@@ -183,6 +227,16 @@ export async function importExcel(
       [title.toLowerCase(), key],
     ]),
   );
+  NATIVE_SOURCE_COLUMNS.forEach(([key, title]) => {
+    aliases.set(
+      title.toLowerCase(),
+      key === "frequency_span"
+        ? "frequency_mhz"
+        : key === "existing"
+          ? "is_existing"
+          : key,
+    );
+  });
   const row1 = (sheet.getRow(1).values as unknown[]).slice(1),
     row2 = (sheet.getRow(2).values as unknown[]).slice(1),
     hasKeys = row2.some((v) => v === "frequency_mhz"),
@@ -204,7 +258,28 @@ export async function importExcel(
         throw new Error(
           `Cellule complexe ou formule non prise en charge, ligne ${index}.`,
         );
-      if (typeof source[key] === "number" || key === "frequency_end_mhz") {
+      if (
+        key === "frequency_mhz" &&
+        typeof v === "string" &&
+        /\d\s*[-–]\s*\d/.test(v)
+      ) {
+        const span = v
+          .split(/[-–]/)
+          .map((n) => Number(n.trim().replace(",", ".")));
+        if (
+          span.length !== 2 ||
+          !span.every(Number.isFinite) ||
+          span[1] < span[0]
+        )
+          throw new Error(`Plage de fréquence invalide, ligne ${index}.`);
+        source.frequency_mhz = span[0];
+        source.frequency_end_mhz = span[1];
+      } else if (key === "is_existing") {
+        source.is_existing = !/^(new|nouveau|false|0)$/i.test(String(v));
+      } else if (
+        typeof source[key] === "number" ||
+        key === "frequency_end_mhz"
+      ) {
         const number = Number(String(v).replace(",", "."));
         if (!Number.isFinite(number))
           throw new Error(`Nombre invalide, ligne ${index}.`);
@@ -217,6 +292,14 @@ export async function importExcel(
   });
   normalizeProject({ ...project, sources: rows });
   return rows;
+}
+export { sourceWorkbookBytes } from "./source-workbook";
+export async function exportSourcesExcel(project: PlannerProject) {
+  return saveBytes(
+    `${project.name}_RadiatingSources.xlsx`,
+    await sourceWorkbookBytes(project),
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  );
 }
 export async function exportWord(
   project: PlannerProject,
@@ -672,7 +755,9 @@ export function resolveAliases(
     Coordinates: siteCoordinatesText(project),
     ...(project.settings.report_aliases ?? {}),
   };
-  return template.replace(/\{(\w+)\}/g, (m, key) => values[key] ?? m);
+  for (const [key, value] of Object.entries(project.report_aliases ?? {}))
+    values[key.replace(/^\{|\}$/g, "")] = value;
+  return template.replace(/\{([^{}]+)\}/g, (m, key) => values[key] ?? m);
 }
 
 export function siteCoordinatesText(project: PlannerProject): string {
@@ -681,12 +766,32 @@ export function siteCoordinatesText(project: PlannerProject): string {
   return `${formatCoordinate(lat, format, true)}; ${formatCoordinate(lng, format, false)}`;
 }
 
-/** Native Word-template processing is deliberately unavailable until implemented. */
 export async function processWordTemplate(
-  _project: PlannerProject,
-  _templateBytes: Uint8Array,
+  project: PlannerProject,
+  templateBytes: Uint8Array,
 ): Promise<boolean> {
-  throw new Error(
-    "Le traitement des modèles Word n’est pas encore implémenté.",
+  const { renderWordTemplate } = await import("./word-template");
+  const result = await renderWordTemplate(project, templateBytes);
+  if (result.unknownAliases.length)
+    throw new Error(
+      `Alias inconnus : ${result.unknownAliases.map((a) => `{${a}}`).join(", ")}. Aucun rapport enregistré.`,
+    );
+  return saveBytes(
+    `${project.name}_rapport.docx`,
+    result.bytes,
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  );
+}
+
+export async function exportAliasWord(
+  project: PlannerProject,
+  alias: string,
+  sampling?: import("./report-content").TableSampling,
+) {
+  const { reportAliasDocument } = await import("./report-content");
+  return saveBytes(
+    `${project.name}_${alias}.docx`,
+    await reportAliasDocument(project, alias, sampling),
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
   );
 }

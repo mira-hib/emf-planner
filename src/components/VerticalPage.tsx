@@ -7,11 +7,12 @@ import FieldPlot from "./FieldPlot";
 import { CalculateButton, LimitSelector, Tool } from "./Controls";
 import FeatureTools from "./FeatureTools";
 import SplitWorkspace from "./SplitWorkspace";
+import { sourceVerticalCuts } from "../lib/cut-tools";
 export default function VerticalPage() {
   const a = usePlanner(),
     { project, commit } = a;
   return (
-    <SplitWorkspace vertical>
+    <SplitWorkspace vertical defaultWidth={670}>
       <section className="property-pane">
         <div className="pane-caption">Coupes verticales</div>
         <FeatureTools section="vertical" />
@@ -26,11 +27,11 @@ export default function VerticalPage() {
                   {
                     id: uid(),
                     active: true,
-                    azimuth_deg: 60,
+                    azimuth_deg: 0,
                     x: 0,
                     y: 0,
-                    backward_m: 100,
-                    forward_m: 100,
+                    backward_m: 0,
+                    forward_m: 150,
                     max_height_m: 100,
                   },
                 ],
@@ -44,18 +45,7 @@ export default function VerticalPage() {
             onClick={() =>
               commit((p) => ({
                 ...p,
-                vertical_cuts: Array.from(
-                  new Set(p.sources.map((s) => s.azimuth_deg)),
-                ).map((azimuth_deg) => ({
-                  id: uid(),
-                  active: true,
-                  azimuth_deg,
-                  x: 0,
-                  y: 0,
-                  backward_m: 100,
-                  forward_m: 100,
-                  max_height_m: 100,
-                })),
+                vertical_cuts: sourceVerticalCuts(p),
               }))
             }
           >
@@ -125,6 +115,8 @@ export default function VerticalPage() {
                 min: 1,
                 width: 75,
               },
+              { key: "min_height_m", label: "H2, m", kind: "number", min: 0, width: 65 },
+              { key: "name", label: "Sources dans cette direction", readOnly: true, width: 220 },
             ]}
             onUpdate={(id, key, value) =>
               commit((p) => ({
@@ -140,11 +132,14 @@ export default function VerticalPage() {
                       }
                     : c,
                 ),
-              }))
+              }), "Coupe modifiée — recalcul nécessaire", "stale-cuts")
             }
           />
         </div>
         <LimitSelector multiple />
+        <label><input type="checkbox" checked={project.settings.cut_add_owner ?? false} onChange={e => a.settings({ cut_add_owner: e.target.checked })}/>Ajouter le propriétaire au nom des sources</label>
+        <label><input type="checkbox" checked={project.settings.cut_use_antenna_names ?? false} onChange={e => a.settings({ cut_use_antenna_names: e.target.checked })}/>Utiliser le modèle d’antenne pour les noms des coupes</label>
+        {a.cutResultsStale && <p role="status">Paramètres modifiés. La dernière image calculée est conservée jusqu’au recalcul.</p>}
         <CalculateButton kind="vertical" />
       </section>
       <FieldPlot

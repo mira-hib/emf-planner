@@ -81,6 +81,7 @@ export interface ProjectData {
   background_image?: BackgroundImage;
   antenna_library?: StoredAntenna[];
   owner_names?: string[];
+  owner_colors?: Record<string, string>;
   custom_maps?: CustomMap[];
   terrain_contours?: TerrainContour[];
   volume_options?: VolumeOptions;
@@ -92,6 +93,7 @@ export interface ProjectData {
     layers?: Record<string, boolean>;
   };
   saved_cut_results?: {
+    stale?: boolean;
     horizontal: SavedCutResult[];
     vertical: SavedCutResult[];
   };
@@ -146,6 +148,7 @@ export interface ControlPoint {
   exposure_ratio: number | null;
   compliant: boolean | null;
   group?: string;
+  group_active?: boolean;
   location?: string;
   heights?: PointHeight[];
   description?: string;
@@ -167,6 +170,7 @@ export interface Building {
   points: [number, number][];
   active: boolean;
   visible?: boolean;
+  custom_attenuation?: boolean;
 }
 export interface TerrainPoint {
   id: string;
@@ -214,6 +218,8 @@ export interface VerticalCut {
   backward_m: number;
   forward_m: number;
   max_height_m: number;
+  min_height_m?: number;
+  name?: string;
   dimensions?: CutDimension[];
 }
 export interface LimitRow {
@@ -235,6 +241,14 @@ export interface CalculationSettings {
   site_coordinates?: [number, number];
   calculation_area_wm?: [[number, number], [number, number]];
   horizontal_grid_divisions?: [number, number];
+  vertical_grid_divisions?: [number, number];
+  worker_count?: number;
+  project_lower_cuts?: boolean;
+  merge_same_color?: boolean;
+  vertical_display?: Partial<Record<"length" | "bottom" | "maximum" | "top" | "distance" | "dimensions" | "points" | "terrain_line", boolean>>;
+  terrain_line_height_m?: number;
+  cut_use_antenna_names?: boolean;
+  cut_add_owner?: boolean;
   show_calculation_area?: boolean;
   show_origin?: boolean;
   reflection: number;
@@ -244,11 +258,15 @@ export interface CalculationSettings {
   consider_terrain: boolean;
   buildings_mode: "ignore" | "screen" | "attenuate";
   building_attenuation_db: number;
+  building_attenuation_high_db?: number;
+  building_frequency_boundary_mhz?: number;
+  point_measurement_frequency_mhz?: number;
   selected_limit: number;
   map_provider: string;
   show_basemap: boolean;
   terrain_interpolation?: "original" | "delaunay";
   coordinate_format?: "decimal" | "dms" | "dm";
+  antenna_capture_distance?: number;
   contour_width?: number;
   contour_opacity?: number;
   language?: string;
@@ -353,6 +371,7 @@ export type Section =
   | "calibrate"
   | "settings";
 export interface PointResult extends ExposureResult {
+  calculated_field?: number;
   point_id: string;
   name: string;
   height_m: number;
@@ -368,11 +387,12 @@ export interface FieldGrid {
   y0: number;
   dx: number;
   dy: number;
-  values: number[];
-  fields: number[];
+  values: number[] | Float64Array;
+  fields: number[] | Float64Array;
   height_m: number;
 }
 export interface Contour {
+  frozen_style?: boolean;
   level: number;
   color: string;
   segments: [number, number][][];

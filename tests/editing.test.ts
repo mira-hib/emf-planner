@@ -177,6 +177,7 @@ test("terrain contour vertices participate in planar height interpolation", () =
 });
 test("3D exposure isosurface converges to the analytic free-space sphere", () => {
   const p = newProject();
+  p.settings.reflection = 1; // Analytic radius fixture is defined with k=1.
   p.settings.consider_terrain = false;
   p.limits[0].rows = [{ frequency: 100000, value: 1, exponent: 0 }];
   p.sources = [

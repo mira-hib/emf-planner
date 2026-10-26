@@ -41,9 +41,13 @@ import { Tool } from "./components/Controls";
 import FeatureTools from "./components/FeatureTools";
 import AntennaTools, { ANTENNA_COMMANDS } from "./components/AntennaTools";
 import ToolDialogs from "./components/ToolDialogs";
+import GeometryDialogs from "./components/GeometryDialogs";
+import NetworkSettings, { NETWORK_COMMANDS } from "./components/NetworkSettings";
+import { GEOMETRY_COMMANDS } from "./lib/useGeometryActions";
 import VolumeTools, { VOLUME_COMMAND } from "./components/VolumeTools";
 import { ResultsDialog } from "./components/Results";
 import { mapProviders } from "./components/PlannerMap";
+import { normalizeMapProvider } from "./lib/map-providers";
 import OriginalIcon from "./components/OriginalIcon";
 import "./App.css";
 import { styledContours } from "./lib/presentation";
@@ -119,9 +123,7 @@ export default function App() {
               <button onClick={a.save}>
                 Enregistrer… <kbd>Ctrl+S</kbd>
               </button>
-              <span title="L’écriture au format binaire de l’original n’est pas encore implémentée. Utilisez .emfp.">
-                <button disabled>Enregistrer au format original .xemf</button>
-              </span>
+              <button onClick={a.saveNative}>Enregistrer au format original .xemf</button>
               <hr />
               <button
                 onClick={() =>
@@ -271,7 +273,7 @@ export default function App() {
                 )}
                 <select
                   aria-label="Fond de carte"
-                  value={p.settings.map_provider}
+                  value={normalizeMapProvider(p.settings.map_provider)}
                   onChange={(e) => a.settings({ map_provider: e.target.value })}
                 >
                   {Object.keys(mapProviders(p)).map((name) => (
@@ -307,6 +309,7 @@ export default function App() {
                     </div>
                   }
                 >
+                  {(p.settings.project_lower_cuts || p.settings.merge_same_color) && <p role="alert">Pour reconstruire les coupes en 3D, désactivez leur projection et leur fusion, puis recalculez les coupes horizontales.</p>}
                   <Scene3D
                     project={p}
                     contours={styledContours(p, a.cutResults)}
@@ -345,6 +348,10 @@ export default function App() {
             <AntennaTools key={a.command} />
           ) : a.command === VOLUME_COMMAND ? (
             <VolumeTools />
+          ) : GEOMETRY_COMMANDS.includes(a.command) ? (
+            <GeometryDialogs key={a.command} />
+          ) : NETWORK_COMMANDS.includes(a.command) ? (
+            <NetworkSettings key={a.command} />
           ) : (
             <ToolDialogs key={a.command} />
           ))}

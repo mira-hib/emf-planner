@@ -1,17 +1,20 @@
 import {
   calculatePoints,
+  calculatePointHeightRange,
   contours,
   horizontalGrid,
   verticalGrid,
 } from "./engine";
 import type { PlannerProject } from "../types";
 import { defaultVolumeOptions, volumeSurface } from "./volume";
+import { horizontalProjections } from "./cut-projection";
 self.onmessage = (
   event: MessageEvent<{
     id: number;
     kind: "points" | "horizontal" | "vertical" | "volume";
     project: PlannerProject;
     fine: boolean;
+    heightRange?: number[];
   }>,
 ) => {
   const { id, kind, project, fine } = event.data;
@@ -27,7 +30,12 @@ self.onmessage = (
       );
       self.postMessage({ id, result }, { transfer: [result.positions.buffer] });
     } else if (kind === "points")
-      self.postMessage({ id, result: calculatePoints(project) });
+      self.postMessage({
+        id,
+        result: event.data.heightRange
+          ? calculatePointHeightRange(project, event.data.heightRange)
+          : calculatePoints(project),
+      });
     else {
       const cuts =
         kind === "horizontal"
@@ -71,17 +79,25 @@ self.onmessage = (
                   p,
                   cut as Parameters<typeof verticalGrid>[1],
                   step,
+                  (p.settings.vertical_grid_divisions ?? p.settings.horizontal_grid_divisions)?.[fine ? 1 : 0],
                 );
           return {
             id: `${cut.id}:${limitIndex}`,
             cut_id: cut.id,
             limit_index: limitIndex,
             grid,
-            contours: contours(grid, 1, p.limits[limitIndex].color),
+            contours: { ...contours(grid, 1, kind === "horizontal" && limitProjects.length === 1 ? (cut as { color: string }).color : p.limits[limitIndex].color),
+              line_style: kind === "horizontal" ? (cut as { line_style?: string }).line_style : undefined,
+              frozen_style: true },
+            // The last rendered image keeps its appearance until an explicit calculation.
           };
         },
       );
-      self.postMessage({ id, result });
+      const output = kind === "horizontal" ? horizontalProjections(project, result) : result;
+      const transfer: Transferable[] = [];
+      for (const item of output) for (const data of [item.grid.values, item.grid.fields])
+        if (data instanceof Float64Array) transfer.push(data.buffer);
+      self.postMessage({ id, result: output }, { transfer });
     }
   } catch (error) {
     self.postMessage({

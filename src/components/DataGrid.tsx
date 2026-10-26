@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { decimalInput } from "../lib/numeric-input";
 import {
   formatCoordinate,
   parseCoordinate,
@@ -14,6 +15,7 @@ export interface Column<T> {
   max?: number;
   minExclusive?: number;
   maxExclusive?: number;
+  integer?: "floor";
   readOnly?: boolean;
   format?: (row: T) => string;
   editValue?: (row: T) => unknown;
@@ -61,8 +63,9 @@ function Cell({
         v =
           coordinateFormat && (column.key === "lat" || column.key === "lng")
             ? parseCoordinate(text, column.key === "lat")
-            : Number(text.trim().replace(",", "."));
+            : decimalInput(text);
       } catch {
+        setText(formatted);
         setInvalid(true);
         return;
       }
@@ -74,9 +77,11 @@ function Cell({
         (column.minExclusive !== undefined && v <= column.minExclusive) ||
         (column.maxExclusive !== undefined && v >= column.maxExclusive)
       ) {
+        setText(formatted);
         setInvalid(true);
         return;
       }
+      if (column.integer === "floor") { v = Math.floor(v); setText(String(v)); }
       onCommit(v);
     } else onCommit(text);
   }
@@ -142,6 +147,12 @@ export default function DataGrid<T extends { id: string }>({
   onDeleteSelection,
   onCopySelection,
   onPasteSelection,
+  selectCells = false,
+  onReorderColumns,
+  onPasteCells,
+  onCellDoubleClick,
+  onColumnClick,
+  onResizeColumn,
 }: {
   rows: T[];
   columns: Column<T>[];
@@ -157,9 +168,55 @@ export default function DataGrid<T extends { id: string }>({
   onDeleteSelection?: () => void;
   onCopySelection?: () => void;
   onPasteSelection?: () => void;
+  selectCells?: boolean;
+  onReorderColumns?: (keys: (keyof T)[]) => void;
+  onPasteCells?: (text: string, rowId: string | undefined, key: keyof T) => void;
+  onCellDoubleClick?: (id: string, key: keyof T) => void;
+  onColumnClick?: (key: keyof T) => boolean;
+  onResizeColumn?: (key: keyof T, width: number) => void;
 }) {
   const anchor = useRef<string | null>(null);
+  const cellAnchor = useRef<{ id: string; key: keyof T } | null>(null);
+  const [cells, setCells] = useState<{ id: string; key: keyof T }[]>([]);
+  const draggedColumn = useRef<keyof T | null>(null);
+  const focusedCell = useRef<{ id?: string; key: keyof T } | null>(null);
+  function selectCell(id: string, key: keyof T, event: React.MouseEvent) {
+    if (!selectCells) return;
+    focusedCell.current = { id, key };
+    event.stopPropagation();
+    if (
+      !event.ctrlKey &&
+      !event.metaKey &&
+      !event.shiftKey &&
+      selectedIds?.includes(id) &&
+      selectedIds.length > 1
+    )
+      return;
+    let next = [{ id, key }];
+    if (event.shiftKey && cellAnchor.current) {
+      const a = rows.findIndex((r) => r.id === cellAnchor.current!.id),
+        b = rows.findIndex((r) => r.id === id);
+      const c = columns.findIndex((v) => v.key === cellAnchor.current!.key),
+        d = columns.findIndex((v) => v.key === key);
+      next = rows
+        .slice(Math.min(a, b), Math.max(a, b) + 1)
+        .flatMap((r) =>
+          columns
+            .slice(Math.min(c, d), Math.max(c, d) + 1)
+            .map((v) => ({ id: r.id, key: v.key })),
+        );
+    } else if (event.ctrlKey || event.metaKey) {
+      next = cells.some((c) => c.id === id && c.key === key)
+        ? cells.filter((c) => c.id !== id || c.key !== key)
+        : [...cells, { id, key }];
+      cellAnchor.current = { id, key };
+    } else if (cells.some((c) => c.id === id && c.key === key)) next = cells;
+    else cellAnchor.current = { id, key };
+    setCells(next);
+    onSelectionChange?.([], id);
+  }
   function selectRow(id: string, event: React.MouseEvent) {
+    if (selectCells) setCells([]);
     if (!onSelectionChange) {
       onSelect?.(id);
       return;
@@ -191,7 +248,21 @@ export default function DataGrid<T extends { id: string }>({
       role="region"
       aria-label={label}
       tabIndex={0}
+      onPaste={(event) => {
+        if (!onPasteCells || !columns.length) return;
+        const text = event.clipboardData.getData("text/plain");
+        if (!text) return;
+        event.preventDefault();
+        const target = focusedCell.current ?? { id: selected, key: columns.find((c) => !c.readOnly && c.kind !== "boolean")?.key ?? columns[0].key };
+        onPasteCells(text, target.id, target.key);
+      }}
       onKeyDown={(event) => {
+        if (event.shiftKey && event.key === "Insert" && onPasteCells && navigator.clipboard?.readText) {
+          event.preventDefault();
+          const target = focusedCell.current ?? { id: selected, key: columns.find((c) => !c.readOnly && c.kind !== "boolean")?.key ?? columns[0].key };
+          void navigator.clipboard.readText().then((text) => onPasteCells(text, target.id, target.key));
+          return;
+        }
         if (
           !onSelectionChange ||
           event.target instanceof HTMLInputElement ||
@@ -227,7 +298,7 @@ export default function DataGrid<T extends { id: string }>({
         if (
           (event.ctrlKey || event.metaKey) &&
           event.key.toLowerCase() === "v" &&
-          onPasteSelection
+          onPasteSelection && !onPasteCells
         ) {
           event.preventDefault();
           onPasteSelection();
@@ -245,7 +316,44 @@ export default function DataGrid<T extends { id: string }>({
           <tr>
             <th aria-label="Numéro" />
             {columns.map((c) => (
-              <th key={String(c.key)}>{c.label}</th>
+              <th
+                key={String(c.key)}
+                draggable={!!onReorderColumns}
+                onDragStart={() => {
+                  draggedColumn.current = c.key;
+                }}
+                onDragOver={(event) => {
+                  if (onReorderColumns) event.preventDefault();
+                }}
+                onDrop={(event) => {
+                  if (!onReorderColumns || draggedColumn.current === null)
+                    return;
+                  event.preventDefault();
+                  const keys = columns.map((v) => v.key),
+                    from = keys.indexOf(draggedColumn.current),
+                    to = keys.indexOf(c.key);
+                  keys.splice(to, 0, ...keys.splice(from, 1));
+                  draggedColumn.current = null;
+                  onReorderColumns(keys);
+                }}
+                onClick={() => {
+                  focusedCell.current = { key: c.key };
+                  if (onColumnClick?.(c.key)) return;
+                  if (!selectCells) return;
+                  setCells(rows.map((r) => ({ id: r.id, key: c.key })));
+                  if (rows.length)
+                    onSelectionChange?.([], selected ?? rows[0].id);
+                }}
+              >
+                {c.label}
+                {onResizeColumn && <span role="separator" aria-label={`Largeur ${c.label}`} style={{ float: "right", cursor: "col-resize", width: 6, height: "100%" }} onClick={(event) => event.stopPropagation()} onPointerDown={(event) => {
+                  event.stopPropagation(); event.preventDefault();
+                  const start = event.clientX, width = c.width ?? 90;
+                  const move = (e: PointerEvent) => onResizeColumn(c.key, Math.max(24, width + e.clientX - start));
+                  const stop = () => { window.removeEventListener("pointermove", move); window.removeEventListener("pointerup", stop); };
+                  window.addEventListener("pointermove", move); window.addEventListener("pointerup", stop);
+                }}>│</span>}
+              </th>
             ))}
           </tr>
         </thead>
@@ -261,12 +369,13 @@ export default function DataGrid<T extends { id: string }>({
               aria-selected={
                 selectedIds ? selectedIds.includes(r.id) : selected === r.id
               }
+              data-current={selected === r.id || undefined}
               onClick={(event) => selectRow(r.id, event)}
               style={{
                 background: (r as { color?: string }).color?.match(
                   /^#[0-9a-f]{6}$/i,
                 )
-                  ? `${(r as { color?: string }).color}${label === "Sources rayonnantes" ? "" : "35"}`
+                  ? `${(r as { color?: string }).color}${label === "Sources rayonnantes" || label === "Positions des antennes" ? "" : "35"}`
                   : undefined,
               }}
             >
@@ -281,16 +390,29 @@ export default function DataGrid<T extends { id: string }>({
                 onClick={(event) => {
                   if (!onSelectionChange) return;
                   event.stopPropagation();
+                  if (selectCells) setCells([]);
                   if (!event.ctrlKey && !event.metaKey && !event.shiftKey) {
                     anchor.current = r.id;
                     onSelectionChange([r.id], r.id);
                   } else selectRow(r.id, event);
                 }}
               >
-                {String(i + 1).padStart(3, "0")}
+                {selected === r.id && selectCells ? "▶" : String(i + 1).padStart(3, "0")}
               </th>
               {columns.map((c) => (
-                <td key={String(c.key)}>
+                <td
+                  key={String(c.key)}
+                  aria-selected={
+                    selectCells
+                      ? cells.some(
+                          (cell) => cell.id === r.id && cell.key === c.key,
+                        )
+                      : undefined
+                  }
+                  onClick={(event) => selectCell(r.id, c.key, event)}
+                  onFocus={() => { focusedCell.current = { id: r.id, key: c.key }; }}
+                  onDoubleClick={() => onCellDoubleClick?.(r.id, c.key)}
+                >
                   {c.readOnly || !onUpdate ? (
                     <span>
                       {c.format ? c.format(r) : String(r[c.key] ?? "")}
@@ -305,7 +427,21 @@ export default function DataGrid<T extends { id: string }>({
                       onCommit={(value) => {
                         const parsed = c.parse ? c.parse(value) : value;
                         if (parsed !== r[c.key]) {
-                          if (onUpdateMany && selectedIds?.includes(r.id))
+                          if (
+                            selectCells &&
+                            onUpdateMany &&
+                            cells.some(
+                              (cell) => cell.id === r.id && cell.key === c.key,
+                            )
+                          )
+                            onUpdateMany(
+                              cells
+                                .filter((cell) => cell.key === c.key)
+                                .map((cell) => cell.id),
+                              c.key,
+                              parsed,
+                            );
+                          else if (onUpdateMany && selectedIds?.includes(r.id))
                             onUpdateMany(selectedIds, c.key, parsed);
                           else onUpdate(r.id, c.key, parsed);
                         }

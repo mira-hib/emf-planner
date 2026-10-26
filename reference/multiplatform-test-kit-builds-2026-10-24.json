@@ -1,0 +1,148 @@
+{
+  "completed_at_utc": "2026-10-24T23:45:10.663501+00:00",
+  "folder": "D:\\projet perso\\emf-planner\\test validation\\2026-10-24",
+  "archive": "D:\\projet perso\\emf-planner\\test validation\\emf-planner-builds-test-kit-2026-10-24.zip",
+  "archive_bytes": 467712551,
+  "archive_sha256": "0e2ebacb61b080f06ce1849149470ff16dacd953df85700dcb7e948e54012be8",
+  "source": {
+    "branch": "build-validation/20261024-231920",
+    "commit": "ab6495c3d8048531605b0be2abd5e97189aa00bb",
+    "tree": "d28efdbf9c94f11b5e43c57d36ad959c661f3dc6",
+    "parent": "a80d0f17de3e3104318954159270b21fe14f27eb",
+    "repo": "mira-hib/emf-planner",
+    "scope": "Temporary build branch; main and the real index were not changed."
+  },
+  "workflow": {
+    "html_url": "https://github.com/mira-hib/emf-planner/actions/runs/40142361384",
+    "status": "completed",
+    "conclusion": "success"
+  },
+  "platforms": [
+    {
+      "platform": "Windows-x64",
+      "status": "passed",
+      "unit_tests": {
+        "tests": 78,
+        "failures": 0,
+        "errors": 0
+      },
+      "browser_tests": {
+        "startTime": "2026-10-24T23:22:01.029Z",
+        "duration": 58367.373,
+        "expected": 9,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "failed_steps": [],
+      "artifact_source": "remote/Windows-x64"
+    },
+    {
+      "platform": "Windows-arm64",
+      "status": "passed",
+      "unit_tests": {
+        "tests": 78,
+        "failures": 0,
+        "errors": 0
+      },
+      "browser_tests": {
+        "startTime": "2026-10-24T23:24:49.196Z",
+        "duration": 149650.37900000002,
+        "expected": 9,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "failed_steps": [],
+      "artifact_source": "remote/Windows-arm64"
+    },
+    {
+      "platform": "Linux-x64",
+      "status": "passed",
+      "unit_tests": {
+        "tests": 78,
+        "failures": 0,
+        "errors": 0
+      },
+      "browser_tests": {
+        "startTime": "2026-10-24T23:22:31.201Z",
+        "duration": 59503.993,
+        "expected": 9,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "failed_steps": [],
+      "artifact_source": "remote/Linux-x64"
+    },
+    {
+      "platform": "Linux-arm64",
+      "status": "passed",
+      "unit_tests": {
+        "tests": 78,
+        "failures": 0,
+        "errors": 0
+      },
+      "browser_tests": {
+        "startTime": "2026-10-24T23:22:21.047Z",
+        "duration": 52214.842,
+        "expected": 9,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "failed_steps": [],
+      "artifact_source": "remote/Linux-arm64"
+    },
+    {
+      "platform": "macOS-x64",
+      "status": "passed",
+      "unit_tests": {
+        "tests": 78,
+        "failures": 0,
+        "errors": 0
+      },
+      "browser_tests": {
+        "startTime": "2026-10-24T23:21:55.620Z",
+        "duration": 92122.107,
+        "expected": 9,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "failed_steps": [],
+      "artifact_source": "remote/macOS-x64"
+    },
+    {
+      "platform": "macOS-arm64",
+      "status": "passed",
+      "unit_tests": {
+        "tests": 78,
+        "failures": 0,
+        "errors": 0
+      },
+      "browser_tests": {
+        "startTime": "2026-10-24T23:21:45.386Z",
+        "duration": 80782.68900000001,
+        "expected": 9,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "failed_steps": [],
+      "artifact_source": "remote/macOS-arm64"
+    }
+  ],
+  "test_scope": "test/emf_test_kit only; tests/test-kit.test.ts and tests/browser/test-kit.spec.ts",
+  "scenario_inventory": {
+    "total": 216,
+    "partial": 65,
+    "not_run": 151
+  },
+  "static_checks": 27,
+  "static_checks_passed": true,
+  "archived_files_checked_against_manifest": 2732,
+  "global_zip_crc": "passed",
+  "native_installers_executed": false,
+  "release_published": false
+}

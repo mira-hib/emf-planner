@@ -23,8 +23,8 @@ export function sourceAntenna(source?: RadiatingSource) {
   return {
     name: source?.antenna_model || "Nouveau diagramme",
     gain: source?.gain_dbi ?? 16,
-    horizontal: samples(source?.pattern_h, source?.beam_width_h_deg ?? 65),
-    vertical: samples(source?.pattern_v, source?.beam_width_v_deg ?? 10),
+    horizontal: samples(source?.pattern_h, 65),
+    vertical: samples(source?.pattern_v, 10),
   };
 }
 
@@ -34,6 +34,8 @@ export function parseMsi(text: string): {
   horizontal: number[];
   vertical: number[];
 } {
+  if (text.length > 10_000_000)
+    throw new Error("Le fichier MSI dépasse 10 Mo.");
   const lines = text
     .replace(/\r/g, "")
     .split("\n")
@@ -46,7 +48,7 @@ export function parseMsi(text: string): {
   const gainMatch = gainLine?.match(
     /^GAIN\s+([+-]?(?:\d+(?:[.,]\d*)?|[.,]\d+)(?:e[+-]?\d+)?)\s*(?:\(?\s*(dBi|dBd)\s*\)?)?\s*$/i,
   );
-  if (gainLine && !gainMatch) throw new Error("Gain MSI invalide.");
+  if (!gainLine || !gainMatch) throw new Error("Gain MSI absent ou invalide.");
   const gain = gainMatch
     ? Number(gainMatch[1].replace(",", ".")) +
       (gainMatch[2]?.toLowerCase() === "dbd" ? 2.15 : 0)
@@ -68,10 +70,17 @@ export function parseMsi(text: string): {
       rawPoints.some((p) => p.length !== 2 || !p.every(Number.isFinite))
     )
       throw new Error("Diagramme MSI tronqué ou invalide.");
+    const following = lines[start + 1 + n];
+    if (following && /^[+-]?(?:\d|\.)/.test(following))
+      throw new Error(
+        `Le plan ${key} contient plus de points que le nombre déclaré.`,
+      );
     const unique = new Map<number, number>();
     for (const [angle, value] of rawPoints) {
       const normalizedAngle = ((angle % 360) + 360) % 360;
       const loss = Math.abs(value);
+      if (loss > 300)
+        throw new Error("Atténuation MSI hors limites (300 dB maximum).");
       if (unique.has(normalizedAngle) && unique.get(normalizedAngle) !== loss)
         throw new Error("Plusieurs atténuations pour le même angle MSI.");
       unique.set(normalizedAngle, loss);
