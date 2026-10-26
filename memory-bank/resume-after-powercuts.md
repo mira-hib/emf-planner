@@ -102,16 +102,22 @@ Les PIDs et anciens handles ne sont pas réutilisables après une nouvelle coupu
 
 ## Travail supplémentaire après la livraison e0a3816
 
-26 octobre : sauvegarde native `.xemf` implémentée. Cinq tests ciblés et deux
-parcours navigateur passent ; régression complète **242/242** réussie.
+26 octobre : sauvegarde native `.xemf` implémentée. Sept tests ciblés et deux
+parcours navigateur passent ; régression complète **244/244** réussie.
 Interopérabilité vérifiée avec les types de données originaux sous .NET
 Framework, y compris Bitmap/alias/couleurs, réenregistrement .NET et réimport.
 Résultat `test validation/2026-10-26/xemf-interop/result.json`.
 Fichier Fichier → Enregistrer au format original .xemf maintenant activé.
 Source/méthode/limites : `reference/native-project-save-2026-10-26.md`.
 Preuve conservée dans `reference/rea-xemf-write-evidence.json`.
-Lancer la campagne six cibles du 26 octobre et collecter ses résultats ; ne pas
-présenter cette implémentation comme déjà livrée dans les builds e0a3816 du 25.
+Campagne six cibles du 26 en cours, branche `build-validation/20261026-native-project`.
+Le premier snapshot `0af9e2e0902037a1ec45765ba466c7a7077b6cc2` est remplacé par
+le dernier snapshot incluant les bornes de limites et images volumineuses.
+Suivre `test validation/2026-10-26/github-run.json` et `.tools/sync-validation-ci.py`.
+Régression complète navigateur en cours : session 11236, log `.tools/full-browser-native.log`,
+serveur de preview propre sur 1437 ; snapshot `.tools/kit-preview-native`.
+Ne pas présenter cette implémentation comme déjà livrée dans les builds e0a3816 du 25.
+Index du guide : **154 références partielles / 62 sans référence**, pas 216 validations.
 
 ## ROB-05
 

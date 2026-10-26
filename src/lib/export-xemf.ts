@@ -2,6 +2,7 @@ import type { PlannerProject, SavedCutResult } from "../types";
 import { toGeo, rad, terrainHeight } from "./geometry";
 import { patternAmplitude } from "./engine";
 import { validateRasterDimensions } from "./raster-validation";
+import { completeLimit, NATIVE_FALLBACK_LIMIT } from "./limits";
 import { writeNativeRecords, type NativeRecord } from "./write-nrbf";
 
 const colour = (hex = "#000000") => ({
@@ -74,18 +75,51 @@ export function nativeProjectRecords(
     [area.x_min, area.y_min],
     [area.x_max, area.y_max],
   ];
-  const frequencies = [
-    ...new Set(p.limits.flatMap((l) => l.rows.map((r) => r.frequency))),
-  ].sort((a, b) => a - b);
-  const limits = frequencies.map((Freq) => ({
+  const firstRows = p.limits[0]?.rows ?? [];
+  const shared = p.limits.every(
+    (l) =>
+      l.rows.length === firstRows.length &&
+      l.rows.every((r, i) => r.frequency === firstRows[i].frequency),
+  );
+  const frequencies = shared
+    ? firstRows.map((r) => r.frequency)
+    : [
+        ...new Set([
+          10,
+          ...p.limits.flatMap((l) => l.rows.map((r) => r.frequency)),
+        ]),
+      ].sort((a, b) => a - b);
+  const limits = frequencies.map((Freq, rowIndex) => ({
     Freq,
     ...Object.fromEntries(
       ["E", "A"].map((field) => [
         field,
         four((i) => {
-          const rows = p.limits[i]?.rows;
-          const row =
-            rows?.find((r) => r.frequency >= Freq) ?? rows?.[rows.length - 1];
+          const limit = p.limits[i],
+            rows = limit?.rows;
+          let row = shared ? rows?.[rowIndex] : undefined;
+          if (!shared && limit) {
+            if (!completeLimit(limit)) return -999;
+            const lower = rows[0].frequency > 10 ? 10 : rows[0].frequency;
+            const probe =
+              (Freq +
+                (rowIndex ? frequencies[rowIndex - 1] : Math.min(Freq, 10))) /
+              2;
+            let previous = lower;
+            for (let j = rows[0].frequency > 10 ? 0 : 1; j < rows.length; j++) {
+              if (probe > previous && probe <= rows[j].frequency) {
+                row = rows[j];
+                break;
+              }
+              previous = rows[j].frequency;
+            }
+            if (!row)
+              row = {
+                frequency: Freq,
+                value: NATIVE_FALLBACK_LIMIT,
+                exponent: 0,
+              };
+          }
           return row ? (field === "E" ? row.value : row.exponent) : -999;
         }),
       ]),

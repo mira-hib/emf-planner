@@ -162,11 +162,7 @@ export function writeNativeRecords(root: NativeRecord): Uint8Array {
     }
     if (type.endsWith("[]") || type.endsWith("[,]")) {
       const element = type.slice(0, type.endsWith("[,]") ? -3 : -2);
-      const array = Array.isArray(v)
-        ? v
-        : v instanceof Uint8Array
-          ? Array.from(v)
-          : [];
+      const array = Array.isArray(v) || v instanceof Uint8Array ? v : [];
       if (type.endsWith("[,]")) {
         const rows = array as unknown[][],
           width = rows[0]?.length ?? 2;
@@ -185,7 +181,11 @@ export function writeNativeRecords(root: NativeRecord): Uint8Array {
         i32(referencedId!);
         i32(array.length);
         u8(primitives[element]);
-        for (const item of array) primitive(element, item);
+        if (element === "byte" && array instanceof Uint8Array) {
+          ensure(array.length);
+          data.set(array, pos);
+          pos += array.length;
+        } else for (const item of array) primitive(element, item);
       } else {
         u8(7);
         i32(referencedId!);

@@ -174,3 +174,45 @@ test("PRJ-02: native writer rejects values outside native numeric field ranges",
   ];
   assert.throws(() => exportXemf(p), /hors limites/);
 });
+
+test("PRJ-01 MET-03: exporting independent limit frequency intervals preserves their uncovered-frequency fallback", () => {
+  const p = newProject();
+  p.limits[0].rows = [
+    { frequency: 100, value: 2, exponent: 0.5 },
+    { frequency: 500, value: 20, exponent: 0 },
+  ];
+  p.limits[1].rows = [
+    { frequency: 1, value: 3, exponent: 0 },
+    { frequency: 50, value: 4, exponent: 0 },
+    { frequency: 2000, value: 5, exponent: 0 },
+  ];
+  p.limits[2].rows = [{ frequency: 1000, value: -999, exponent: 0 }];
+  const bytes = exportXemf(p),
+    native = importXemf(bytes.buffer, "limits.xemf");
+  for (let i = 0; i < 4; i++)
+    for (const f of [
+      0.5, 1, 9, 10, 10.01, 50, 50.01, 100, 100.01, 400, 500, 500.1, 1000, 2000,
+      5000, 1000001,
+    ]) {
+      const expected = nativeLimitAt(p.limits[i], f),
+        actual = nativeLimitAt(native.limits[i], f);
+      assert.ok(
+        Math.abs(actual - expected) / Math.max(1, expected) < 1e-6,
+        `${i} at ${f} MHz: ${actual} vs ${expected}`,
+      );
+    }
+});
+
+test("CAL-10 ROB-02: packed image bytes can exceed the object-array count limit without allocating millions of boxed primitives", () => {
+  const data = new Uint8Array(2_100_000);
+  data[0] = 17;
+  data[data.length - 1] = 255;
+  const bytes = writeNativeRecords({ RPL: { BTM: { Data: data } } });
+  const parsed = readNrbf(bytes.buffer),
+    obj = (v: unknown) => parsed.deref(v) as Record<string, unknown>;
+  const saved = parsed.deref(obj(obj(parsed.root.RPL).BTM).Data);
+  assert.ok(saved instanceof Uint8Array);
+  assert.equal(saved.length, data.length);
+  assert.equal(saved[0], 17);
+  assert.equal(saved[saved.length - 1], 255);
+});

@@ -123,7 +123,12 @@ def main():
     text += f"Les {inventory['partially_covered_scenarios']} scénarios liés aux suites ne sont couverts que partiellement ; les {inventory['total_scenarios'] - inventory['partially_covered_scenarios']} autres ne sont pas déclarés validés. Les 1 800 références CalcPPE concernent une méthode isolée de l’original et non son pipeline complet.\n\n"
     text += 'Builds de validation : les installateurs Windows ne sont pas signés ; les applications macOS ne sont pas notariées. Les tests d’interface pilotent la version navigateur du clone, pas les installateurs natifs. Aucun installateur n’est exécuté automatiquement. Android/iOS ne sont pas configurés dans ce projet desktop.\n\n'
     text += 'Sur macOS, utiliser le DMG ou le ZIP APP produit sur le runner, qui conserve les permissions. Sur Linux, rendre le binaire/AppImage exécutable si nécessaire (`chmod +x fichier.AppImage`). Le web se sert avec un serveur HTTP, pas en ouvrant directement le fichier HTML.\n\n'
-    text += 'La charge ROB-05 complète est conservée dans `test-kit/ROB-05-CI/`, sa reprise locale dans `test-kit/ROB-05-Windows-local/` et le parcours réel dans l’application dans `test-kit/ROB-05-browser-local/`. Ce dernier a calculé puis sauvegardé ses 50 grilles.\n\n'
+    if (output / 'test-kit/ROB-05-CI').exists():
+        text += 'La charge ROB-05 complète de cette campagne est conservée dans `test-kit/ROB-05-CI/`.\n\n'
+    if (output / 'test-kit/ROB-05-browser-local').exists():
+        text += 'Le parcours réel dans l’application, `test-kit/ROB-05-browser-local/`, a calculé puis sauvegardé ses 50 grilles.\n\n'
+    if (output / 'test-kit/xemf-interop').exists():
+        text += 'La vérification .NET indépendante de la sauvegarde native est dans `test-kit/xemf-interop/` ; les parcours locaux de sauvegarde sont dans `test-kit/native-project-ui/`. La portée exacte est détaillée dans `test-kit/reference/native-project-save-2026-10-26.md`.\n\n'
     text += 'L’audit des écarts et vérifications restantes est dans `test-kit/reference/test-kit-full-audit-2026-10-25.md`. Le succès des suites ne signifie pas que les 216 scénarios du guide sont intégralement validés.\n\n'
     if status.get('html_url'):
         text += f"[Campagne GitHub Actions]({status['html_url']}) — branche `{source.get('branch')}`, commit `{source.get('commit')}`. `main` et l’index de travail initial sont conservés.\n"
