@@ -48,7 +48,7 @@ script = """
 import { readFileSync } from 'node:fs';
 import { readProject } from './src/lib/files.ts';
 const p=readProject('native-resaved.xemf',new Uint8Array(readFileSync(process.argv[1])));
-if(p.sources[0].name!=='Source — العربية 漢字'||p.sources[0].color!=='#123456'||!p.background_image||p.report_aliases['{Client}']!=='A&B <é> 😀')throw new Error('Native re-save lost data');
+if(p.sources[0].name!=='Source — العربية 漢字'||p.sources[0].color!=='#123456'||!p.background_image||p.report_aliases.Client!=='A&B <é> 😀')throw new Error('Native re-save lost data');
 console.log(JSON.stringify({sources:p.sources.length,image:true,aliases:p.report_aliases}));
 """
 run('clone-reader-after-native-resave', ['node', '--import', 'tsx', '--input-type=module', '-e', script, output / 'native-resaved.xemf'])

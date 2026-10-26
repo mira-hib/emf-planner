@@ -852,8 +852,11 @@
       "id": "CAL-07",
       "priority": "P2",
       "guide": "tests_b.tex",
-      "status": "not-run-by-kit-suite",
-      "tests": []
+      "status": "partial-automated-coverage",
+      "tests": [
+        "tests/test-kit-project-native.test.ts",
+        "tests/browser/test-kit-project-native.spec.ts"
+      ]
     },
     {
       "id": "CAL-08",
@@ -875,11 +878,8 @@
       "id": "CAL-10",
       "priority": "P3",
       "guide": "tests_b.tex",
-      "status": "partial-automated-coverage",
-      "tests": [
-        "tests/test-kit-project-native.test.ts",
-        "tests/browser/test-kit-project-native.spec.ts"
-      ]
+      "status": "not-run-by-kit-suite",
+      "tests": []
     },
     {
       "id": "CAL-11",
@@ -1716,6 +1716,7 @@
       "status": "partial-automated-coverage",
       "tests": [
         "tests/test-kit-calculation-full.test.ts",
+        "tests/test-kit-project-native.test.ts",
         "tests/test-kit.test.ts",
         "tests/browser/test-kit.spec.ts"
       ]

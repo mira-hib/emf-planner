@@ -20,7 +20,7 @@ p.sources = [
     color: "#123456",
   },
 ];
-p.report_aliases = { "{Client}": "A&B <é> 😀", "{Projet}": "Test natif" };
+p.report_aliases = { Client: "A&B <é> 😀", Projet: "Test natif" };
 p.settings.buildings_mode = "screen";
 p.lines.push({
   id: "label",

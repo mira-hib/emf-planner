@@ -12,7 +12,7 @@ import { nativeLimitAt } from "../src/lib/limits";
 const pngBase64 =
   "iVBORw0KGgoAAAANSUhEUgAAAAIAAAABCAYAAAD0In+KAAAABGdBTUEAALGPC/xhBQAAAAlwSFlzAAAOwgAADsIBFShKgAAAAA5JREFUGFdj+M/AAEL/AQ/5A/3z4h1AAAAAAElFTkSuQmCC";
 
-test("PRJ-01 CAL-10 ROB-01: native .xemf preserves the entire model and exact Unicode; checked extension detects corruption", () => {
+test("PRJ-01 PRJ-02 CAL-07 ROB-01: native .xemf preserves the entire model and exact Unicode; checked extension detects corruption", () => {
   const p = newProject();
   p.name = "Projet é 漢字 😀";
   p.sources = [
@@ -68,7 +68,7 @@ test("PRJ-01: native core contains real typed settings, source patterns, colours
       ],
     },
   ];
-  p.report_aliases = { "{Nom}": "Littéral & <é>" };
+  p.report_aliases = { Nom: "Littéral & <é>" };
   const bytes = exportXemf(p),
     parsed = readNrbf(bytes.buffer);
   assert.equal(parsed.root.__type, "EMFPlanner.Public2+Project");
@@ -90,7 +90,7 @@ test("PRJ-01: native core contains real typed settings, source patterns, colours
     );
 });
 
-test("CAL-10 PRJ-01: data-only reader imports a Bitmap and calibrated bounds from a genuine native core", () => {
+test("CAL-07 PRJ-01: data-only reader imports a Bitmap and calibrated bounds from a genuine native core", () => {
   const png = Uint8Array.from(
     Buffer.from(
       "iVBORw0KGgoAAAANSUhEUgAAAAIAAAABCAYAAAD0In+KAAAABGdBTUEAALGPC/xhBQAAAAlwSFlzAAAOwgAADsIBFShKgAAAAA5JREFUGFdj+M/AAEL/AQ/5A/3z4h1AAAAAAElFTkSuQmCC",
@@ -153,7 +153,7 @@ test("PRJ-01 PRJ-04: native sample cut contours survive native-core export and i
   compare("vertical");
 });
 
-test("PRJ-02: native writer rejects values outside native numeric field ranges", () => {
+test("Native .xemf writer rejects values outside native numeric field ranges", () => {
   assert.throws(
     () => writeNativeRecords({ SETT: { ZOOM: Infinity } }),
     /invalide/,
@@ -175,7 +175,28 @@ test("PRJ-02: native writer rejects values outside native numeric field ranges",
   assert.throws(() => exportXemf(p), /hors limites/);
 });
 
-test("PRJ-01 MET-03: exporting independent limit frequency intervals preserves their uncovered-frequency fallback", () => {
+test("PRJ-01: native aliases retain one pair of braces and the same effective values as Word", () => {
+  const p = newProject();
+  p.report_aliases = { Client: "ancien", ProjectOnly: "conservé" };
+  p.settings.report_aliases = { Client: "valeur effective" };
+  const bytes = exportXemf(p),
+    native = importXemf(bytes.buffer, "aliases.xemf");
+  assert.deepEqual(native.report_aliases, {
+    Client: "valeur effective",
+    ProjectOnly: "conservé",
+  });
+  const parsed = readNrbf(bytes.buffer),
+    settings = parsed.deref(parsed.root.SETT) as Record<string, unknown>;
+  const entries = parsed.deref(settings.ALS) as string[];
+  assert.equal(entries[0], "{Client}");
+  assert.equal(entries[1], "{ProjectOnly}");
+  const defaults = exportXemf(newProject()),
+    defaultProject = importXemf(defaults.buffer, "new.xemf");
+  assert.equal(defaultProject.report_aliases?.ProjectCode, "ProjectCode");
+  assert.equal(Object.keys(defaultProject.report_aliases!).length, 6);
+});
+
+test("PRJ-01: exporting independent limit frequency intervals preserves their uncovered-frequency fallback", () => {
   const p = newProject();
   p.limits[0].rows = [
     { frequency: 100, value: 2, exponent: 0.5 },
@@ -203,7 +224,7 @@ test("PRJ-01 MET-03: exporting independent limit frequency intervals preserves t
     }
 });
 
-test("CAL-10 ROB-02: packed image bytes can exceed the object-array count limit without allocating millions of boxed primitives", () => {
+test("CAL-07 ROB-02: packed image bytes can exceed the object-array count limit without allocating millions of boxed primitives", () => {
   const data = new Uint8Array(2_100_000);
   data[0] = 17;
   data[data.length - 1] = 255;

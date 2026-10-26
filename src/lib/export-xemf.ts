@@ -3,6 +3,7 @@ import { toGeo, rad, terrainHeight } from "./geometry";
 import { patternAmplitude } from "./engine";
 import { validateRasterDimensions } from "./raster-validation";
 import { completeLimit, NATIVE_FALLBACK_LIMIT } from "./limits";
+import { DEFAULT_REPORT_ALIASES } from "./report-content";
 import { writeNativeRecords, type NativeRecord } from "./write-nrbf";
 
 const colour = (hex = "#000000") => ({
@@ -134,7 +135,11 @@ export function nativeProjectRecords(
     ...new Set(p.control_points.map((c) => c.group ?? "Groupe 1")),
   ];
   if (!groups.length) groups.push("Groupe 1");
-  const aliases = Object.entries({ ...s.report_aliases, ...p.report_aliases });
+  const aliases = Object.entries(
+    p.report_aliases || s.report_aliases
+      ? { ...p.report_aliases, ...s.report_aliases }
+      : DEFAULT_REPORT_ALIASES(),
+  ).map(([key, value]) => [`{${key.replace(/^\{|\}$/g, "")}}`, value]);
   const centre = wm(p.map_center),
     zoom = Math.max(1, Math.min(22, Math.round(p.map_zoom))),
     pixels = 256 * 2 ** zoom;

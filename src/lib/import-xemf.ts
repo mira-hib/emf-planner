@@ -356,7 +356,7 @@ export function importXemf(buffer: ArrayBuffer, name: string): PlannerProject {
       aliases
         .slice(0, aliasCount)
         .map((key, i) => [
-          String(key ?? ""),
+          String(key ?? "").replace(/^\{|\}$/g, ""),
           String(aliases[i + aliasCount] ?? ""),
         ]),
     );

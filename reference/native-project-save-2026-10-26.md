@@ -32,13 +32,24 @@ La réimportation utilise alors les données et la précision du format natif.
   Commande : `scripts/validate-xemf-interop.py --assembly <assemblage> --output <dossier>`.
   Le helper accepte uniquement les données générées par ce workflow ; il ne
   sert pas de lecteur de fichiers utilisateurs non fiables.
-- Sept tests de code ciblés : précision et intégrité du fichier, structures
+- Huit tests de code ciblés : précision et intégrité du fichier, structures
   natives, image et emprise, contours H/V de Castelfranco, bornes des types,
-  intervalles de limites indépendants et tableaux d'image supérieurs à 2 Mo.
+  intervalles de limites indépendants, tableaux d'image supérieurs à 2 Mo,
+  valeurs effectives des alias et accolades uniques dans le format original.
 - Deux parcours réels du navigateur : menu, téléchargement binaire,
   réouverture, contours et image calibrée avec alias.
-- Régression de code complète : **244/244** réussie, journal
-  `.tools/full-unit-native-244.log`.
+- Régression de code complète : **245/245** réussie, journal
+  `.tools/full-unit-native-245.log`.
+- Régression navigateur complète : **68/68** réussie, journal
+  `.tools/full-browser-native.log`. Une première annotation des tests image
+  mentionnait CAL-10 ; la correspondance correcte est CAL-07. Le contrôle des
+  limites indépendantes relève de PRJ-01, pas de MET-03. Ces libellés sont
+  corrigés dans les sources et l'index. Le contrôle supplémentaire des alias
+  vérifie aussi leur affichage réel dans le panneau du rapport.
+- Castelfranco enregistré via le menu du navigateur, relu puis réenregistré
+  avec les types .NET originaux : 9 sources, 13 bâtiments, 4 résultats H,
+  24 résultats V. Les 15 champs calculés aux points diffèrent au maximum de
+  **2,78 × 10⁻¹⁷ V/m** de l'import initial.
 
 Cette validation ne prouve pas l'ouverture visuelle dans la fenêtre originale,
 ni la reproduction exacte de tous ses écrans. L'accès Windows Computer Use a

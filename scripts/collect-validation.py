@@ -89,7 +89,7 @@ def main():
                          (output / 'native-samples-v2', 'original-project-samples')]:
         if evidence_dir.exists():
             shutil.copytree(evidence_dir, output / 'test-kit' / name, dirs_exist_ok=True)
-    for evidence_dir in ['xemf-interop', 'native-project-ui']:
+    for evidence_dir in ['xemf-interop', 'native-project-ui', 'native-project-ui-corrected']:
         if (output / evidence_dir).exists():
             shutil.copytree(output / evidence_dir, output / 'test-kit' / evidence_dir, dirs_exist_ok=True)
     web_source = output / 'builds/Windows-x64/web'

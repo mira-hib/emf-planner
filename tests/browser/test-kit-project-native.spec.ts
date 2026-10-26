@@ -16,6 +16,13 @@ test("PRJ-01 PRJ-04: save the original sample as native .xemf and reopen its sou
   await page.getByRole("button", { name: /^Ouvrir/ }).click();
   await (await chooser).setFiles("tests/fixtures/original-sample.xemf");
   await expect(page.locator(".project-count")).toContainText("9 sources");
+  await page
+    .getByRole("navigation")
+    .getByRole("button", { name: "Rapport par modèle", exact: true })
+    .click();
+  await expect(
+    page.getByRole("textbox", { name: "Valeur SiteName", exact: true }),
+  ).toHaveValue("Castelfranco Emilia TAV2");
   const wait = page.waitForEvent("download");
   await page.getByRole("button", { name: "Fichier", exact: true }).click();
   await page
@@ -48,7 +55,7 @@ test("PRJ-01 PRJ-04: save the original sample as native .xemf and reopen its sou
   await expect(page.getByRole("alert")).toHaveCount(0);
 });
 
-test("CAL-10 PRJ-01: native saving embeds a real calibrated PNG and retains exact alias values", async ({
+test("CAL-07 PRJ-01: native saving embeds a real calibrated PNG and retains exact alias values", async ({
   page,
 }) => {
   const p = newProject();
@@ -60,7 +67,7 @@ test("CAL-10 PRJ-01: native saving embeds a real calibrated PNG and retains exac
       color: "#123456",
     },
   ];
-  p.report_aliases = { "{Client}": "<A&B> 😀" };
+  p.report_aliases = { Client: "<A&B> 😀" };
   const sw = toGeo(0, -50, p.origin),
     ne = toGeo(100, 0, p.origin);
   p.background_image = {
